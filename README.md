@@ -33,7 +33,7 @@ library(glmcs)
 SEED <- 42
 
 set.seed(SEED)
-n <- 50; p <- 200
+n <- 200; p <- 1000
 X <- matrix(rnorm(n * p), n, p)
 X[,10] <- 0.95 * X[,10] + 0.05 * X[,20] + 0.05 * X[,30]
 X[,40] <- 0.95 * X[,40] + 0.05 * X[,50]
@@ -48,10 +48,12 @@ res <- glmcs(X           = X,
              family      = binomial("logit"),
              L           = 10L,
              coverage    = 0.95,
+             min_abs_corr= 0.,
              seed        = SEED
 )
 res$cs
 ```
+
 
 ## Main Functions
 

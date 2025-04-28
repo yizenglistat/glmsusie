@@ -80,7 +80,7 @@ glmcs <- function(X,
                   method        = "greedy",
                   max_iter      = 100L,
                   step_size     = 1.0,
-                  min_abs_corr  = 0.01,
+                  min_abs_corr  = 0.00,
                   tol           = 1e-6,
                   seed          = NULL) 
 {
