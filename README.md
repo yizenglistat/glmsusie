@@ -80,7 +80,7 @@ print(res$cs)
 ```
 
 <p align="center">
-  <img src="figures/demo.png" alt="Variable selection with confidence sets" width="800"/>
+  <img src="https://github.com/yizenglistat/glmcs/wiki/images/demo.png" alt="Variable selection with confidence sets" width="800"/>
   <br>
   <em>Figure 1: Variable selection visualization showing two confidence sets. Point sizes reflect confidence values; larger points indicate higher confidence. Points of the same color belong to the same confidence set.</em>
 </p>
