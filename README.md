@@ -1,4 +1,4 @@
-# glmcs: Generalized Linear Models with Confidence Sets
+# glmcs: Generalized Linear Models with Confidence   Sets
 
 [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/network)[![R](https://img.shields.io/badge/R-%3E%3D%203.5.0-blue.svg)](https://www.r-project.org/)[![CRAN status](https://www.r-pkg.org/badges/version/glmcs)](https://CRAN.R-project.org/package=glmcs)[![Downloads](https://cranlogs.r-pkg.org/badges/glmcs)](https://cran.r-project.org/package=glmcs)
@@ -95,7 +95,7 @@ print(res$cs)
   Core fitting engine (C++): returns raw posterior model probabilities, point estimates, p-values, etc.
 
 - `get_included()`, `get_cs()`  
-  Select significant single‐effect components and construct credible sets with purity filtering (if applicable).
+  Select significant single‐effect components and construct confidence sets with purity filtering (if applicable).
 
 - `get_glm_fit()`, `get_cox_fit()`, `null_glm_fit()`, `null_cox_fit()`  
   Fast univariate fits (Gaussian, Binomial, Poisson, Gamma, inverse-Gaussian, Cox) via closed-form or IRLS.
