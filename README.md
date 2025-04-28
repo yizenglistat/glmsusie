@@ -13,7 +13,7 @@
 
 ## Overview
 
-**glmcs** implements *likelihood-based additive single-effect regression (LASER)* via a block-coordinate ascent algorithm, and provides **confidence sets (CSs)** for variable selection with uncertainty quantification.  
+**glmcs** implements *likelihood-based additive single-effect regression (LASER)* via a block-coordinate ascent algorithm, and provides *confidence sets (CSs)* for variable selection with uncertainty quantification.  
 
 Key features:
 - **Robust variable selection** under high multicollinearity  
