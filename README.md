@@ -25,7 +25,7 @@ if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
 devtools::install_github("yizenglistat/glmcs")
 ```
 
-## Quick Start
+## Demo
 
 ```r
 library(glmcs)
@@ -78,6 +78,12 @@ print(res$cs)
 # $coverage
 # [1] 0.9947149 0.9872938
 ```
+
+<p align="center">
+  <img src="figures/demo.png" alt="Variable selection with confidence sets" width="800"/>
+  <br>
+  <em>Figure 1: Variable selection visualization showing two confidence sets. Point sizes reflect confidence values; larger points indicate higher confidence. Points of the same color belong to the same confidence set.</em>
+</p>
 
 
 ## Main Functions
