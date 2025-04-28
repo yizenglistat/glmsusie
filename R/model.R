@@ -19,7 +19,7 @@
 #'   (default \code{100L}).
 #' @param step_size Numeric; multiplicative step-size for updates (default \code{1.0}).
 #' @param min_abs_corr Minimum absolute correlation threshold for purity filtering
-#'   (default \code{0.01}).
+#'   (default \code{0}).
 #' @param tol Numeric; convergence tolerance on log-likelihood change
 #'   (default \code{1e-6}).
 #' @param seed Optional integer seed for reproducibility (default \code{NULL}).
