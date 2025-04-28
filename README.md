@@ -18,7 +18,7 @@
 Key features:
 - **Robust variable selection** under high multicollinearity  
 - **Confident sets** that capture posterior uncertainty in variable inclusion  
-- **Flexible modeling**: linear, generalized linear (e.g. logistic, Poisson), and Cox regression  
+- **Flexible modeling**: Gaussian, generalized linear (e.g. logistic, Poisson), and Cox regression  
 - **High/Scalable performance** via a C++ (Rcpp & Armadillo) backend  
 - **Extensions**: applicable to general likelihood-based regression variable selection problems
 
