@@ -5,3 +5,5 @@
 .Rhistory
 .RData
 .DS_Store
+.*.history
+.Rbuildignore
