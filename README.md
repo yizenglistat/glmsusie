@@ -120,4 +120,4 @@ GPL-3 | © 2025 Yizeng Li & Wei Pan
 
 ---
 
-> _“Extensible and generalizable confidence‐driven variable selection in high‐dimensional, multicollinear settings---glmcs delivers both statistical rigor and computational efficiency.”_  
+> _“Extensible and generalizable variable selection with confidence in high‐dimensional, multicollinear settings---glmcs delivers both statistical rigor and computational efficiency.”_  
