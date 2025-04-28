@@ -109,9 +109,8 @@ print(res$cs)
 - Low-level utilities:  
   - `get_loglike()`, `update_intercept()`, `update_dispersion()`, `get_purity()`, etc.
 
-## Documentation & Support
+## Open Issues & Support
 
-[CRAN](https://CRAN.R-project.org/package=glmcs)
 [![GitHub issues](https://img.shields.io/github/issues-raw/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/issues)
 
 ## License
