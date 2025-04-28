@@ -30,22 +30,25 @@ devtools::install_github("yizenglistat/glmcs")
 ```r
 library(glmcs)
 
-# Simulate correlated predictors and continuous response
 set.seed(42)
-n <- 200; p <- 50
+n <- 200; p <- 200
 X <- matrix(rnorm(n * p), n, p)
-β_true <- rep(0, p); β_true[c(3, 7, 20)] <- c(2, -1.5, 1.2)
-y <- X %*% β_true + rnorm(n)
+X[,1] <- 0.95 * X[,1] + 0.05 * X[,2] + 0.05 * X[,3]
+X[,4] <- 0.95 * X[,4] + 0.05 * X[,5]
 
-# Fit LASER model
-res <- laser(
-  X, y,
-  family      = gaussian("identity"),
-  L           = 5L,
-  coverage    = 0.90,
-  standardize = TRUE,
-  method      = "greedy",
-  seed        = 42
+theta <- rep(0, p); 
+theta[c(1, 4)] <- c(1, 1)
+prob <- plogis(X %*% theta)
+y <- rbinom(n, 1, prob)
+
+res <- glmcs(X           = X, 
+             y           = y,
+             family      = binomial("logit"),
+             L           = 10L,
+             coverage    = 0.95,
+             standardize = TRUE,
+             method      = "greedy",
+             seed        = 42
 )
 ```
 
@@ -77,4 +80,4 @@ res <- laser(
 
 ---
 
-> _``Extensible and generalizable confidence‐driven variable selection in high‐dimensional, multicollinear settings---glmcs delivers both statistical rigor and computational efficiency.''_  
+> _“Extensible and generalizable confidence‐driven variable selection in high‐dimensional, multicollinear settings---glmcs delivers both statistical rigor and computational efficiency.”_  
