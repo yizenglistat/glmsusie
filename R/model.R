@@ -3,8 +3,8 @@
 #' glmcs fits the LASER model via blockwise coordinate ascent, perform variable selection under multicollinearity,
 #' and build credible sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
 #'
-#' @param X A numeric \eqn{n \times p} predictor matrix.
-#' @param y A response: numeric vector (for GLM) or \eqn{n\times2} matrix (time, status) for Cox.
+#' @param X A numeric \code{n \times p} predictor matrix.
+#' @param y A response: numeric vector (for GLM) or \code{n\times2} matrix (time, status) for Cox.
 #' @param family A GLM family object (e.g.\ \code{gaussian("identity")}, \code{binomial()})
 #'   or the string \code{"cox"}.
 #' @param L Integer number of single-effect components (default \code{10L}
@@ -19,7 +19,7 @@
 #'   (default \code{100L}).
 #' @param step_size Numeric; multiplicative step-size for updates (default \code{1.0}).
 #' @param min_abs_corr Minimum absolute correlation threshold for purity filtering
-#'   (default \code{0.5}).
+#'   (default \code{0.01}).
 #' @param tol Numeric; convergence tolerance on log-likelihood change
 #'   (default \code{1e-6}).
 #' @param seed Optional integer seed for reproducibility (default \code{NULL}).
@@ -80,7 +80,7 @@ glmcs <- function(X,
                   method        = "greedy",
                   max_iter      = 100L,
                   step_size     = 1.0,
-                  min_abs_corr  = 0.5,
+                  min_abs_corr  = 0.01,
                   tol           = 1e-6,
                   seed          = NULL) 
 {

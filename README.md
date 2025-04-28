@@ -30,15 +30,17 @@ devtools::install_github("yizenglistat/glmcs")
 ```r
 library(glmcs)
 
-set.seed(42)
-n <- 200; p <- 200
+SEED <- 42
+
+set.seed(SEED)
+n <- 50; p <- 200
 X <- matrix(rnorm(n * p), n, p)
-X[,1] <- 0.95 * X[,1] + 0.05 * X[,2] + 0.05 * X[,3]
-X[,4] <- 0.95 * X[,4] + 0.05 * X[,5]
+X[,10] <- 0.95 * X[,10] + 0.05 * X[,20] + 0.05 * X[,30]
+X[,40] <- 0.95 * X[,40] + 0.05 * X[,50]
 
 theta <- rep(0, p); 
-theta[c(1, 4)] <- c(1, 1)
-prob <- plogis(X %*% theta)
+theta[c(10, 40)] <- c(1, 1)
+prob <- plogis(0.5 + X %*% theta)
 y <- rbinom(n, 1, prob)
 
 res <- glmcs(X           = X, 
@@ -46,10 +48,9 @@ res <- glmcs(X           = X,
              family      = binomial("logit"),
              L           = 10L,
              coverage    = 0.95,
-             standardize = TRUE,
-             method      = "greedy",
-             seed        = 42
+             seed        = SEED
 )
+res$cs
 ```
 
 ## Main Functions
