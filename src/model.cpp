@@ -162,11 +162,11 @@ DataFrame get_ser_fit(NumericMatrix X,
 }
 
 /**
- * @title Fit LASER Model (L-Effect Sparse Regression) with Early Stopping
+ * @title Fit LASER Model (Likelihood-based Additive Single-Effect Regression)
  * 
  * @description
- * Fits the LASER model, which represents a response as a sum of L sparse effects,
- * using block coordinate ascent. The model supports both GLM families and Cox 
+ * Fits the LASER model, which represents the vector of regression coefficients as a sum of L sparse effects,
+ * using blockwise coordinate ascent. The model supports both GLM families and Cox 
  * regression and includes early stopping for efficient computation.
  *
  * @details

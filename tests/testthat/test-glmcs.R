@@ -1,4 +1,4 @@
-# Tests for the laser algorithm with various model families 
+# Tests for the glmcs with various model families 
 # e.g., Gaussian, Binomila, Poisson, Cox
 # Author: Yizeng Li
 # Date: 2025-04-28
@@ -6,7 +6,7 @@
 # =============================================================================
 # Test Gaussian Models
 # =============================================================================
-test_that("laser handles Gaussian regression with independent predictors", {
+test_that("glmcs handles Gaussian regression with independent predictors", {
   # SETUP: Create controlled test data with known structure
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -15,12 +15,12 @@ test_that("laser handles Gaussian regression with independent predictors", {
   true_vars <- c(1, 3)                         # Variables with true effects
   y <- X[, true_vars[1]] + X[, true_vars[2]] + rnorm(n, sd = 1)  # Response with true model
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = gaussian())
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = gaussian())
   
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")               # Should return proper S3 class
+  expect_s3_class(output, "glmcs")               # Should return proper S3 class
   expect_true(all(c("cs", "fit") %in% names(output)))  # Contains expected components
   
   # 2. Confidence sets validation
@@ -53,7 +53,7 @@ test_that("laser handles Gaussian regression with independent predictors", {
   expect_true(is.finite(output$fit$dispersion))   # Dispersion should be finite
 })
 
-test_that("laser handles Gaussian regression with highly correlated predictors", {
+test_that("glmcs handles Gaussian regression with highly correlated predictors", {
   # SETUP: Create controlled test data with multicollinearity
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -78,12 +78,12 @@ test_that("laser handles Gaussian regression with highly correlated predictors",
   true_effects <- c(1, 0, 0, 1, rep(0, p-4))  # True coefficients: X1=1, X4=1
   y <- X %*% true_effects + rnorm(n, sd = 1)
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = gaussian())
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = gaussian())
   
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")
+  expect_s3_class(output, "glmcs")
   expect_true(all(c("cs", "fit") %in% names(output)))
   
   # 2. Confidence sets validation
@@ -133,7 +133,7 @@ test_that("laser handles Gaussian regression with highly correlated predictors",
 # =============================================================================
 # Test Binomial Models
 # =============================================================================
-test_that("laser handles binomial regression with independent predictors", {
+test_that("glmcs handles binomial regression with independent predictors", {
   # SETUP: Create controlled test data with known structure
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -146,12 +146,12 @@ test_that("laser handles binomial regression with independent predictors", {
   prob <- 1/(1 + exp(-linear_pred))            # Inverse logit function
   y <- rbinom(n, 1, prob)                      # Binary outcome
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = binomial())
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = binomial())
   
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")               # Should return proper S3 class
+  expect_s3_class(output, "glmcs")               # Should return proper S3 class
   expect_true(all(c("cs", "fit") %in% names(output)))  # Contains expected components
   
   # 2. Confidence sets validation
@@ -184,7 +184,7 @@ test_that("laser handles binomial regression with independent predictors", {
   expect_true(is.finite(output$fit$dispersion))   # Dispersion should be finite
 })
 
-test_that("laser handles binomial regression with highly correlated predictors", {
+test_that("glmcs handles binomial regression with highly correlated predictors", {
   # SETUP: Create controlled test data with multicollinearity
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -210,12 +210,12 @@ test_that("laser handles binomial regression with highly correlated predictors",
   prob <- 1/(1 + exp(-linear_pred))           # Inverse logit function
   y <- rbinom(n, 1, prob)                     # Binary outcome
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = binomial())
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = binomial())
   
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")
+  expect_s3_class(output, "glmcs")
   expect_true(all(c("cs", "fit") %in% names(output)))
   
   # 2. Confidence sets validation
@@ -265,7 +265,7 @@ test_that("laser handles binomial regression with highly correlated predictors",
 # =============================================================================
 # Test Poisson Models
 # =============================================================================
-test_that("laser handles Poisson regression with independent predictors", {
+test_that("glmcs handles Poisson regression with independent predictors", {
   # SETUP: Create controlled test data with known structure
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -278,12 +278,12 @@ test_that("laser handles Poisson regression with independent predictors", {
   mu <- exp(linear_pred)                       # Log link function
   y <- rpois(n, mu)                            # Count outcome
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = poisson())
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = poisson())
 
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")               # Should return proper S3 class
+  expect_s3_class(output, "glmcs")               # Should return proper S3 class
   expect_true(all(c("cs", "fit") %in% names(output)))  # Contains expected components
   
   # 2. Confidence sets validation
@@ -316,7 +316,7 @@ test_that("laser handles Poisson regression with independent predictors", {
   expect_true(is.finite(output$fit$dispersion))   # Dispersion should be finite
 })
 
-test_that("laser handles Poisson regression with highly correlated predictors", {
+test_that("glmcs handles Poisson regression with highly correlated predictors", {
   # SETUP: Create controlled test data with multicollinearity
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -342,12 +342,12 @@ test_that("laser handles Poisson regression with highly correlated predictors", 
   mu <- exp(linear_pred)                      # Log link function
   y <- rpois(n, mu)                           # Count outcome
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = poisson())
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = poisson())
   
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")
+  expect_s3_class(output, "glmcs")
   expect_true(all(c("cs", "fit") %in% names(output)))
   
   # 2. Confidence sets validation
@@ -388,7 +388,7 @@ test_that("laser handles Poisson regression with highly correlated predictors", 
 # =============================================================================
 # Test Cox Proportional Hazards Models
 # =============================================================================
-test_that("laser handles Cox regression with independent predictors", {
+test_that("glmcs handles Cox regression with independent predictors", {
   # SETUP: Create controlled test data with known structure
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -410,12 +410,12 @@ test_that("laser handles Cox regression with independent predictors", {
   # Create survival response
   y <- cbind(observed_time, status)
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = "cox")
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = "cox")
   
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")               # Should return proper S3 class
+  expect_s3_class(output, "glmcs")               # Should return proper S3 class
   expect_true(all(c("cs", "fit") %in% names(output)))  # Contains expected components
   
   # 2. Confidence sets validation
@@ -447,7 +447,7 @@ test_that("laser handles Cox regression with independent predictors", {
   expect_true(output$fit$final_loglike > -Inf)    # Should have valid likelihood
 })
 
-test_that("laser handles Cox regression with highly correlated predictors", {
+test_that("glmcs handles Cox regression with highly correlated predictors", {
   # SETUP: Create controlled test data with multicollinearity
   set.seed(1)
   n <- 500                                     # Number of observations
@@ -484,12 +484,12 @@ test_that("laser handles Cox regression with highly correlated predictors", {
   # Create survival response
   y <- cbind(observed_time, status)
   
-  # EXECUTE: Run laser algorithm
-  output <- laser(X, y, family = "cox")
+  # EXECUTE: Run glmcs algorithm
+  output <- glmcs(X, y, family = "cox")
   
   # VERIFY: Test output structure and correctness
   # 1. Basic structure checks
-  expect_s3_class(output, "laser")
+  expect_s3_class(output, "glmcs")
   expect_true(all(c("cs", "fit") %in% names(output)))
   
   # 2. Confidence sets validation

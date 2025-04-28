@@ -2,7 +2,6 @@
 % Please edit documentation in R/glmcs-package.R
 \docType{package}
 \name{glmcs-package}
-\alias{glmcs}
 \alias{glmcs-package}
 \title{glmcs: L-Effect Sparse Regression Models}
 \description{

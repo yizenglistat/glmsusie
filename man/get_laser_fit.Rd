@@ -2,7 +2,7 @@
 % Please edit documentation in R/internal.R
 \name{get_laser_fit}
 \alias{get_laser_fit}
-\title{Fit LASER Model (L-Effect Sparse Regression) with Early Stopping}
+\title{Fit LASER Model}
 \arguments{
 \item{X}{NumericMatrix (n × p) predictor matrix, where:
 n = number of observations
@@ -51,8 +51,8 @@ A list containing:
 }
 }
 \description{
-Fits the LASER model, which represents a response as a sum of L sparse effects,
-using block coordinate ascent. The model supports both GLM families and Cox
+Fits the LASER model, which represents regression coefficients as a sum of L single-effects,
+using blockwise coordinate ascent. The model supports both GLM families and Cox
 regression and includes early stopping for efficient computation.
 }
 \details{

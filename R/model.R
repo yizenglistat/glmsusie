@@ -1,7 +1,7 @@
-#' LASER: L-Effect Sparse Regression with Credible Sets
+#' LASER: Likelihood-based Additive Single-Effect Regression algorithm for generalized linear regression problems
 #'
-#' Fit the LASER model via block coordinate ascent, select significant effects,
-#' and build credible sets with purity filtering.
+#' glmcs fits the LASER model via blockwise coordinate ascent, perform variable selection under multicollinearity,
+#' and build credible sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
 #'
 #' @param X A numeric \eqn{n \times p} predictor matrix.
 #' @param y A response: numeric vector (for GLM) or \eqn{n\times2} matrix (time, status) for Cox.
@@ -52,7 +52,7 @@
 #' beta <- c(3, -2, rep(0, p - 2))
 #' y <- X %*% beta + rnorm(n)
 #'
-#' res <- laser(
+#' res <- glmcs(
 #'   X            = X,
 #'   y            = y,
 #'   family       = gaussian("identity"),
@@ -70,7 +70,7 @@
 #' @useDynLib glmcs, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 #' @export
-laser <- function(X,
+glmcs <- function(X,
                   y,
                   family        = gaussian("identity"),
                   L             = 10L,
@@ -146,6 +146,15 @@ laser <- function(X,
     step_size   = step_size,
     seed        = seed
   )
-  class(out) <- "laser"
+  class(out) <- "glmcs"
   return(out)
 }
+
+# #’ Deprecated alias for glmcs()
+# #’
+# #’ @param … same arguments as glmcs()
+# #’ @export
+# laser <- function(...) {
+#   .Deprecated("glmcs")
+#   glmcs(...)
+# }
