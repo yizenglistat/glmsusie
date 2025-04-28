@@ -20,7 +20,7 @@ Key features:
 - **Confident sets** that capture posterior uncertainty in variable inclusion  
 - **Flexible modeling**: linear, generalized linear (e.g. logistic, Poisson), and Cox regression  
 - **High/Scalable performance** via a C++ (Rcpp & Armadillo) backend  
-- **Configurable**: tune number of effects (`L`), coverage, convergence tolerance, update strategy  
+- **Extensions**: applicable to general likelihood-based regression variable selection problems
 
 ## Installation
 
