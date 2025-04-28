@@ -6,7 +6,7 @@
 
 ## Overview
 
-**glmcs** implements *likelihood-based additive single-effect regression (LASER)* via a block-coordinate ascent algorithm, and provides **confident sets (CSs)** for variable selection with uncertainty quantification.  
+**glmcs** implements *likelihood-based additive single-effect regression (LASER)* via a block-coordinate ascent algorithm, and provides **confidence sets (CSs)** for variable selection with uncertainty quantification.  
 
 Key features:
 - **Robust variable selection** under high multicollinearity  
@@ -33,13 +33,27 @@ library(glmcs)
 SEED <- 42
 
 set.seed(SEED)
-n <- 200; p <- 1000
-X <- matrix(rnorm(n * p), n, p)
-X[,10] <- 0.95 * X[,10] + 0.05 * X[,20] + 0.05 * X[,30]
-X[,40] <- 0.95 * X[,40] + 0.05 * X[,50]
 
+n <- 500; p <- 5
+
+# Create correlation matrix with specific structure
+cor_matrix <- matrix(0, nrow = p, ncol = p)
+diag(cor_matrix) <- 1
+
+# X1, X2, X3 highly correlated
+cor_matrix[1:3, 1:3] <- 0.95
+diag(cor_matrix[1:3, 1:3]) <- 1
+
+# X4, X5 highly correlated
+cor_matrix[4:5, 4:5] <- 0.95
+diag(cor_matrix[4:5, 4:5]) <- 1
+
+# Generate multivariate normal data
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cor_matrix)
+
+# coefficents
 theta <- rep(0, p); 
-theta[c(10, 40)] <- c(1, 1)
+theta[c(2, 5)] <- 1
 prob <- plogis(0.5 + X %*% theta)
 y <- rbinom(n, 1, prob)
 
@@ -51,14 +65,25 @@ res <- glmcs(X           = X,
              min_abs_corr= 0.,
              seed        = SEED
 )
-res$cs
+
+print(res$cs)
+# $sets
+# $sets[[1]]
+# [1] 5
+
+# $sets[[2]]
+# [1] 1 2
+
+
+# $coverage
+# [1] 0.9947149 0.9872938
 ```
 
 
 ## Main Functions
 
 - `glmcs(X, y, family, L, coverage, ...)`  
-  End‐to‐end wrapper: fits the LASER model, variable selection, builds confident sets.
+  End‐to‐end wrapper: fits the LASER model, variable selection, builds confidence sets.
 
 - `get_laser_fit()`  
   Core fitting engine (C++): returns raw posterior model probabilities, point estimates, p-values, etc.
