@@ -77,4 +77,4 @@ res <- laser(
 
 ---
 
-> _“Confident variable selection in high dimensions demands both statistical rigor and computational efficiency—`glmcs` delivers on both fronts.”_  
+> _``Extensible and generalizable confidence‐driven variable selection in high‐dimensional, multicollinear settings---glmcs delivers both statistical rigor and computational efficiency.''_  
