@@ -111,8 +111,8 @@ print(res$cs)
 
 ## Documentation & Support
 
-- **Reference manual**: [CRAN](https://CRAN.R-project.org/package=glmcs)  
-- **Issues**: [![GitHub issues](https://img.shields.io/github/issues-raw/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/issues)
+[CRAN](https://CRAN.R-project.org/package=glmcs)
+[![GitHub issues](https://img.shields.io/github/issues-raw/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/issues)
 
 ## License
 
