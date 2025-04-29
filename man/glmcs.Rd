@@ -31,7 +31,7 @@ or the string \code{"cox"}.}
 \item{L}{Integer number of single-effect components (default \code{10L}
 or \code{min(10, p)} if \code{p < 10}).}
 
-\item{coverage}{Desired posterior mass for credible sets (default \code{0.95}).}
+\item{coverage}{Desired posterior mass for confidence sets (default \code{0.95}).}
 
 \item{standardize}{Logical; should predictors be standardized? (default \code{TRUE}).}
 
@@ -61,7 +61,7 @@ A named list with components:
 \item{\code{fit}}{Raw output from \code{\link{get_laser_fit}}.}
 \item{\code{pmp}}{Posterior marginal probabilities of inclusion.}
 \item{\code{theta}}{Estimated effect vector (sum over \eqn{L} components).}
-\item{\code{cs}}{Credible sets (list of integer vectors) from
+\item{\code{cs}}{Confidence sets (list of integer vectors) from
 \code{\link{get_cs}}.}
 \item{\code{coverage}}{Requested coverage level.}
 \item{\code{keep}}{Logical vector of length \eqn{L}, indicating significant effects
@@ -72,7 +72,7 @@ via \code{\link{get_included}}.}
 }
 \description{
 glmcs fits the LASER model via blockwise coordinate ascent, perform variable selection under multicollinearity,
-and build credible sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
+and build confidence sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
 }
 \examples{
 \dontrun{
@@ -101,6 +101,6 @@ print(res$cs)
 \itemize{
 \item \code{\link{get_laser_fit}} for the low‐level C++ fit routine
 \item \code{\link{get_included}} to select significant effects
-\item \code{\link{get_cs}} to build credible sets
+\item \code{\link{get_cs}} to build confidence sets
 }
 }

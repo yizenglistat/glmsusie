@@ -1,7 +1,7 @@
 #' LASER: Likelihood-based Additive Single-Effect Regression algorithm for generalized linear regression problems
 #'
 #' glmcs fits the LASER model via blockwise coordinate ascent, perform variable selection under multicollinearity,
-#' and build credible sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
+#' and build confidence sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
 #'
 #' @param X A numeric \code{n x p} predictor matrix.
 #' @param y A response: numeric vector (for GLM) or \code{n x 2} matrix (time, status) for Cox.
@@ -9,7 +9,7 @@
 #'   or the string \code{"cox"}.
 #' @param L Integer number of single-effect components (default \code{10L}
 #'   or \code{min(10, p)} if \code{p < 10}).
-#' @param coverage Desired posterior mass for credible sets (default \code{0.95}).
+#' @param coverage Desired posterior mass for confidence sets (default \code{0.95}).
 #' @param standardize Logical; should predictors be standardized? (default \code{TRUE}).
 #' @param ties Character; tie-handling method for Cox: \code{"efron"} or \code{"breslow"}
 #'   (default \code{"efron"}).
@@ -30,7 +30,7 @@
 #'   \item{\code{fit}}{Raw output from \code{\link{get_laser_fit}}.}
 #'   \item{\code{pmp}}{Posterior marginal probabilities of inclusion.}
 #'   \item{\code{theta}}{Estimated effect vector (sum over \eqn{L} components).}
-#'   \item{\code{cs}}{Credible sets (list of integer vectors) from
+#'   \item{\code{cs}}{Confidence sets (list of integer vectors) from
 #'     \code{\link{get_cs}}.}
 #'   \item{\code{coverage}}{Requested coverage level.}
 #'   \item{\code{keep}}{Logical vector of length \eqn{L}, indicating significant effects
@@ -42,7 +42,7 @@
 #' @seealso
 #'  * \code{\link{get_laser_fit}} for the low‐level C++ fit routine
 #'  * \code{\link{get_included}} to select significant effects
-#'  * \code{\link{get_cs}} to build credible sets
+#'  * \code{\link{get_cs}} to build confidence sets
 #'
 #' @examples
 #' \dontrun{
@@ -111,7 +111,7 @@ glmcs <- function(X,
     alpha  = tol  # you may choose a separate alpha if preferred
   )
 
-  #--- 4) Credible sets + purity filtering ----------------------------------
+  #--- 4) Confidence sets + purity filtering ----------------------------------
   cs <- get_cs(
     posterior_mat = fit$posterior,
     keep          = keep,
@@ -149,12 +149,3 @@ glmcs <- function(X,
   class(out) <- "glmcs"
   return(out)
 }
-
-# #’ Deprecated alias for glmcs()
-# #’
-# #’ @param … same arguments as glmcs()
-# #’ @export
-# laser <- function(...) {
-#   .Deprecated("glmcs")
-#   glmcs(...)
-# }
