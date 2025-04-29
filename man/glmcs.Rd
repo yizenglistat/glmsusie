@@ -15,15 +15,15 @@ glmcs(
   method = "greedy",
   max_iter = 100L,
   step_size = 1,
-  min_abs_corr = 0.5,
+  min_abs_corr = 0,
   tol = 1e-06,
   seed = NULL
 )
 }
 \arguments{
-\item{X}{A numeric \eqn{n \times p} predictor matrix.}
+\item{X}{A numeric \code{n x p} predictor matrix.}
 
-\item{y}{A response: numeric vector (for GLM) or \eqn{n\times2} matrix (time, status) for Cox.}
+\item{y}{A response: numeric vector (for GLM) or \code{n x 2} matrix (time, status) for Cox.}
 
 \item{family}{A GLM family object (e.g.\ \code{gaussian("identity")}, \code{binomial()})
 or the string \code{"cox"}.}
@@ -47,7 +47,7 @@ or \code{min(10, p)} if \code{p < 10}).}
 \item{step_size}{Numeric; multiplicative step-size for updates (default \code{1.0}).}
 
 \item{min_abs_corr}{Minimum absolute correlation threshold for purity filtering
-(default \code{0.5}).}
+(default \code{0}).}
 
 \item{tol}{Numeric; convergence tolerance on log-likelihood change
 (default \code{1e-6}).}
@@ -71,8 +71,8 @@ via \code{\link{get_included}}.}
 }
 }
 \description{
-Fit the LASER model via blockwise coordinate ascent, perform variable selection under multicollinearity,
-and build credible sets at a significant level. LASER supports general regression problems such as GLM built-in families and cox regression.
+glmcs fits the LASER model via blockwise coordinate ascent, perform variable selection under multicollinearity,
+and build credible sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
 }
 \examples{
 \dontrun{

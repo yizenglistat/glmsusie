@@ -3,12 +3,25 @@
 \docType{package}
 \name{glmcs-package}
 \alias{glmcs-package}
-\title{glmcs: L-Effect Sparse Regression Models}
+\title{glmcs: Generalized Linear Models with Confident Sets}
 \description{
-Implements L-Effect Sparse Regression (LASER) models for statistical modeling. This package provides tools for efficient fitting of models with multiple sparse effects, supporting various GLM families and Cox regression.
+Implements likelihood-based additive single-effect regression (LASER) via a block-coordinate ascent algorithm, providing confident sets for variable selection with uncertainty quantification. Features include robust variable selection under high multicollinearity, confident sets that capture posterior uncertainty in variable inclusion, flexible modeling for linear, generalized linear, and Cox regression, high performance via C++ backend, and configurable parameters for number of effects, coverage, and convergence tolerance.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/yizenglistat/glmcs}
+  \item Report bugs at \url{https://github.com/yizenglistat/glmcs/issues}
+}
+
 }
 \author{
-\strong{Maintainer}: Your Name \email{your.email@example.com}
+\strong{Maintainer}: Yizeng Li \email{yizenglistat@gmail.com}
+
+Authors:
+\itemize{
+  \item Wei Pan \email{panxx014@umn.edu}
+}
 
 }
 \keyword{internal}

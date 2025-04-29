@@ -9,4 +9,4 @@
 library(testthat)
 library(glmcs)
 
-test_check("laser")
+test_check("glmcs")

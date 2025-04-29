@@ -1,22 +1,38 @@
 Package: glmcs
-Title: L-Effect Sparse Regression Models
-Version: 0.0.0.9000
-Authors@R: 
-    person("Your", "Name", , "your.email@example.com", role = c("aut", "cre"))
-Description: Implements L-Effect Sparse Regression (LASER) models for
-    statistical modeling. This package provides tools for efficient
-    fitting of models with multiple sparse effects, supporting various GLM
-    families and Cox regression.
+Title: Generalized Linear Models with Confident Sets
+Version: 0.1.0
+Date: 2025-04-29
+Authors@R: c(
+    person("Yizeng", "Li", email = "yizenglistat@gmail.com", role = c("aut", "cre")),
+    person("Wei", "Pan", email = "panxx014@umn.edu", role = "aut")
+  )
+Description: Implements likelihood-based additive single-effect regression (LASER) 
+    via a block-coordinate ascent algorithm, providing confident sets for variable 
+    selection with uncertainty quantification. Features include robust variable 
+    selection under high multicollinearity, confident sets that capture posterior 
+    uncertainty in variable inclusion, flexible modeling for linear, generalized 
+    linear, and Cox regression, high performance via C++ backend, and configurable
+    parameters for number of effects, coverage, and convergence tolerance.
 License: GPL (>= 3)
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+URL: https://github.com/yizenglistat/glmcs
+BugReports: https://github.com/yizenglistat/glmcs/issues
+Depends: 
+    R (>= 3.5.0)
 Imports: 
-    Rcpp,
-    stats
+    Rcpp (>= 1.0.7),
+    stats,
+    Matrix,
+    MASS
 LinkingTo: 
     Rcpp,
     RcppArmadillo
 Suggests: 
     testthat (>= 3.0.0)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
 Config/testthat/edition: 3
+
+
+
+

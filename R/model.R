@@ -3,8 +3,8 @@
 #' glmcs fits the LASER model via blockwise coordinate ascent, perform variable selection under multicollinearity,
 #' and build credible sets at a significant level. glmcs supports general regression problems such as GLM built-in families and cox regression.
 #'
-#' @param X A numeric \code{n \times p} predictor matrix.
-#' @param y A response: numeric vector (for GLM) or \code{n\times2} matrix (time, status) for Cox.
+#' @param X A numeric \code{n x p} predictor matrix.
+#' @param y A response: numeric vector (for GLM) or \code{n x 2} matrix (time, status) for Cox.
 #' @param family A GLM family object (e.g.\ \code{gaussian("identity")}, \code{binomial()})
 #'   or the string \code{"cox"}.
 #' @param L Integer number of single-effect components (default \code{10L}

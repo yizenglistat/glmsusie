@@ -497,3 +497,6 @@ NULL
 #' @name get_laser_fit
 #' @export
 NULL
+
+#' @importFrom stats rexp quantile rbinom rpois rgamma rnorm runif
+NULL
