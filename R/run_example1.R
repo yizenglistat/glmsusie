@@ -36,7 +36,7 @@
 #' @param methods Character vector. Methods to evaluate: "glmcs", "susie", or both. Default: c("glmcs", "susie").
 #' @param standardize Logical. Whether to standardize predictors. Default: TRUE.
 #' @param ties Character. Method for handling ties in Cox models: "breslow" or "efron". Default: "efron".
-#' @param algorithm Character. Algorithm to use: "greedy" or "forward". Default: "greedy".
+#' @param algorithm Character. Algorithm to use: "greedy", "shuffle", or "cyclic". Default: "greedy".
 #' @param max_iter Integer. Maximum number of iterations for optimization. Default: 100.
 #' @param step_size Numeric. Step size for the gradient-based optimization. Default: 1.0.
 #' @param tol Numeric. Convergence tolerance. Default: 1.0.
@@ -164,8 +164,8 @@ run_ex1 <- function(
     }
     
     # Validate categorical parameters
-    if (!algorithm %in% c("greedy", "forward")) {
-      warning("Parameter 'algorithm' must be either 'greedy' or 'forward'. Using default 'greedy'.")
+    if (!algorithm %in% c("greedy", "shuffle", "cyclic")) {
+      warning("Parameter 'algorithm' must be either 'greedy', 'shuffle', 'cyclic'. Using default 'greedy'.")
       algorithm <- "greedy"
     }
     
