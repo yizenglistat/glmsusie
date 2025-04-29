@@ -162,11 +162,11 @@ DataFrame get_ser_fit(NumericMatrix X,
 }
 
 /**
- * @title Fit LASER Model (Likelihood-based Additive Single-Effect Regression)
+ * @title Fit LASER Model (L-Effect Sparse Regression) with Early Stopping
  * 
  * @description
- * Fits the LASER model, which represents the vector of regression coefficients as a sum of L sparse effects,
- * using blockwise coordinate ascent. The model supports both GLM families and Cox 
+ * Fits the LASER model, which represents a response as a sum of L sparse effects,
+ * using block coordinate ascent. The model supports both GLM families and Cox 
  * regression and includes early stopping for efficient computation.
  *
  * @details
@@ -205,7 +205,7 @@ DataFrame get_ser_fit(NumericMatrix X,
  * @param step_size Double. Step size multiplier for updates (default: 1.0).
  *                  Values < 1 provide more conservative updates.
  * @param tol Double. Convergence tolerance on log-likelihood change (default: 1e-6).
- * @param method String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "cyclic").
+ * @param method String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "greedy").
  *
  * @return A list containing:
  *   - total_elapsed: Total execution time (seconds)
@@ -224,7 +224,7 @@ DataFrame get_ser_fit(NumericMatrix X,
  * # Gaussian example with 10 latent effects
  * X <- matrix(rnorm(100 * 20), 100, 20)
  * y <- rnorm(100)
- * laser_fit <- get_laser_fit(X, y, "gaussian", L = 5, method = "cyclic")
+ * laser_fit <- get_laser_fit(X, y, "gaussian", L = 5, method = "shuffle")
  * 
  * # Binomial example with fewer effects
  * y_bin <- rbinom(100, 1, 0.5)
@@ -248,7 +248,7 @@ List get_laser_fit(NumericMatrix   X,
                    SEXP            family,
                    int             L            = 10,
                    bool            standardize  = true,
-                   std::string     ties  = "efron",
+                   std::string     ties         = "efron",
                    std::string     method       = "greedy",
                    int             max_iter     = 100,
                    double          step_size    = 1.0,
@@ -263,7 +263,7 @@ List get_laser_fit(NumericMatrix   X,
 
   // Convert R matrix to Armadillo for efficient computation
   arma::mat Xmat(X.begin(), X.nrow(), X.ncol(), false);
-  [[maybe_unused]] const int n = Xmat.n_rows;
+  const int n = Xmat.n_rows;
   const int p = Xmat.n_cols;
 
   // Validate and adjust number of effects
