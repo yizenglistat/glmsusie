@@ -453,6 +453,7 @@ summarize_cs <- function(cs_list, true_active) {
 #’ sims   <- sapply(1:n_sims, function(i) rnorm(p, true_th, sd = 0.5))
 #’ summarise <- summarize_coef(sims, true_th)
 #’ print(summarise)
+#' @importFrom stats sd
 #’
 #’ @export
 summarize_coef <- function(sims_coef, true_theta) {
