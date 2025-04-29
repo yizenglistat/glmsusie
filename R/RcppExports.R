@@ -49,7 +49,7 @@ get_ser_fit <- function(X, y, family, offset, standardize = TRUE, ties = "efron"
     .Call(`_glmcs_get_ser_fit`, X, y, family, offset, standardize, ties)
 }
 
-get_laser_fit <- function(X, y, family, L = 10L, standardize = TRUE, ties = "efron", method = "greedy", max_iter = 100L, step_size = 1.0, tol = 1e-6, seed = NULL) {
-    .Call(`_glmcs_get_laser_fit`, X, y, family, L, standardize, ties, method, max_iter, step_size, tol, seed)
+get_laser_fit <- function(X, y, family, L = 10L, standardize = TRUE, ties = "efron", algorithm = "greedy", max_iter = 100L, step_size = 1.0, tol = 1.0, seed = NULL) {
+    .Call(`_glmcs_get_laser_fit`, X, y, family, L, standardize, ties, algorithm, max_iter, step_size, tol, seed)
 }
 

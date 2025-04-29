@@ -193,8 +193,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // get_laser_fit
-List get_laser_fit(NumericMatrix X, SEXP y, SEXP family, int L, bool standardize, std::string ties, std::string method, int max_iter, double step_size, double tol, Nullable<int> seed);
-RcppExport SEXP _glmcs_get_laser_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP LSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP methodSEXP, SEXP max_iterSEXP, SEXP step_sizeSEXP, SEXP tolSEXP, SEXP seedSEXP) {
+List get_laser_fit(NumericMatrix X, SEXP y, SEXP family, int L, bool standardize, std::string ties, std::string algorithm, int max_iter, double step_size, double tol, Nullable<int> seed);
+RcppExport SEXP _glmcs_get_laser_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP LSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP algorithmSEXP, SEXP max_iterSEXP, SEXP step_sizeSEXP, SEXP tolSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -204,17 +204,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type L(LSEXP);
     Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
-    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< std::string >::type algorithm(algorithmSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< double >::type step_size(step_sizeSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< Nullable<int> >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_laser_fit(X, y, family, L, standardize, ties, method, max_iter, step_size, tol, seed));
+    rcpp_result_gen = Rcpp::wrap(get_laser_fit(X, y, family, L, standardize, ties, algorithm, max_iter, step_size, tol, seed));
     return rcpp_result_gen;
 END_RCPP
 }
 
-RcppExport SEXP _rcpp_module_boot_model();
+RcppExport SEXP _rcpp_module_boot_laser();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_kl_divergence", (DL_FUNC) &_glmcs_kl_divergence, 2},
@@ -230,7 +230,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_update_dispersion", (DL_FUNC) &_glmcs_update_dispersion, 3},
     {"_glmcs_get_ser_fit", (DL_FUNC) &_glmcs_get_ser_fit, 6},
     {"_glmcs_get_laser_fit", (DL_FUNC) &_glmcs_get_laser_fit, 11},
-    {"_rcpp_module_boot_model", (DL_FUNC) &_rcpp_module_boot_model, 0},
+    {"_rcpp_module_boot_laser", (DL_FUNC) &_rcpp_module_boot_laser, 0},
     {NULL, NULL, 0}
 };
 

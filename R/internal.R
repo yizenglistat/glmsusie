@@ -448,11 +448,11 @@ NULL
 #'        If ≤ 0 or > p, automatically set to min(10, p).
 #' @param standardize Logical. Whether to standardize predictors (default: TRUE).
 #' @param ties String. Method for handling ties in Cox regression (default: "efron").
-#' @param method String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "cyclic").
+#' @param algorithm String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "cyclic").
 #' @param max_iter Integer. Maximum number of coordinate ascent iterations (default: 100).
 #' @param step_size Double. Step size multiplier for updates (default: 1.0).
 #'        Values < 1 provide more conservative updates.
-#' @param tol Double. Convergence tolerance on log-likelihood change (default: 1e-6).
+#' @param tol Double. Convergence tolerance on log-likelihood change (default: 1).
 #' @param seed Integer or NULL. Random seed for reproducibility (default: NULL).
 #'        If NULL or NA, no seed is set.
 #'
@@ -475,7 +475,7 @@ NULL
 #' # Gaussian example with 10 latent effects
 #' X <- matrix(rnorm(100 * 20), 100, 20)
 #' y <- rnorm(100)
-#' laser_fit <- get_laser_fit(X, y, "gaussian", L = 5, method = "cyclic")
+#' laser_fit <- get_laser_fit(X, y, "gaussian", L = 5, algorithm = "cyclic")
 #' 
 #' # Binomial example with fewer effects
 #' y_bin <- rbinom(100, 1, 0.5)
@@ -485,11 +485,11 @@ NULL
 #' time <- rexp(100)
 #' status <- rbinom(100, 1, 0.5)
 #' y_cox <- cbind(time, status)
-#' laser_cox <- get_laser_fit(X, y_cox, "cox", L = 5, method = "greedy")
+#' laser_cox <- get_laser_fit(X, y_cox, "cox", L = 5, algorithm = "greedy")
 #' }
 #' 
 #' @note
-#' The "greedy" method may be slower but often produces higher-quality models,
+#' The "greedy" algorithm may be slower but often produces higher-quality models,
 #' especially for smaller datasets. For large datasets, "cyclic" offers a good
 #' balance of speed and quality.
 #' 

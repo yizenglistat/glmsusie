@@ -23,7 +23,9 @@ Imports:
     stats,
     Matrix,
     utils,
-    MASS
+    MASS,
+    progress,
+    susieR
 LinkingTo: 
     Rcpp,
     RcppArmadillo

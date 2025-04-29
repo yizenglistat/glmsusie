@@ -326,104 +326,122 @@ is_covered <- function(confidence_sets, true_active) {
   all(true_active %in% all_indices)
 }
 
-#' Summarize Confidence Sets Across Simulations
-#'
-#' @title Summarize Confidence Sets Across Simulations
-#'
-#' @description
-#' Aggregate and tabulate the distinct confidence sets produced over multiple
-#' simulation replicates, computing their frequencies, relative proportions,
-#' and whether they successfully cover all true active predictors.
-#'
-#' @details
-#' Given a list of confidence-set vectors (one per simulation) and the known
-#' true active indices, this function:
-#' \enumerate{
-#'   \item Normalizes each set (sorts and deduplicates, treating \code{NULL}
-#'         or zero-length as the empty set \{\});
-#'   \item Identifies unique configurations in order of first appearance;
-#'   \item Counts how often each configuration occurs and computes its percentage
-#'         of the total simulations;
-#'   \item Determines whether each unique set covers all true actives by calling
-#'         \code{is_covered()};
-#'   \item Returns a data.frame sorted by descending frequency, with no row names.
-#' }
-#'
-#' @param cs_list List of length \code{n_sims}.  Each element must be either:
-#'   \itemize{
-#'     \item An integer vector of selected covariate indices, or
-#'     \item \code{NULL} / zero-length, interpreted as the empty set \{\}.
-#'   }
-#' @param true_active Integer vector. The indices of truly active covariates.
-#'
-#' @return A \code{data.frame} with columns:
-#' \describe{
-#'   \item{\code{set}}{Character string representation of the set, e.g.\ \code{"\{1,2\}"} or \code{"\{\}"}.}
-#'   \item{\code{count}}{Integer. Number of simulations in which this exact set occurred.}
-#'   \item{\code{percent}}{Numeric. \code{count} divided by \code{length(cs_list)}.}
-#'   \item{\code{cover}}{Logical. \code{TRUE} if \code{is_covered(set, true_active)}; \code{FALSE} otherwise.}
-#' }
-#'
-#' @seealso \code{is_covered} for checking whether a single confidence set
-#' contains all true active indices.
-#'
-#' @examples
-#' \dontrun{
-#' # Simulated list of sets (NULL or integer(0) indicate empty set)
-#' cs_list    <- list(c(1,2), NULL, c(3), c(2,1), integer(0))
-#' true_active <- c(1,2)
-#'
-#' # Summarize their frequencies and coverage
-#' summarize_cs(cs_list, true_active)
-#' }
-#'
-#' @export
+#’ Summarize Confidence Sets Across Simulations
+#’
+#’ @title Summarize Confidence Sets Across Simulations
+#’
+#’ @description
+#’ Aggregate and tabulate the distinct confidence sets produced over multiple
+#’ simulation replicates, computing their absolute and relative frequencies,
+#’ and whether they successfully cover all truly active predictors.
+#’
+#’ @details
+#’ Given \code{cs_list}, a list of confidence‐set specifications (one per simulation),
+#’ and \code{true_active}, the indices of the truly nonzero coefficients, this
+#’ function:
+#’ \enumerate{
+#’   \item Normalizes each element to a sorted, unique integer vector
+#’         (treating \code{NULL} or zero‐length as the empty set \{\});
+#’   \item Identifies unique configurations in the order they first appear;
+#’   \item Counts how often each unique set occurred and computes its percentage
+#’         of the total simulations;
+#’   \item Checks, for each unique set, whether it contains all elements of
+#’         \code{true_active} (via \code{\link{is_covered}()});
+#’   \item Returns a \code{data.frame} with columns \code{set}, \code{count},
+#’         \code{percent}, and \code{cover}, sorted by descending \code{count}.
+#’ }
+#’
+#’ @param cs_list List of length \code{n_sims}.  Each element must be either:
+#’   \itemize{
+#’     \item An integer (or numeric) vector of selected covariate indices, or
+#’     \item A nested list of integer vectors (e.g. SuSiE style), or
+#’     \item \code{NULL} / zero‐length, interpreted as the empty set \{\}.
+#’   }
+#’ @param true_active Integer vector. The indices of the truly active covariates.
+#’
+#’ @return A \code{data.frame} with columns:
+#’ \describe{
+#’   \item{\code{set}}{Character. String representation of the set,
+#’     e.g. \code{"\{1,2\}"} or \code{"\{\}"}.}
+#’   \item{\code{count}}{Integer. Number of simulations in which this exact set occurred.}
+#’   \item{\code{percent}}{Numeric. \code{count} divided by \code{length(cs_list)}.}
+#’   \item{\code{cover}}{Logical. \code{TRUE} if the set covers all \code{true_active},
+#’     i.e. \code{is_covered(set, true_active)}; otherwise \code{FALSE}.}
+#’ }
+#’
+#’ @seealso
+#’ \code{\link{is_covered}} for checking coverage of a single confidence set.
+#’
+#’ @examples
+#’ # Mixed SuSiE‐style and simple sets
+#’ cs_list    <- list(c(1,2), NULL, list(c(3,5), c(5,3)), integer(0))
+#’ true_active <- c(1,2)
+#’ summarize_cs(cs_list, true_active)
+#’
+#’ @importFrom stats table
+#’ @export
 summarize_cs <- function(cs_list, true_active) {
   n_sims <- length(cs_list)
 
-  # 1) Normalize each to sorted integer vector (NULL → integer(0))
-  norm_list <- lapply(cs_list, function(s) {
-    if (is.null(s) || length(s) == 0L) integer(0)
-    else sort(unique(as.integer(s)))
-  })
+  # Helper: normalize any input to a sorted integer vector
+  normalize <- function(s) {
+    if (is.null(s) || length(s) == 0L) {
+      return(integer(0))
+    }
+    # If atomic numeric/integer
+    if (is.numeric(s) || is.integer(s)) {
+      return(sort(unique(as.integer(s))))
+    }
+    # If list: recursively extract all numeric elements
+    if (is.list(s)) {
+      nums <- unlist(s, recursive = TRUE, use.names = FALSE)
+      if (is.numeric(nums)) {
+        return(sort(unique(as.integer(nums))))
+      }
+    }
+    warning("Unable to normalize element to integer vector; treating as empty set.")
+    integer(0)
+  }
 
-  # 2) Create keys for uniqueness
-  keys      <- vapply(norm_list, paste, "", collapse = ",")
+  # 1) Normalize every simulation’s set
+  norm_list <- lapply(cs_list, normalize)
+
+  # 2) Create string keys for uniqueness (empty vector → "")
+  keys <- vapply(norm_list, function(v) paste(v, collapse = ","), character(1))
+
+  # 3) Identify unique keys in order of appearance
   uniq_keys <- unique(keys)
   factor_keys <- factor(keys, levels = uniq_keys)
 
-  # 3) Tabulate counts and percentages
+  # 4) Tabulate counts and percentages
   counts   <- as.integer(table(factor_keys))
   percents <- counts / n_sims
 
-  # 4) Decode unique key strings back to integer vectors
+  # 5) Decode each unique key back to integer vector
   uniq_sets <- lapply(uniq_keys, function(k) {
-    if (k == "") integer(0)
-    else as.integer(strsplit(k, ",")[[1]])
+    if (k == "") integer(0) else as.integer(strsplit(k, ",")[[1]])
   })
 
-  # 5) Evaluate coverage for each unique set
+  # 6) Compute coverage for each unique set
   covers <- vapply(uniq_sets, is_covered, logical(1), true_active = true_active)
 
-  # 6) Format display strings for each set
-  disp_sets <- vapply(uniq_sets, function(v) {
-    if (length(v) == 0L) return("{}")
-    paste0("{", paste(v, collapse = ","), "}")
+  # 7) Format display strings
+  display <- vapply(uniq_sets, function(v) {
+    if (length(v) == 0L) "{}" else paste0("{", paste(v, collapse = ","), "}")
   }, character(1))
 
-  # 7) Assemble and order result
+  # 8) Assemble data.frame and sort
   df <- data.frame(
-    set     = disp_sets,
+    set     = display,
     count   = counts,
     percent = percents,
     cover   = covers,
     stringsAsFactors = FALSE
   )
-  df <- df[order(-df$count), , drop = FALSE]
+  df <- df[order(-df$count), ]
   rownames(df) <- NULL
   df
 }
-
 
 #’ Summarize Simulation Coefficients
 #’

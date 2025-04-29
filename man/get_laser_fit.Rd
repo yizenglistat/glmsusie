@@ -23,14 +23,14 @@ If ≤ 0 or > p, automatically set to min(10, p).}
 
 \item{ties}{String. Method for handling ties in Cox regression (default: "efron").}
 
-\item{method}{String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "cyclic").}
+\item{algorithm}{String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "cyclic").}
 
 \item{max_iter}{Integer. Maximum number of coordinate ascent iterations (default: 100).}
 
 \item{step_size}{Double. Step size multiplier for updates (default: 1.0).
 Values < 1 provide more conservative updates.}
 
-\item{tol}{Double. Convergence tolerance on log-likelihood change (default: 1e-6).}
+\item{tol}{Double. Convergence tolerance on log-likelihood change (default: 1).}
 
 \item{seed}{Integer or NULL. Random seed for reproducibility (default: NULL).
 If NULL or NA, no seed is set.}
@@ -74,7 +74,7 @@ probabilities and coefficient estimates. The dispersion parameter and intercept 
 updated after each complete iteration.
 }
 \note{
-The "greedy" method may be slower but often produces higher-quality models,
+The "greedy" algorithm may be slower but often produces higher-quality models,
 especially for smaller datasets. For large datasets, "cyclic" offers a good
 balance of speed and quality.
 }
@@ -83,7 +83,7 @@ balance of speed and quality.
 # Gaussian example with 10 latent effects
 X <- matrix(rnorm(100 * 20), 100, 20)
 y <- rnorm(100)
-laser_fit <- get_laser_fit(X, y, "gaussian", L = 5, method = "cyclic")
+laser_fit <- get_laser_fit(X, y, "gaussian", L = 5, algorithm = "cyclic")
 
 # Binomial example with fewer effects
 y_bin <- rbinom(100, 1, 0.5)
@@ -93,7 +93,7 @@ laser_bin <- get_laser_fit(X, y_bin, "binomial", L = 3, seed = 123)
 time <- rexp(100)
 status <- rbinom(100, 1, 0.5)
 y_cox <- cbind(time, status)
-laser_cox <- get_laser_fit(X, y_cox, "cox", L = 5, method = "greedy")
+laser_cox <- get_laser_fit(X, y_cox, "cox", L = 5, algorithm = "greedy")
 }
 
 }
