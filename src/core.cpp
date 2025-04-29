@@ -439,13 +439,13 @@ LogicalVector get_included(List fit,
 }
 
 /**
- * @title Compute Credible Sets for LASER Model Parameters
+ * @title Compute Confidence Sets for LASER Model Parameters
  * @description
- * Constructs credible sets for parameters in a LASER model based on posterior probabilities
+ * Constructs confidence sets for parameters in a LASER model based on posterior probabilities
  * and optionally filters them based on correlation purity metrics.
  * 
  * @details
- * This function constructs credible sets for each selected latent dimension based on
+ * This function constructs confidence sets for each selected latent dimension based on
  * posterior inclusion probabilities. It then:
  * 1. Identifies unique sets to avoid duplication
  * 2. Computes the claimed coverage for each set
@@ -453,7 +453,7 @@ LogicalVector get_included(List fit,
  * 4. Filters sets that don't meet minimum correlation thresholds
  * 5. Returns the filtered sets ordered by purity
  * 
- * Purity measures assess the independence of variables within each credible set.
+ * Purity measures assess the independence of variables within each confidence set.
  * Higher purity indicates stronger independent signals rather than correlated variables.
  * 
  * @param posterior_mat NumericMatrix (p × L), posterior inclusion probabilities for each variable
@@ -461,7 +461,7 @@ LogicalVector get_included(List fit,
  *                      p = number of variables
  *                      L = number of latent dimensions
  * @param keep LogicalVector of length L indicating which latent dimensions to include.
- * @param coverage Numeric scalar. Target coverage probability for credible sets (default: 0.95).
+ * @param coverage Numeric scalar. Target coverage probability for confidence sets (default: 0.95).
  * @param X Nullable<NumericMatrix>. Original predictor matrix for computing correlations.
  *           Not required if R is provided.
  * @param R Nullable<NumericMatrix>. Pre-computed correlation matrix.
@@ -469,13 +469,13 @@ LogicalVector get_included(List fit,
  * @param check_symmetric Logical. If TRUE, forces the correlation matrix to be symmetric 
  *                        (default: TRUE).
  * @param min_abs_corr Numeric scalar. Minimum absolute correlation threshold for filtering
- *                     credible sets (default: 0.5).
+ *                     confidence sets (default: 0.5).
  * @param n_purity Integer. Maximum number of observations to use for correlation computation
  *                 (default: 100).
  * @param squared Logical. If TRUE, uses squared correlations (default: FALSE).
  * 
  * @return A List containing:
- *         - sets: List of credible sets (each as an IntegerVector of variable indices)
+ *         - sets: List of confidence sets (each as an IntegerVector of variable indices)
  *         - coverage: NumericVector of claimed coverage for each set
  *         If no sets meet the filtering criteria, returns NULL for both elements.
  * 
@@ -519,7 +519,7 @@ List get_cs(NumericMatrix posterior_mat,
     }
   }
   
-  // 3) Compute credible sets for each dimension
+  // 3) Compute confidence sets for each dimension
   std::vector<std::vector<int>> raw_sets;
   raw_sets.reserve(K);
   
@@ -543,13 +543,13 @@ List get_cs(NumericMatrix posterior_mat,
       ++n;
     }
     
-    // Create credible set with 1-based indexing
-    std::vector<int> credible_set(n);
+    // Create confidence set with 1-based indexing
+    std::vector<int> confidence_set(n);
     for (int m = 0; m < n; ++m) {
-      credible_set[m] = vp[m].second + 1;
+      confidence_set[m] = vp[m].second + 1;
     }
-    std::sort(credible_set.begin(), credible_set.end());
-    raw_sets.push_back(std::move(credible_set));
+    std::sort(confidence_set.begin(), confidence_set.end());
+    raw_sets.push_back(std::move(confidence_set));
   }
   
   // 4) Extract unique sets and compute their claimed coverage

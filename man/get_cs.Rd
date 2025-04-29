@@ -2,7 +2,7 @@
 % Please edit documentation in R/internal.R
 \name{get_cs}
 \alias{get_cs}
-\title{Compute Credible Sets for LASER Model Parameters}
+\title{Compute Confidence Sets for LASER Model Parameters}
 \arguments{
 \item{posterior_mat}{NumericMatrix (p × L), posterior inclusion probabilities for each variable
 and latent dimension, where:
@@ -11,7 +11,7 @@ L = number of latent dimensions}
 
 \item{keep}{LogicalVector of length L indicating which latent dimensions to include.}
 
-\item{coverage}{Numeric scalar. Target coverage probability for credible sets (default: 0.95).}
+\item{coverage}{Numeric scalar. Target coverage probability for confidence sets (default: 0.95).}
 
 \item{X}{NumericMatrix. Original predictor matrix for computing correlations.
 Not required if R is provided.}
@@ -23,7 +23,7 @@ Not required if X is provided.}
 (default: TRUE).}
 
 \item{min_abs_corr}{Numeric scalar. Minimum absolute correlation threshold for filtering
-credible sets (default: 0.5).}
+confidence sets (default: 0.5).}
 
 \item{n_purity}{Integer. Maximum number of observations to use for correlation computation
 (default: 100).}
@@ -33,17 +33,17 @@ credible sets (default: 0.5).}
 \value{
 A List containing:
 \itemize{
-\item sets: List of credible sets (each as an IntegerVector of variable indices)
+\item sets: List of confidence sets (each as an IntegerVector of variable indices)
 \item coverage: NumericVector of claimed coverage for each set
 }
 If no sets meet the filtering criteria, returns NULL for both elements.
 }
 \description{
-Constructs credible sets for parameters in a LASER model based on posterior probabilities
+Constructs confidence sets for parameters in a LASER model based on posterior probabilities
 and optionally filters them based on correlation purity metrics.
 }
 \details{
-This function constructs credible sets for each selected latent dimension based on
+This function constructs confidence sets for each selected latent dimension based on
 posterior inclusion probabilities. It then:
 \enumerate{
 \item Identifies unique sets to avoid duplication
@@ -53,7 +53,7 @@ posterior inclusion probabilities. It then:
 \item Returns the filtered sets ordered by purity
 }
 
-Purity measures assess the independence of variables within each credible set.
+Purity measures assess the independence of variables within each confidence set.
 Higher purity indicates stronger independent signals rather than correlated variables.
 }
 \examples{

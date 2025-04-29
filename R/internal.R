@@ -181,14 +181,14 @@ NULL
 #' @export
 NULL
 
-#' Compute Credible Sets for LASER Model Parameters
+#' Compute Confidence Sets for LASER Model Parameters
 #'
 #' @description
-#' Constructs credible sets for parameters in a LASER model based on posterior probabilities
+#' Constructs confidence sets for parameters in a LASER model based on posterior probabilities
 #' and optionally filters them based on correlation purity metrics.
 #' 
 #' @details
-#' This function constructs credible sets for each selected latent dimension based on
+#' This function constructs confidence sets for each selected latent dimension based on
 #' posterior inclusion probabilities. It then:
 #' 1. Identifies unique sets to avoid duplication
 #' 2. Computes the claimed coverage for each set
@@ -196,7 +196,7 @@ NULL
 #' 4. Filters sets that don't meet minimum correlation thresholds
 #' 5. Returns the filtered sets ordered by purity
 #' 
-#' Purity measures assess the independence of variables within each credible set.
+#' Purity measures assess the independence of variables within each confidence set.
 #' Higher purity indicates stronger independent signals rather than correlated variables.
 #' 
 #' @param posterior_mat NumericMatrix (p × L), posterior inclusion probabilities for each variable
@@ -204,7 +204,7 @@ NULL
 #'                      p = number of variables
 #'                      L = number of latent dimensions
 #' @param keep LogicalVector of length L indicating which latent dimensions to include.
-#' @param coverage Numeric scalar. Target coverage probability for credible sets (default: 0.95).
+#' @param coverage Numeric scalar. Target coverage probability for confidence sets (default: 0.95).
 #' @param X NumericMatrix. Original predictor matrix for computing correlations.
 #'           Not required if R is provided.
 #' @param R NumericMatrix. Pre-computed correlation matrix.
@@ -212,14 +212,14 @@ NULL
 #' @param check_symmetric Logical. If TRUE, forces the correlation matrix to be symmetric 
 #'                        (default: TRUE).
 #' @param min_abs_corr Numeric scalar. Minimum absolute correlation threshold for filtering
-#'                     credible sets (default: 0.5).
+#'                     confidence sets (default: 0.5).
 #' @param n_purity Integer. Maximum number of observations to use for correlation computation
 #'                 (default: 100).
 #' @param squared Logical. If TRUE, uses squared correlations (default: FALSE).
 #' 
 #' @return A List containing:
 #'         \itemize{
-#'           \item sets: List of credible sets (each as an IntegerVector of variable indices)
+#'           \item sets: List of confidence sets (each as an IntegerVector of variable indices)
 #'           \item coverage: NumericVector of claimed coverage for each set
 #'         }
 #'         If no sets meet the filtering criteria, returns NULL for both elements.
