@@ -425,7 +425,56 @@ summarize_cs <- function(cs_list, true_active) {
 }
 
 
-
+#’ Summarize Simulation Coefficients
+#’
+#’ Given a matrix of estimated coefficients from multiple simulation runs,
+#’ compute for each covariate the average estimate and the sample standard
+#’ deviation (“SSD”) across runs.
+#’
+#’ @param sims_coef Numeric matrix of dimension \eqn{p \times n_{\rm sims}}.
+#’   Each column contains the estimated \eqn{p}-vector of coefficients from
+#’   one simulation.
+#’ @param true_theta Numeric vector of length \eqn{p}, the true coefficient
+#’   values.  (Used for reference—returned in the output.)
+#’
+#’ @return A \code{data.frame} with \eqn{p} rows and columns:
+#’ \describe{
+#’   \item{\code{true}}{True coefficient \eqn{\theta_j}.}
+#’   \item{\code{mean}}{Average estimate \(\frac{1}{n_{\rm sims}}\sum_{s}\hat\theta_{j}^{(s)}\).}
+#’   \item{\code{ssd}}{Sample standard deviation of \(\{\hat\theta_{j}^{(s)}\}\).}
+#’ }
+#’
+#’ @examples
+#’ set.seed(123)
+#’ p       <- 5
+#’ n_sims  <- 100
+#’ true_th <- c(1, 0, -2, 0.5, 3)
+#’ # Simulate around the truth with noise sd = 0.5
+#’ sims   <- sapply(1:n_sims, function(i) rnorm(p, true_th, sd = 0.5))
+#’ summarise <- summarize_coef(sims, true_th)
+#’ print(summarise)
+#’
+#’ @export
+summarize_coef <- function(sims_coef, true_theta) {
+  if (!is.matrix(sims_coef)) {
+    stop("`sims_coef` must be a numeric matrix of size p x n_sims")
+  }
+  p <- nrow(sims_coef)
+  if (length(true_theta) != p) {
+    stop("Length of `true_theta` must match the number of rows of `sims_coef`")
+  }
+  # Compute per-covariate summaries
+  mean_est <- rowMeans(sims_coef, na.rm = TRUE)
+  ssd_est  <- apply(sims_coef, 1, sd, na.rm = TRUE)
+  # Return a data.frame
+  data.frame(
+    true = true_theta,
+    mean = mean_est,
+    ssd  = ssd_est,
+    row.names = NULL,
+    stringsAsFactors = FALSE
+  )
+}
 
 
 
