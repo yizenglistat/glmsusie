@@ -427,8 +427,8 @@ NULL
 #' coordinate ascent algorithm that iteratively updates each effect while holding 
 #' others constant. Three update strategies are available:
 #' 
-#' 1. "cyclic": Update each effect in order (default)
-#' 2. "shuffle": Update effects in random order each iteration
+#' 1. "cyclic": Update each effect in order 
+#' 2. "shuffle": Update effects in random order each iteration (default)
 #' 3. "greedy": Select the single effect update giving maximum improvement
 #' 
 #' For each update, the function uses single-effect regression (SER) to compute posterior
@@ -448,7 +448,7 @@ NULL
 #'        If ≤ 0 or > p, automatically set to min(10, p).
 #' @param standardize Logical. Whether to standardize predictors (default: TRUE).
 #' @param ties String. Method for handling ties in Cox regression (default: "efron").
-#' @param algorithm String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "cyclic").
+#' @param algorithm String. Update strategy: "cyclic", "shuffle", or "greedy" (default: "shuffle").
 #' @param max_iter Integer. Maximum number of coordinate ascent iterations (default: 100).
 #' @param step_size Double. Step size multiplier for updates (default: 1.0).
 #'        Values < 1 provide more conservative updates.

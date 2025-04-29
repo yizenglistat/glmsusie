@@ -35,8 +35,8 @@
 #' @param ties String. Tie-handling method for Cox regression: "efron" (more accurate) 
 #'   or "breslow" (faster). Default: "efron".
 #' @param algorithm String. Coordinate ascent update strategy:
-#'   - "greedy": Select update giving maximum improvement (default)
-#'   - "shuffle": Update effects in random order each iteration
+#'   - "shuffle": Update effects in random order each iteration (default)
+#'   - "greedy": Select update giving maximum improvement
 #'   - "cyclic": Update effects in fixed order
 #' @param max_iter Integer. Maximum number of coordinate ascent iterations.
 #'   Default: 100.
@@ -45,7 +45,7 @@
 #' @param min_abs_corr Numeric in [0,1). Minimum absolute correlation threshold
 #'   for purity filtering of confidence sets. Default: 0 (no filtering).
 #' @param tol Numeric > 0. Convergence tolerance on log-likelihood change.
-#'   Default: 1.0.
+#'   Default: 1e-6.
 #' @param seed Integer or NULL. Random seed for reproducibility of random operations.
 #'   Default: NULL (no seed).
 #'
@@ -108,11 +108,11 @@ glmcs <- function(X,
                   coverage      = 0.95,
                   standardize   = TRUE,
                   ties          = c("efron", "breslow"),
-                  algorithm     = c("greedy", "shuffle", "cyclic"),
+                  algorithm     = c("shuffle", "greedy", "cyclic"),
                   max_iter      = 100L,
                   step_size     = 1.0,
                   min_abs_corr  = 0.0,
-                  tol           = 1.0,
+                  tol           = 1e-6,
                   seed          = NULL) 
 {
   # Validate inputs
@@ -144,7 +144,7 @@ glmcs <- function(X,
   
   if (!is.numeric(tol) || tol <= 0) {
     warning("tol must be positive. Setting to default: 1.0")
-    tol <- 1.0
+    tol <- 1e-6
   }
   
   # Match tie handling method for Cox models

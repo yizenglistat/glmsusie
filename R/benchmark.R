@@ -173,7 +173,7 @@ benchmark <- function(n_sims           = 50,
       coverage = 0.95,
       standardize = TRUE,
       ties = "efron",
-      algorithm = "greedy",
+      algorithm = "shuffle",
       max_iter = 100,
       step_size = 1.0,
       min_abs_corr = 0.0,
@@ -383,4 +383,4 @@ benchmark <- function(n_sims           = 50,
     notes         = notes
   )
 }
-#run_ex1(n_sims=1000,n=100000, family="cox",intercept=0, algorithm='greedy',tol=1, max_iter=1000, seed=NULL)
+#run_ex1(n_sims=1000,n=100000, family="cox",intercept=0, algorithm='shuffle',tol=1, max_iter=1000, seed=NULL)

@@ -266,7 +266,7 @@ DataFrame get_ser_fit(NumericMatrix X,
  * @param max_iter Integer. Maximum number of coordinate ascent iterations (default: 100).
  * @param step_size Double. Step size multiplier for updates (default: 1.0).
  *                  Values < 1 provide more conservative updates.
- * @param tol Double. Convergence tolerance on log-likelihood change (default: 1.0).
+ * @param tol Double. Convergence tolerance on log-likelihood change (default: 1e-6).
  * @param seed Nullable<int>. Random seed for reproducibility (default: NULL).
  *             If NULL or NA, no seed is set.
  *
@@ -317,7 +317,7 @@ List get_laser_fit(NumericMatrix   X,
                    std::string     algorithm    = "greedy",
                    int             max_iter     = 100,
                    double          step_size    = 1.0,
-                   double          tol          = 1.0,
+                   double          tol          = 1e-6,
                    Nullable<int>   seed         = R_NilValue)
 {
   // --- Validate inputs ---
@@ -364,6 +364,11 @@ List get_laser_fit(NumericMatrix   X,
   arma::mat Xmat(X.begin(), X.nrow(), X.ncol(), false);
   // const int n = Xmat.n_rows;
   const int p = Xmat.n_cols;
+
+  if (p<=2) {
+    algorithm = "greedy";
+    tol = 1.0;
+  }
 
   // Validate and adjust number of effects
   if (L <= 0 || L > p) {
