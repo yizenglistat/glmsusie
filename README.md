@@ -27,9 +27,9 @@ Key features:
 Development version from GitHub:
 
 ```r
-# devtools
-if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
-devtools::install_github("yizenglistat/glmcs")
+# remotes
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+remotes::install_github("yizenglistat/glmcs")
 ```
 
 ## Demo

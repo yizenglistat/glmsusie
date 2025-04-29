@@ -9,14 +9,14 @@
 #’ @param family Family object (e.g. \code{gaussian()}, \code{binomial()}, or \code{"cox"}).
 #’ @param settings Character. Which correlation scenario to use. Supported:
 #’   \describe{
-#’     \item{\code{"example-1"}}{2 highly correlated variables, only the first active.}
-#’     \item{\code{"example-2"}}{A 5×5 block‐correlation among the first 5 predictors, two of which are active.}
+#’     \item{\code{"ex1"}}{2 highly correlated variables, only the first active.}
+#’     \item{\code{"ex2"}}{A 5×5 block‐correlation among the first 5 predictors, two of which are active.}
 #’   }
 #’ @param control Named list of simulation settings (all optional):
 #’   \describe{
 #’     \item{\code{intercept}}{Numeric. True intercept (default: 0). Ignored for Cox.}
 #’     \item{\code{dispersion}}{Numeric. Dispersion for Gaussian/Gamma (default: 1).}
-#’     \item{\code{rho}}{Numeric. Pairwise correlation for “example-1” (default: 0.9).}
+#’     \item{\code{rho}}{Numeric. Pairwise correlation for “ex1” (default: 0.9).}
 #’     \item{\code{censoring_rate}}{Numeric in [0,1). Censoring fraction for Cox (default: 0.3).}
 #’     \item{\code{seed}}{Integer. RNG seed (default: \code{NULL}).}
 #’   }
@@ -29,11 +29,11 @@
 #’   \item{intercept, dispersion, family, settings, control}{Echoed inputs.}
 #’
 #’ @examples
-#’ sim1 <- simulate( n=200, p=10, family=gaussian(), settings="example-1",
+#’ sim1 <- simulate( n=200, p=10, family=gaussian(), settings="ex1",
 #’                        control=list(intercept=1.5, dispersion=2, rho=0.8, seed=123) )
-#’ sim2 <- simulate( n=300, p=8,  family=binomial(),  settings="example-2",
+#’ sim2 <- simulate( n=300, p=8,  family=binomial(),  settings="ex2",
 #’                        control=list(seed=42) )
-#’ sim3 <- simulate( n=150, p=5,  family="cox",        settings="example-1",
+#’ sim3 <- simulate( n=150, p=5,  family="cox",        settings="ex1",
 #’                        control=list(censoring_rate=0.5, seed=99) )
 #’
 #’ @importFrom MASS mvrnorm
@@ -42,16 +42,16 @@
 #’ @importFrom stats rnorm rpois rbinom rexp runif
 #’ @export
 simulate <- function(n = 500,
-                  p = 10,
-                  family = gaussian(),
-                  settings = "example-1",
-                  control = list()) {
+                     p = 10,
+                     family = gaussian(),
+                     settings = "ex1",
+                     control = list()) {
 
   ## 1) merge defaults
   defaults <- list(
     intercept      = 0,      # true intercept
     dispersion     = 1,      # for Gaussian/Gamma
-    rho            = 0.9,    # correlation for example-1
+    rho            = 0.9,    # correlation for ex1
     censoring_rate = 0.3,    # for Cox
     seed           = NULL    # RNG
   )
@@ -64,15 +64,15 @@ simulate <- function(n = 500,
   X <- matrix(0, nrow = n, ncol = p)
   theta <- numeric(p)
 
-  if (settings == "example-1") {
-    if (p < 2) stop("example-1 requires p >= 2")
+  if (settings == "ex1") {
+    if (p < 2) stop("ex1 requires p >= 2")
     Sigma2 <- matrix(c(1, ctrl$rho, ctrl$rho, 1), 2, 2)
     X12 <- MASS::mvrnorm(n, mu = c(0,0), Sigma = Sigma2)
     X[,1:2] <- X12
     if (p>2) X[,3:p] <- matrix(rnorm(n*(p-2)), n, p-2)
     theta[1] <- 1
-  } else if (settings == "example-2") {
-    if (p < 5) stop("example-2 requires p >= 5")
+  } else if (settings == "ex2") {
+    if (p < 5) stop("ex2 requires p >= 5")
     S5 <- matrix(c(
       1.0, 0.92, 0.7,  0.7,  0.9,
       0.92,1.0,  0.7,  0.7,  0.7,
@@ -476,8 +476,3 @@ summarize_coef <- function(sims_coef, true_theta) {
     stringsAsFactors = FALSE
   )
 }
-
-
-
-
-

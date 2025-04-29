@@ -16,7 +16,7 @@ glmcs(
   max_iter = 100L,
   step_size = 1,
   min_abs_corr = 0,
-  tol = 1e-06,
+  tol = 0.001,
   seed = NULL
 )
 }

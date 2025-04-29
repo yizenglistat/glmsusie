@@ -80,8 +80,8 @@ glmcs <- function(X,
                   method        = "greedy",
                   max_iter      = 100L,
                   step_size     = 1.0,
-                  min_abs_corr  = 0.00,
-                  tol           = 1e-6,
+                  min_abs_corr  = 0.0,
+                  tol           = 1e-3,
                   seed          = NULL) 
 {
   #--- 1) Fit LASER model -----------------------------------------------------
