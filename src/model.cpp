@@ -263,7 +263,7 @@ List get_laser_fit(NumericMatrix   X,
 
   // Convert R matrix to Armadillo for efficient computation
   arma::mat Xmat(X.begin(), X.nrow(), X.ncol(), false);
-  const int n = Xmat.n_rows;
+  [[maybe_unused]] const int n = Xmat.n_rows;
   const int p = Xmat.n_cols;
 
   // Validate and adjust number of effects
