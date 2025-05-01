@@ -69,25 +69,23 @@ res <- glmcs(X           = X,
              family      = binomial("logit"),
              L           = 10L,
              coverage    = 0.95,
-             min_abs_corr= 0.,
-             seed        = SEED
-)
+             seed        = SEED)
 
 print(res$cs)
 # $sets
-# $sets[[1]]
+# $sets$cs1
 # [1] 5
 
-# $sets[[2]]
+# $sets$cs2
 # [1] 1 2
 
 
-# $coverage
-# [1] 0.9947149 0.9872938
+# $claimed
+# [1] 0.9905875 0.9851817
 ```
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/434a60ac-60e8-4681-b208-47f35059fc78" alt="Variable selection visualization: two confidence sets" width="800"/>
+  <img src="https://github.com/user-attachments/assets/f9f587bb-abad-4bdb-9572-7f557a5dfdef" alt="Variable selection visualization: two confidence sets" width="800"/>
   <br>
   <em>Figure 1: Variable selection visualization showing two confidence sets. Point sizes reflect confidence values; larger points indicate higher confidence. Points of the same color belong to the same confidence set.</em>
 </p>

@@ -112,6 +112,8 @@ glmcs <- function(X, y, L=10L,
    
    output$cs <- cs
  }
+
+ output$marginal <- 1 - apply(X = 1 - output$pmp[, output$kept, drop = FALSE], MARGIN = 1, FUN = prod)
  
  return(output)
 }
