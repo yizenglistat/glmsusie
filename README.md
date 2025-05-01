@@ -9,7 +9,6 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/glmcs)](https://CRAN.R-project.org/package=glmcs)
 [![Downloads](https://cranlogs.r-pkg.org/badges/glmcs)](https://cran.r-project.org/package=glmcs)
 [![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmcs/branch/main/graph/badge.svg)](https://codecov.io/gh/yizenglistat/glmcs)
-[![Lifecycle: Experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 
 
 ## Overview
