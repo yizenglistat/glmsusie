@@ -8,7 +8,7 @@
 [![License: GPL-3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![CRAN status](https://www.r-pkg.org/badges/version/glmcs)](https://CRAN.R-project.org/package=glmcs)
 [![Downloads](https://cranlogs.r-pkg.org/badges/glmcs)](https://cran.r-project.org/package=glmcs)
-[![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmcs/branch/main/graph/badge.svg)](https://codecov.io/gh/yizenglistat/glmcs)
+[![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmcs/graph/badge.svg)](https://app.codecov.io/gh/yizenglistat/glmcs)
 
 
 ## Overview
