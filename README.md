@@ -3,7 +3,7 @@
 <!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/network)
  -->
-[![R-CMD-check.yaml](https://github.com/yizenglistat/glmcs/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/yizenglistat/glmcs/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/yizenglistat/glmcs/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/yizenglistat/glmcs/actions/workflows/R-CMD-check.yaml)
 [![R](https://img.shields.io/badge/R-%3E%3D%203.5.0-blue.svg)](https://www.r-project.org/)
 [![License: GPL-3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![CRAN status](https://www.r-pkg.org/badges/version/glmcs)](https://CRAN.R-project.org/package=glmcs)
