@@ -1,0 +1,23 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/additive_effect_fit.html</loc></url>
+<url><loc>/reference/confidence_set.html</loc></url>
+<url><loc>/reference/cox.html</loc></url>
+<url><loc>/reference/generate.html</loc></url>
+<url><loc>/reference/glmcs-package.html</loc></url>
+<url><loc>/reference/glmcs.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/is_covered.html</loc></url>
+<url><loc>/reference/single_effect_fit.html</loc></url>
+<url><loc>/reference/summarize_coef.html</loc></url>
+<url><loc>/reference/summarize_cs.html</loc></url>
+<url><loc>/reference/univariate_irls_cox.html</loc></url>
+<url><loc>/reference/univariate_irls_glm.html</loc></url>
+<url><loc>/reference/univariate_loglik.html</loc></url>
+<url><loc>/reference/univariate_loglik_cox.html</loc></url>
+<url><loc>/reference/univarite_fit.html</loc></url>
+<url><loc>/reference/update_dispersion.html</loc></url>
+</urlset>
+
