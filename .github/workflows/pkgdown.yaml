@@ -10,6 +10,9 @@ name: pkgdown
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
+    # Explicitly specify permissions needed
+    permissions:
+      contents: write
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -37,3 +40,4 @@ jobs:
           clean: false
           branch: gh-pages
           folder: docs
+          token: ${{ secrets.GITHUB_TOKEN }}
