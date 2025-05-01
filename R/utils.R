@@ -1,323 +1,233 @@
-#’ Simulate Data for GLM and Cox Models
-#’
-#’ @description 
-#’ Generate synthetic datasets with controlled correlation structure and known truth
-#’ for benchmarking variable‐selection methods (e.g. \code{glmcs}, \code{susie}, \code{glmnet}, …).
-#’
-#’ @param n Integer. Number of observations (default: 500).
-#’ @param p Integer. Number of predictors (default: 10).
-#’ @param family Family object (e.g. \code{gaussian()}, \code{binomial()}, or \code{"cox"}).
-#’ @param settings Character. Which correlation scenario to use. Supported:
-#’   \describe{
-#’     \item{\code{"ex1"}}{2 highly correlated variables, only the first active.}
-#’     \item{\code{"ex2"}}{A 5×5 block‐correlation among the first 5 predictors, two of which are active.}
-#’   }
-#’ @param control Named list of simulation settings (all optional):
-#’   \describe{
-#’     \item{\code{intercept}}{Numeric. True intercept (default: 0). Ignored for Cox.}
-#’     \item{\code{dispersion}}{Numeric. Dispersion for Gaussian/Gamma (default: 1).}
-#’     \item{\code{rho}}{Numeric. Pairwise correlation for “ex1” (default: 0.9).}
-#’     \item{\code{censoring_rate}}{Numeric in [0,1). Censoring fraction for Cox (default: 0.3).}
-#’     \item{\code{seed}}{Integer. RNG seed (default: \code{NULL}).}
-#’   }
-#’
-#’ @return A list with components:
-#’   \item{X}{\eqn{n\times p} design matrix.}
-#’   \item{y}{Response: numeric vector for GLMs, or \eqn{n\times2} \code{(time,status)} for Cox.}
-#’   \item{theta}{True coefficient vector (length \code{p}).}
-#’   \item{active}{Indices of the nonzero entries in \code{theta}.}
-#’   \item{intercept, dispersion, family, settings, control}{Echoed inputs.}
-#’
-#’ @examples
-#’ sim1 <- simulate( n=200, p=10, family=gaussian(), settings="ex1",
-#’                        control=list(intercept=1.5, dispersion=2, rho=0.8, seed=123) )
-#’ sim2 <- simulate( n=300, p=8,  family=binomial(),  settings="ex2",
-#’                        control=list(seed=42) )
-#’ sim3 <- simulate( n=150, p=5,  family="cox",        settings="ex1",
-#’                        control=list(censoring_rate=0.5, seed=99) )
-#’
-#’ @importFrom MASS mvrnorm
-#’ @importFrom Matrix nearPD
-#' @importFrom utils modifyList
-#’ @importFrom stats rnorm rpois rbinom rexp runif
-#’ @export
-simulate <- function(n = 500,
-                     p = 10,
-                     family = gaussian(),
-                     settings = "ex1",
-                     control = list()) {
+#’ @useDynLib glmcs, .registration=TRUE
+#’ @importFrom Rcpp evalCpp
+NULL
 
-  ## 1) merge defaults
-  defaults <- list(
-    intercept      = 0,      # true intercept
-    dispersion     = 1,      # for Gaussian/Gamma
-    rho            = 0.9,    # correlation for ex1
-    censoring_rate = 0.3,    # for Cox
-    seed           = NULL    # RNG
-  )
-  ctrl <- utils::modifyList(defaults, control)
 
-  ## 2) reproducibility
-  if (!is.null(ctrl$seed)) set.seed(ctrl$seed)
-
-  ## 3) build two scenarios
-  X <- matrix(0, nrow = n, ncol = p)
-  theta <- numeric(p)
-
-  if (settings == "ex1") {
-    if (p < 2) stop("ex1 requires p >= 2")
-    Sigma2 <- matrix(c(1, ctrl$rho, ctrl$rho, 1), 2, 2)
-    X12 <- MASS::mvrnorm(n, mu = c(0,0), Sigma = Sigma2)
-    X[,1:2] <- X12
-    if (p>2) X[,3:p] <- matrix(rnorm(n*(p-2)), n, p-2)
-    theta[1] <- 1
-  } else if (settings == "ex2") {
-    if (p < 5) stop("ex2 requires p >= 5")
-    S5 <- matrix(c(
-      1.0, 0.92, 0.7,  0.7,  0.9,
-      0.92,1.0,  0.7,  0.7,  0.7,
-      0.7, 0.7,  1.0,  0.92, 0.8,
-      0.7, 0.7,  0.92, 1.0,  0.8,
-      0.9, 0.7,  0.8,  0.8,  1.0), 5,5, byrow=TRUE)
-    S5 <- as.matrix(Matrix::nearPD(S5)$mat)
-    X5 <- MASS::mvrnorm(n, mu=rep(0,5), Sigma=S5)
-    X[,1:5] <- X5
-    if (p>5) X[,6:p] <- matrix(rnorm(n*(p-5)), n, p-5)
-    theta[c(2,3)] <- 1
-  } else {
-    stop("Unknown settings: ", settings)
-  }
-
-  ## 4) linear predictor & response
-  eta <- ctrl$intercept + X %*% theta
-  fam_name <- if (is.character(family)) family else family$family
-
-  if (fam_name=="cox") {
-    # survival times
-    rate <- exp(eta)
-    T_event <- rexp(n, rate=rate)
-    Censor  <- runif(n,0, quantile(T_event,1-ctrl$censoring_rate))
-    time    <- pmin(T_event, Censor)
-    status  <- as.integer(T_event <= Censor)
-    y <- cbind(time=time, status=status)
-  } else {
-    inv_link <- if (is.character(family)) {
-      stop("non-cox character families not supported")
-    } else family$linkinv
-    mu <- inv_link(eta)
-    if (fam_name=="gaussian") {
-      y <- as.numeric(mu + rnorm(n, sd=sqrt(ctrl$dispersion)))
-    } else if (fam_name=="binomial") {
-      y <- rbinom(n,1,mu)
-    } else if (fam_name=="poisson") {
-      y <- rpois(n, mu)
-    } else if (fam_name=="Gamma") {
-      shape <- 1/ctrl$dispersion
-      scale <- mu * ctrl$dispersion
-      y <- rgamma(n, shape=shape, scale=scale)
-    } else {
-      stop("Unsupported family: ", fam_name)
-    }
-  }
-
-  list(
-    X           = X,
-    y           = y,
-    theta       = theta,
-    active      = which(theta!=0),
-    intercept   = ctrl$intercept,
-    dispersion  = ctrl$dispersion,
-    family      = family,
-    settings    = settings,
-    control     = ctrl
-  )
-}
-
-#' Modify GLM Family Objects or Create Cox Family with Fixed Dispersion (if any)
+#' Cox Proportional Hazards "family" Object
 #'
-#' @title Modify GLM Family Objects or Create Cox Family with Fixed Dispersion
-#' 
 #' @description
-#' Creates or modifies family objects for use in generalized linear models (GLMs) 
-#' or Cox proportional hazards models. For two-parameter GLMs (gaussian, Gamma, 
-#' inverse.gaussian), this function sets a fixed dispersion parameter, modifying
-#' the variance, deviance, and AIC functions accordingly.
+#' Creates a \code{family} object for univariate Cox regression, compatible
+#' with GLM‐style interfaces.  Only the log link is supported, yielding the
+#' usual Cox partial‐likelihood formulation.
+#'
+#' @param link Character string; link function for the Cox model.  Only
+#'   \code{"log"} is supported (default).
 #'
 #' @details
-#' For GLM families, this function:
-#' 
-#' 1. Validates if the family supports a dispersion parameter
-#' 2. For two-parameter families (gaussian, Gamma, inverse.gaussian), modifies:
-#'    - `variance()`: Returns dispersion-adjusted variance function
-#'    - `dev.resids()`: Returns dispersion-adjusted deviance residuals
-#'    - `aic()`: Returns dispersion-adjusted AIC
-#' 3. For one-parameter families (binomial, poisson), ignores the dispersion
-#'    parameter and sets it to 1
-#' 4. Optionally validates the family by testing link functions and other components
-#' 
-#' For "cox", returns the string "cox" directly, which is recognized by the LASER
-#' modeling functions as a special case.
+#' This "family" object provides the minimal set of functions required
+#' for use with IRLS‐based routines and log-likelihood calculations:
+#' \itemize{
+#'   \item \code{linkfun} and \code{linkinv} implement the log link.
+#'   \item \code{mu.eta} provides the derivative of the inverse link.
+#'   \item \code{variance}, \code{dev.resids}, and \code{aic} are placeholders
+#'         (not used in Cox but needed for compatibility).
+#' }
 #'
-#' @param family A GLM family object (e.g., gaussian(), binomial(), poisson(), 
-#'               Gamma(), inverse.gaussian()) or the string "cox".
-#' @param dispersion Positive numeric scalar. The fixed dispersion parameter value
-#'                   for two-parameter GLM families. Ignored for one-parameter
-#'                   families (binomial, poisson) and "cox". Default is 1.
-#' @param validate Logical. If TRUE, performs basic consistency checks on the 
-#'                 modified family object (link function reversibility, etc.)
-#'                 Default is TRUE.
-#'
-#' @return 
-#' For GLM families, returns a modified family object (list) with components:
-#'   * `family`: Character string naming the family
-#'   * `link`: Character string naming the link function
-#'   * `linkfun()`: Link function
-#'   * `linkinv()`: Inverse link function
-#'   * `variance()`: Variance function (modified for two-parameter families)
-#'   * `dev.resids()`: Deviance residuals function (modified for two-parameter families)
-#'   * `aic()`: AIC function (modified for two-parameter families)
-#'   * `dispersion`: Numeric scalar with the fixed dispersion value
-#'   * ... and other components from the original family object
-#'
-#' For "cox", returns the string "cox".
-#'
-#' @note
-#' The dispersion parameter in R is the inverse of the "shape" parameter 
-#' often used in statistical literature, particularly for the Gamma distribution.
+#' @return
+#' A \code{family} object (a list with class \code{"family"}) containing:
+#' \describe{
+#'   \item{\code{family}}{Always \code{"cox"}.}
+#'   \item{\code{link}}{Link name, \code{"log"}.}
+#'   \item{\code{linkfun}}{Function transforming \code{mu} to \code{eta}.}
+#'   \item{\code{linkinv}}{Inverse link, mapping \code{eta} to \code{mu}.}
+#'   \item{\code{mu.eta}}{Derivative of \code{linkinv}.}
+#'   \item{\code{variance}}{Variance function (returns 1).}
+#'   \item{\code{dev.resids}}{Deviance residuals (zeros).}
+#'   \item{\code{aic}}{AIC placeholder (returns \code{-2}).}
+#'   \item{\code{validmu}, \code{valideta}}{Validation functions (always TRUE).}
+#'   \item{\code{dispersion}}{Always 1.}
+#' }
 #'
 #' @examples
-#' # Standard Gaussian family with default dispersion
-#' gaussian_fam <- get_family(gaussian())
-#' 
-#' # Gaussian family with custom dispersion
-#' gaussian_fam2 <- get_family(gaussian(), dispersion = 2.5)
-#' 
-#' # Cox proportional hazards
-#' cox_fam <- get_family("cox")
-#' 
-#' # Gamma distribution with dispersion = 0.5 (shape = 2)
-#' gamma_fam <- get_family(Gamma(), dispersion = 0.5)
-#' 
-#' # One-parameter family (ignores dispersion)
-#' poisson_fam <- get_family(poisson(), dispersion = 2) # dispersion will be set to 1
+#' # Create the Cox family object
+#' fam <- cox(link = "log")
+#' stopifnot(fam$family == "cox")
+#' # Check that linkinv(exp(eta)) == exp(eta)
+#' eta <- c(0, 1, -1)
+#' all.equal(fam$linkinv(eta), exp(eta))
 #'
-#' @seealso \code{\link[stats]{family}}
-#' 
 #' @export
-get_family <- function(family,
-                       dispersion = 1,
-                       validate = TRUE) {
-  # --- Handle string case: must be "cox" ---
-  if (is.character(family)) {
-    if (!identical(family, "cox")) {
-      stop("If 'family' is a string, it must be exactly 'cox'.")
-    }
-    # Return minimal cox-family object
-    return(family)
+cox <- function(link = "log") {
+  linktemp <- substitute(link)
+  if (!is.character(linktemp)) {
+    linktemp <- deparse(linktemp)
   }
-  
-  # --- Validate family is a GLM family object ---
-  if (!inherits(family, "family")) {
-    stop("`family` must be a GLM family object or the string 'cox'.")
-  }
-  
-  # --- Extract family name and determine if it supports dispersion ---
-  fam_name <- family$family
-  two_param <- fam_name %in% c("gaussian", "Gamma", "inverse.gaussian")
-  
-  # --- Validate dispersion parameter ---
-  if (!is.numeric(dispersion) || length(dispersion) != 1 || dispersion <= 0) {
-    warning("`dispersion` must be a positive scalar; resetting to 1.")
-    dispersion <- 1
-  }
-  
-  # --- Modify two-parameter families to use fixed dispersion ---
-  if (two_param) {
-    if (fam_name == "gaussian") {
-      # Gaussian (normal) distribution
-      family$variance <- function(mu) rep(dispersion, length(mu))
-      family$dev.resids <- function(y, mu, wt) wt * (y - mu)^2 / dispersion
-      family$aic <- function(y, n, mu, wt, dev)
-        sum(wt) * (log(2 * pi * dispersion) + 1) + dev / dispersion
-    } else if (fam_name == "Gamma") {
-      # Gamma distribution
-      shape <- 1 / dispersion
-      family$variance <- function(mu) mu^2 / shape
-      family$dev.resids <- function(y, mu, wt)
-        -2 * wt * shape * (log(y / mu) - (y - mu) / mu)
-      family$aic <- function(y, n, mu, wt, dev)
-        -2 * sum(wt * shape * log(shape)) + 2 * sum(wt * shape) +
-          2 * sum(wt * lgamma(shape)) + dev / dispersion
-    } else if (fam_name == "inverse.gaussian") {
-      # Inverse Gaussian distribution
-      family$variance <- function(mu) mu^3 / dispersion
-      family$dev.resids <- function(y, mu, wt)
-        wt * (y - mu)^2 / (mu^2 * y * dispersion)
-      family$aic <- function(y, n, mu, wt, dev)
-        sum(wt) * (log(2 * pi * dispersion) - log(y)) + dev / dispersion
-    }
-    # Store dispersion parameter in family object
-    family$dispersion <- dispersion
+
+  if (linktemp == "log") {
+    linkfun  <- function(mu)       log(mu)
+    linkinv  <- function(eta)      exp(eta)
+    mu.eta   <- function(eta)      exp(eta)
   } else {
-    # One-parameter GLMs (binomial, poisson) ignore user dispersion
-    family$dispersion <- 1
+    stop("Link '", linktemp, "' not recognized for Cox regression family")
   }
-  
-  # --- Optional validation checks ---
-  if (validate && fam_name != "cox") {
-    try({
-      # Create test values appropriate for each family
-      test_mu <- switch(fam_name,
-                         gaussian = c(-1, 0, 1),
-                         binomial = c(0.2, 0.5, 0.8),
-                         poisson = c(1, 2, 3),
-                         Gamma = c(1, 2, 3),
-                         inverse.gaussian = c(1, 2, 3))
-      test_y <- test_mu  # Use means as simulated responses for testing
-      test_wt <- rep(1, length(test_mu))
-      
-      # Test variance and deviance functions
-      family$variance(test_mu)
-      family$dev.resids(test_y, test_mu, test_wt)
-      
-      # Test link function consistency for continuous families
-      if (!fam_name %in% c("binomial", "poisson")) {
-        eta <- family$linkfun(test_mu)
-        mu_check <- family$linkinv(eta)
-        if (max(abs(test_mu - mu_check)) > 1e-8) {
-          warning("Link function inconsistency detected.")
-        }
-      }
-    }, silent = TRUE)
-  }
-  
-  # Return the modified family object
-  return(family)
+
+  valideta   <- function(eta) TRUE
+  validmu    <- function(mu) all(mu > 0)
+  variance   <- function(mu) rep(1, length(mu))
+  dev.resids <- function(y, mu, wt) rep(0, length(mu))
+  aic        <- function(y, n, mu, wt, dev) -2
+
+  structure(
+    list(
+      family    = "cox",
+      link      = linktemp,
+      linkfun   = linkfun,
+      linkinv   = linkinv,
+      variance  = variance,
+      dev.resids= dev.resids,
+      aic       = aic,
+      mu.eta    = mu.eta,
+      validmu   = validmu,
+      valideta  = valideta,
+      dispersion= 1
+    ),
+    class = "family"
+  )
 }
 
-#’ Check Confidence Set Coverage
-#’
-#’ Return `TRUE` if all truly active variables are contained in the confidence sets,
-#’ otherwise `FALSE`.
-#’
-#’ @param confidence_sets A list of integer vectors (each a confidence set),  
-#’   or a single integer vector.
-#’ @param true_active Integer vector of truly active covariate indices.
-#’
-#’ @return Logical `TRUE` if every element of \code{true_active} appears in at least one set,  
-#’   otherwise `FALSE`.
-#’
-#’ @examples
-#’ # multiple confidence sets
-#’ sets   <- list(c(3,5,7), c(1,4,7), c(2,6))
-#’ true   <- c(1,2,7)
-#’ is_covered(confidence_sets = sets, true_active = true)  # TRUE
-#’
-#’ # single set (e.g. lasso support)
-#’ lasso_support <- c(2,7,9)
-#’ is_covered(confidence_sets = lasso_support, true_active = true)  # FALSE
-#’
-#’ @export
+#' Fit a Univariate GLM via IRLS
+#'
+#' @description
+#' Efficiently fits a univariate generalized linear model (GLM) for a single
+#' predictor using iteratively reweighted least squares (IRLS), with a fixed
+#' offset and known dispersion parameter. Returns only the slope estimate.
+#'
+#' @param x Numeric vector of predictor values.
+#' @param y Numeric vector of response values.
+#' @param family A GLM family object (e.g., \code{gaussian()}, \code{binomial()},
+#'   \code{poisson()}, etc.). Must inherit from class \code{"family"}.
+#' @param offset Numeric scalar or vector of known offsets (default: \code{0}).
+#' @param dispersion Numeric scalar dispersion parameter (default: \code{1}).
+#'   Used for two-parameter families (Gaussian, Gamma, inverse Gaussian).
+#' @param max_iter Integer. Maximum number of IRLS iterations (default: \code{25}).
+#' @param tol Numeric. Convergence tolerance on the change in slope (default: \code{1e-8}).
+#'
+#' @details
+#' This function solves for the slope coefficient \eqn{\beta} in the model
+#' \deqn{\eta = \text{offset} + \beta\,x,\quad \mu = g^{-1}(\eta),}
+#' where \eqn{g} is the link function of the specified family.  At each IRLS
+#' iteration, it constructs the working response
+#' \deqn{z = \eta + (y - \mu) / g'(\eta)}, computes weights
+#' \deqn{W = \{g'(\eta)\}^2 / \bigl[\mathrm{Var}(\mu)\times\phi\bigr]}, and
+#' then updates \eqn{\beta} by weighted least squares:
+#' \deqn{\beta \leftarrow \frac{\sum_i W_i\,x_i\,(z_i - \text{offset}_i)}
+#'                       {\sum_i W_i\,x_i^2}.}
+#' Iteration stops when the absolute change in \eqn{\beta} is below \code{tol},
+#' or when \code{max_iter} is reached.  If a non‐positive or non‐finite
+#' denominator arises, a warning is issued and the current estimate is returned.
+#'
+#' @return
+#' A numeric scalar: the estimated slope coefficient \eqn{\beta}.
+#'
+#' @examples
+#' \dontrun{
+#' # Gaussian example
+#' set.seed(0)
+#' x <- rnorm(100)
+#' y <- 3*x + rnorm(100)
+#' univariate_irls_glm(x, y, family = gaussian(), offset = 0)
+#'
+#' # Logistic example
+#' x <- rnorm(200)
+#' p <- 1 / (1 + exp(-x))
+#' y <- rbinom(200, 1, p)
+#' univariate_irls_glm(x, y, family = binomial(link = "logit"), offset = 0)
+#'
+#' # Poisson example
+#' x <- rnorm(150)
+#' lambda <- exp(1 + 2*x)
+#' y <- rpois(150, lambda)
+#' univariate_irls_glm(x, y, family = poisson(link = "log"), offset = 0)
+#' }
+#' @export
+univariate_irls_glm <- function(x, y,
+                                family = gaussian(),
+                                offset = 0,
+                                dispersion = 1,
+                                max_iter = 25,
+                                tol = 1e-8) {
+  # — Basic sanity checks —
+  stopifnot(length(x) == length(y))
+  nobs <- length(y)
+  if (length(offset) == 1L) offset <- rep(offset, nobs)
+  if (!inherits(family, "family")) stop("`family` must be a GLM family object")
+  
+  weights <- rep(1, nobs)
+  etastart <- NULL
+  mustart  <- NULL 
+  
+  eval(family$initialize)
+  
+  if (!is.null(etastart)) {
+    eta <- etastart
+  } else {
+    eta <- family$linkfun(mustart)
+  }
+  mu <- family$linkinv(eta)
+  
+  # — IRLS loop to solve for slope only —
+  theta     <- 0
+  converged <- FALSE
+  for (iter in seq_len(max_iter)) {
+    var_mu <- family$variance(mu) * rep(dispersion, length(mu))
+    gprime <- family$mu.eta(eta)
+    
+    # working response & weights
+    z  <- eta + (y - mu) / gprime
+    z0 <- z - offset
+    W  <- as.numeric((gprime^2) / var_mu)
+    
+    # closed‐form update for a single slope β
+    num   <- sum(W * x * z0)
+    denom <- sum(W * x^2)
+    if (denom <= 0 || !is.finite(num/denom)) {
+      warning("Non-positive or non-finite denom in IRLS; returning current slope.")
+      break
+    }
+    theta_new <- num / denom
+    
+    # convergence check
+    if (abs(theta_new - theta) < tol) {
+      theta     <- theta_new
+      converged <- TRUE
+      break
+    }
+    theta <- theta_new
+    
+    eta <- offset + theta * x
+    mu  <- family$linkinv(eta)
+  }
+  
+  return(theta)
+}
+
+#' Check Whether True Actives Are Covered by Confidence Sets
+#'
+#' @description
+#' Determines if all true active variables are included in at least one of the
+#' provided confidence sets. Returns \code{TRUE} if every element of \code{true_active}
+#' appears in the union of the sets, and \code{FALSE} otherwise.
+#'
+#' @param confidence_sets A list of integer vectors, each representing a confidence set
+#'   of selected variable indices. If a single vector is provided, it will be coerced
+#'   to a list of length one.
+#' @param true_active Integer vector of true active variable indices.
+#'
+#' @return Logical scalar. \code{TRUE} if all elements of \code{true_active} are
+#'   contained in the union of \code{confidence_sets}, \code{FALSE} otherwise.
+#'
+#' @examples
+#' # Single set, true actives 1 and 3 are both covered
+#' is_covered(confidence_sets = c(1, 3, 5), true_active = c(1, 3))
+#'
+#' # Multiple sets, true active 2 appears in one of them
+#' sets <- list(cs1 = c(1,4), cs2 = c(2,5), cs3 = c(3))
+#' is_covered(confidence_sets = sets, true_active = c(2,3))
+#'
+#' # Not covered if any true active is missing
+#' is_covered(confidence_sets = list(c(1,4)), true_active = c(1,2))
+#'
+#' @export
 is_covered <- function(confidence_sets, true_active) {
   if (!is.list(confidence_sets)) {
     confidence_sets <- list(confidence_sets)
@@ -326,60 +236,107 @@ is_covered <- function(confidence_sets, true_active) {
   all(true_active %in% all_indices)
 }
 
-#’ Summarize Confidence Sets Across Simulations
-#’
-#’ @title Summarize Confidence Sets Across Simulations
-#’
-#’ @description
-#’ Aggregate and tabulate the distinct confidence sets produced over multiple
-#’ simulation replicates, computing their absolute and relative frequencies,
-#’ and whether they successfully cover all truly active predictors.
-#’
-#’ @details
-#’ Given \code{cs_list}, a list of confidence‐set specifications (one per simulation),
-#’ and \code{true_active}, the indices of the truly nonzero coefficients, this
-#’ function:
-#’ \enumerate{
-#’   \item Normalizes each element to a sorted, unique integer vector
-#’         (treating \code{NULL} or zero‐length as the empty set \{\});
-#’   \item Identifies unique configurations in the order they first appear;
-#’   \item Counts how often each unique set occurred and computes its percentage
-#’         of the total simulations;
-#’   \item Checks, for each unique set, whether it contains all elements of
-#’         \code{true_active} (via \code{\link{is_covered}()});
-#’   \item Returns a \code{data.frame} with columns \code{set}, \code{count},
-#’         \code{percent}, and \code{cover}, sorted by descending \code{count}.
-#’ }
-#’
-#’ @param cs_list List of length \code{n_sims}.  Each element must be either:
-#’   \itemize{
-#’     \item An integer (or numeric) vector of selected covariate indices, or
-#’     \item A nested list of integer vectors (e.g. SuSiE style), or
-#’     \item \code{NULL} / zero‐length, interpreted as the empty set \{\}.
-#’   }
-#’ @param true_active Integer vector. The indices of the truly active covariates.
-#’
-#’ @return A \code{data.frame} with columns:
-#’ \describe{
-#’   \item{\code{set}}{Character. String representation of the set,
-#’     e.g. \code{"\{1,2\}"} or \code{"\{\}"}.}
-#’   \item{\code{count}}{Integer. Number of simulations in which this exact set occurred.}
-#’   \item{\code{percent}}{Numeric. \code{count} divided by \code{length(cs_list)}.}
-#’   \item{\code{cover}}{Logical. \code{TRUE} if the set covers all \code{true_active},
-#’     i.e. \code{is_covered(set, true_active)}; otherwise \code{FALSE}.}
-#’ }
-#’
-#’ @seealso
-#’ \code{\link{is_covered}} for checking coverage of a single confidence set.
-#’
-#’ @examples
-#’ # Mixed SuSiE‐style and simple sets
-#’ cs_list    <- list(c(1,2), NULL, list(c(3,5), c(5,3)), integer(0))
-#’ true_active <- c(1,2)
-#’ summarize_cs(cs_list, true_active)
-#’
-#’ @importFrom stats table
-#’ @export
+#' Update the Dispersion (Scale) Parameter for GLMs
+#'
+#' @description
+#' Estimate the dispersion (scale) parameter for two-parameter GLM families
+#' (Gaussian, Gamma, inverse Gaussian) using either Pearson or deviance residuals.
+#' For one-parameter families (binomial, Poisson) and Cox, the dispersion remains 1.
+#'
+#' @param y Numeric vector of responses.  For Cox models, supply the event times
+#'   (first column) if \code{family$family == "cox"}.
+#' @param family A \code{stats::family} object (e.g. \code{gaussian()}, \code{Gamma()},
+#'   \code{inverse.gaussian()}).  Must include \code{linkinv} and \code{variance} methods,
+#'   and—if \code{approach = "deviance"}—a \code{dev.resids} method.
+#' @param offset Numeric scalar or vector of linear predictors.  If scalar, recycled
+#'   to length \code{length(y)} before applying the inverse link to compute \eqn{\mu}.
+#' @param approach Character string, either \code{"pearson"} (default) to use Pearson
+#'   residuals, or \code{"deviance"} to use deviance residuals.
+#'
+#' @return
+#' Numeric scalar giving the estimated dispersion:
+#' \describe{
+#'   \item{Gaussian, Gamma, inverse Gaussian}{Moment‐based estimate}
+#'   \item{Binomial, Poisson, Cox}{Always \code{1}}
+#' }
+#'
+#' @details
+#' The Pearson estimate is
+#' \deqn{\hat{\phi} = \frac{\sum_i (y_i - \mu_i)^2 / V(\mu_i)}{n - p},}
+#' and the deviance estimate is
+#' \deqn{\hat{\phi} = \frac{\sum_i d_i}{n - p},}
+#' where \eqn{d_i} are the deviance residuals returned by
+#' \code{family\$}\code{dev.resids}\eqn{(y, \mu, wt)}.  Here, \eqn{p} is the number of estimated
+#' parameters (intercept + slopes); for a univariate slope-only model, one may set
+#' \eqn{p = 1}, but by default we use \eqn{p = 0} when only updating dispersion.
+#'
+#' @examples
+#' \donttest{
+#' # Gaussian with known offset
+#' y <- rnorm(100, mean = 2)
+#' off <- rep(1, 100)
+#' update_dispersion(y, gaussian(), offset = off, approach = "pearson")
+#'
+#' # Gamma model
+#' y <- rgamma(100, shape = 2, scale = 3)
+#' off <- rep(0, 100)
+#' update_dispersion(y, Gamma(link = "log"), offset = off, approach = "deviance")
+#'
+#' # Poisson (dispersion fixed at 1)
+#' y <- rpois(100, lambda = 5)
+#' update_dispersion(y, poisson(), offset = 0)
+#' }
+#' @export
+update_dispersion <- function(y,
+                              family = gaussian(),
+                              offset = 0,
+                              approach = "pearson") {
+  # Compute linear predictor's inverse link
+  mu <- family$linkinv(offset)
+  n  <- length(y)
+  p  <- 0  # number of estimated parameters (default 0)
+  
+  if (approach == "pearson") {
+    var_mu    <- family$variance(mu)
+    residuals <- (y - mu) / sqrt(var_mu)
+    dispersion <- sum(residuals^2) / (n - p)
+  } else if (approach == "deviance") {
+    dev_resids <- family$dev.resids(y, mu, rep(1, n))
+    dispersion <- sum(dev_resids) / (n - p)
+  } else {
+    stop("`approach` must be either 'pearson' or 'deviance'")
+  }
+  
+  dispersion
+}
+
+#' Summarize Confidence Sets Across Simulations
+#'
+#' @description
+#' Given a list of confidence sets (each a vector of selected variable indices)
+#' from multiple simulation replicates and the true active set, tabulate
+#' the unique sets, their frequencies, proportions, and whether they cover the true set.
+#'
+#' @param cs_list List of length \code{n_sims}, where each element is an integer
+#'   vector (possibly of length zero) of selected variable indices in that simulation.
+#' @param true_active Integer vector of the true active variable indices.
+#'
+#' @return A data.frame with columns:
+#' \describe{
+#'   \item{set}{Character representation of each unique confidence set, e.g. "\{1,3\}".}
+#'   \item{count}{Number of simulations in which this set was returned.}
+#'   \item{percent}{Proportion of simulations with this set (\code{count} / \code{n_sims}).}
+#'   \item{cover}{Logical: \code{TRUE} if the set contains all \code{true_active} indices.}
+#' }
+#' Rows are sorted by decreasing \code{count}.
+#'
+#' @examples
+#' # Suppose over 100 sims we obtained these sets:
+#' cs_list <- list(c(1), c(1,2), c(1), integer(0), c(2), c(1))
+#' true_active <- 1
+#' summarize_cs(cs_list, true_active)
+#'
+#' @export
 summarize_cs <- function(cs_list, true_active) {
   n_sims <- length(cs_list)
 
@@ -388,11 +345,9 @@ summarize_cs <- function(cs_list, true_active) {
     if (is.null(s) || length(s) == 0L) {
       return(integer(0))
     }
-    # If atomic numeric/integer
     if (is.numeric(s) || is.integer(s)) {
       return(sort(unique(as.integer(s))))
     }
-    # If list: recursively extract all numeric elements
     if (is.list(s)) {
       nums <- unlist(s, recursive = TRUE, use.names = FALSE)
       if (is.numeric(nums)) {
@@ -403,34 +358,32 @@ summarize_cs <- function(cs_list, true_active) {
     integer(0)
   }
 
-  # 1) Normalize every simulation’s set
+  # 1) Normalize each simulation’s set
   norm_list <- lapply(cs_list, normalize)
 
-  # 2) Create string keys for uniqueness (empty vector → "")
+  # 2) Create string keys for uniqueness
   keys <- vapply(norm_list, function(v) paste(v, collapse = ","), character(1))
 
-  # 3) Identify unique keys in order of appearance
-  uniq_keys <- unique(keys)
+  # 3) Identify unique keys and tabulate
+  uniq_keys   <- unique(keys)
   factor_keys <- factor(keys, levels = uniq_keys)
+  counts      <- as.integer(table(factor_keys))
+  percents    <- counts / n_sims
 
-  # 4) Tabulate counts and percentages
-  counts   <- as.integer(table(factor_keys))
-  percents <- counts / n_sims
-
-  # 5) Decode each unique key back to integer vector
+  # 4) Decode unique keys back to integer vectors
   uniq_sets <- lapply(uniq_keys, function(k) {
     if (k == "") integer(0) else as.integer(strsplit(k, ",")[[1]])
   })
 
-  # 6) Compute coverage for each unique set
+  # 5) Compute coverage for each unique set
   covers <- vapply(uniq_sets, is_covered, logical(1), true_active = true_active)
 
-  # 7) Format display strings
+  # 6) Format display strings
   display <- vapply(uniq_sets, function(v) {
     if (length(v) == 0L) "{}" else paste0("{", paste(v, collapse = ","), "}")
   }, character(1))
 
-  # 8) Assemble data.frame and sort
+  # 7) Assemble and sort the data.frame
   df <- data.frame(
     set     = display,
     count   = counts,
@@ -443,37 +396,34 @@ summarize_cs <- function(cs_list, true_active) {
   df
 }
 
-#’ Summarize Simulation Coefficients
-#’
-#’ Given a matrix of estimated coefficients from multiple simulation runs,
-#’ compute for each covariate the average estimate and the sample standard
-#’ deviation (“SSD”) across runs.
-#’
-#’ @param sims_coef Numeric matrix of dimension \eqn{p \times n_{\rm sims}}.
-#’   Each column contains the estimated \eqn{p}-vector of coefficients from
-#’   one simulation.
-#’ @param true_theta Numeric vector of length \eqn{p}, the true coefficient
-#’   values.  (Used for reference—returned in the output.)
-#’
-#’ @return A \code{data.frame} with \eqn{p} rows and columns:
-#’ \describe{
-#’   \item{\code{true}}{True coefficient \eqn{\theta_j}.}
-#’   \item{\code{mean}}{Average estimate \(\frac{1}{n_{\rm sims}}\sum_{s}\hat\theta_{j}^{(s)}\).}
-#’   \item{\code{ssd}}{Sample standard deviation of \(\{\hat\theta_{j}^{(s)}\}\).}
-#’ }
-#’
-#’ @examples
-#’ set.seed(123)
-#’ p       <- 5
-#’ n_sims  <- 100
-#’ true_th <- c(1, 0, -2, 0.5, 3)
-#’ # Simulate around the truth with noise sd = 0.5
-#’ sims   <- sapply(1:n_sims, function(i) rnorm(p, true_th, sd = 0.5))
-#’ summarise <- summarize_coef(sims, true_th)
-#’ print(summarise)
-#' @importFrom stats sd
-#’
-#’ @export
+#' Summarize Coefficient Estimates Across Simulations
+#'
+#' @description
+#' Given a matrix of simulated coefficient estimates and the true coefficient vector,
+#' compute per‐variable summary statistics: the empirical mean and standard deviation
+#' of the estimates, alongside the true value.
+#'
+#' @param sims_coef Numeric matrix of dimension \eqn{p \times n_{\text{sim}}}, where each
+#'   row corresponds to one predictor and each column to a simulation replicate.
+#' @param true_theta Numeric vector of length \eqn{p}, containing the true coefficient
+#'   values for each predictor.
+#'
+#' @return A data.frame with columns:
+#' \describe{
+#'   \item{\code{true}}{The true coefficient values, from \code{true_theta}.}
+#'   \item{\code{mean}}{Row‐wise mean of \code{sims_coef}, the average estimated coefficient.}
+#'   \item{\code{ssd}}{Row‐wise standard deviation of \code{sims_coef}, the empirical sampling variability.}
+#' }
+#'
+#' @examples
+#' # Suppose we ran 100 simulations for 3 predictors
+#' set.seed(42)
+#' true_theta <- c(1.5, 0, -2)
+#' sims_coef  <- matrix(rnorm(3 * 100, mean = rep(true_theta, each = 100), sd = 0.3),
+#'                      nrow = 3, byrow = TRUE)
+#' summarize_coef(sims_coef, true_theta)
+#'
+#' @export
 summarize_coef <- function(sims_coef, true_theta) {
   if (!is.matrix(sims_coef)) {
     stop("`sims_coef` must be a numeric matrix of size p x n_sims")
@@ -493,4 +443,145 @@ summarize_coef <- function(sims_coef, true_theta) {
     row.names = NULL,
     stringsAsFactors = FALSE
   )
+}
+
+#' Construct Confidence Sets from Posterior Model Probabilities
+#'
+#' @description
+#' For each latent effect (column) in a posterior model probability matrix \code{pmp},
+#' select the smallest set of variables whose cumulative probability reaches at least
+#' \code{coverage}.  Optionally filter out sets whose minimum absolute pairwise
+#' correlation (from \code{Rmat}) is below \code{cor_threshold}, and remove duplicates.
+#'
+#' @param pmp Numeric matrix of dimension \eqn{p \times L}, where each column sums to 1
+#'   and contains posterior inclusion probabilities for each variable and effect.
+#' @param kept Logical vector of length \eqn{L}, indicating which effects (columns) to process.
+#' @param coverage Numeric scalar in \[0,1\], the target cumulative probability for a confidence set.
+#'   Defaults to 0.95.
+#' @param Rmat Optional \eqn{p \times p} numeric correlation matrix for the predictors.
+#'   If supplied, any set whose minimum off-diagonal absolute correlation is below
+#'   \code{cor_threshold} is discarded.  Defaults to \code{NULL}.
+#' @param cor_threshold Numeric scalar in \[0,1\], the minimum absolute correlation allowed
+#'   within a set to pass the correlation filter.  Defaults to 0.5.
+#'
+#' @return A list with components:
+#' \describe{
+#'   \item{\code{sets}}{A named list of integer vectors.  Each element \code{cs1}, \code{cs2}, …
+#'     is a confidence set of variable indices that achieves the target coverage.  If no sets
+#'     survive the filters, \code{sets} is \code{NULL}.}
+#'   \item{\code{claimed}}{Numeric vector of the actual cumulative probabilities
+#'     ("claimed coverage") for each returned set.}
+#' }
+#'
+#' @examples
+#' # Simple two-effect example
+#' pmp <- matrix(c(0.6, 0.3, 0.1,
+#'                 0.2, 0.5, 0.3),
+#'               nrow = 3, byrow = FALSE)
+#' kept <- c(TRUE, TRUE)
+#' cs <- confidence_set(pmp, kept)
+#' 
+#' # With a correlation filter
+#' Rmat <- cor(matrix(rnorm(9), nrow = 3))
+#' cs2 <- confidence_set(pmp, kept, coverage = 0.8, Rmat = Rmat, cor_threshold = 0.2)
+#'
+#' @export
+confidence_set <- function(pmp,
+                           kept,
+                           coverage     = 0.95,
+                           Rmat         = NULL,
+                           cor_threshold = 0.5) {
+  if (!is.matrix(pmp)) stop("`pmp` must be a matrix")
+  p <- nrow(pmp); L <- ncol(pmp)
+  if (length(kept) != L) stop("`kept` must be length ncol(pmp)")
+
+  sets    <- list()
+  claimed <- numeric()
+
+  for (ell in seq_len(L)[kept]) {
+    probs <- pmp[, ell]
+    ord   <- order(probs, decreasing = TRUE)
+    cum   <- cumsum(probs[ord])
+    m     <- which(cum >= coverage)[1]
+    sel   <- sort(ord[seq_len(m)])
+    covel <- sum(probs[sel])
+
+    if (!is.null(Rmat)) {
+      if (!all(dim(Rmat) == c(p, p))) {
+        stop("`Rmat` must be a p x p matrix where p = nrow(pmp)")
+      }
+      if (length(sel) > 1) {
+        subcorr <- abs(Rmat[sel, sel])
+        diag(subcorr) <- NA
+        mincorr <- min(subcorr, na.rm = TRUE)
+      } else {
+        mincorr <- 1
+      }
+      if (mincorr < cor_threshold) next
+    }
+
+    # avoid duplicates
+    duplicate <- FALSE
+    for (i in seq_along(sets)) {
+      if (length(sets[[i]]) == length(sel) && all(sets[[i]] == sel)) {
+        duplicate <- TRUE
+        break
+      }
+    }
+    if (duplicate) next
+
+    name <- paste0("cs", length(sets) + 1L)
+    sets[[name]] <- sel
+    claimed[length(sets)] <- covel
+  }
+
+  if (length(sets) == 0L) {
+    return(list(sets = NULL, claimed = NULL))
+  }
+
+  list(sets = sets, claimed = claimed)
+}
+
+#' Calculate Cox Proportional Hazards Log-Likelihood
+#'
+#' @param x Numeric vector of covariate values
+#' @param y Matrix with 2 columns (time, status)
+#' @param offset Numeric vector or scalar offset
+#' @param theta Coefficient value (default: 0)
+#' @param ties Method for handling ties ("breslow" or "efron")
+#'
+#' @return Log-likelihood value
+#' @export
+univariate_loglik_cox <- function(x, y, offset = numeric(0), theta = 0, ties = "efron") {
+  # Type checking
+  x <- as.numeric(x)
+  y <- as.matrix(y)
+  offset <- as.numeric(offset)
+  
+  # Call C++ function
+  .Call("_glmcs_univariate_loglik_cox", PACKAGE = "glmcs", 
+        x, y, offset, theta, ties)
+}
+
+#' Fit Univariate Cox Regression via IRLS
+#'
+#' @param x Numeric vector of covariate values
+#' @param y Matrix with 2 columns (time, status)
+#' @param offset Numeric vector or scalar offset
+#' @param ties Method for handling ties ("breslow" or "efron")
+#' @param max_iter Maximum iterations
+#' @param tol Convergence tolerance
+#'
+#' @return Estimated coefficient
+#' @export
+univariate_irls_cox <- function(x, y, offset = numeric(0), ties = "efron", 
+                               max_iter = 25, tol = 1e-8) {
+  # Type checking
+  x <- as.numeric(x)
+  y <- as.matrix(y)
+  offset <- as.numeric(offset)
+  
+  # Call C++ function
+  .Call("_glmcs_univariate_irls_cox", PACKAGE = "glmcs", 
+        x, y, offset, ties, max_iter, tol)
 }

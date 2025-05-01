@@ -11,226 +11,41 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// kl_divergence
-double kl_divergence(NumericVector p, double log_base);
-RcppExport SEXP _glmcs_kl_divergence(SEXP pSEXP, SEXP log_baseSEXP) {
+// univariate_loglik_cox
+double univariate_loglik_cox(const arma::vec& x, const arma::mat& y, arma::vec offset, double theta, std::string ties);
+RcppExport SEXP _glmcs_univariate_loglik_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP thetaSEXP, SEXP tiesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type p(pSEXP);
-    Rcpp::traits::input_parameter< double >::type log_base(log_baseSEXP);
-    rcpp_result_gen = Rcpp::wrap(kl_divergence(p, log_base));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_loglike
-double get_loglike(NumericMatrix X, SEXP y, SEXP family, arma::mat theta, double intercept, double dispersion);
-RcppExport SEXP _glmcs_get_loglike(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP interceptSEXP, SEXP dispersionSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< double >::type intercept(interceptSEXP);
-    Rcpp::traits::input_parameter< double >::type dispersion(dispersionSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_loglike(X, y, family, theta, intercept, dispersion));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_purity
-NumericVector get_purity(IntegerVector pos, Nullable<NumericMatrix> X, Nullable<NumericMatrix> R, bool squared, int n_purity);
-RcppExport SEXP _glmcs_get_purity(SEXP posSEXP, SEXP XSEXP, SEXP RSEXP, SEXP squaredSEXP, SEXP n_puritySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type pos(posSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type X(XSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type R(RSEXP);
-    Rcpp::traits::input_parameter< bool >::type squared(squaredSEXP);
-    Rcpp::traits::input_parameter< int >::type n_purity(n_puritySEXP);
-    rcpp_result_gen = Rcpp::wrap(get_purity(pos, X, R, squared, n_purity));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_included
-LogicalVector get_included(List fit, NumericMatrix X, SEXP y, SEXP family, double alpha);
-RcppExport SEXP _glmcs_get_included(SEXP fitSEXP, SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP alphaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type fit(fitSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
-    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_included(fit, X, y, family, alpha));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_cs
-List get_cs(NumericMatrix posterior_mat, LogicalVector keep, double coverage, Nullable<NumericMatrix> X, Nullable<NumericMatrix> R, bool check_symmetric, double min_abs_corr, int n_purity, bool squared);
-RcppExport SEXP _glmcs_get_cs(SEXP posterior_matSEXP, SEXP keepSEXP, SEXP coverageSEXP, SEXP XSEXP, SEXP RSEXP, SEXP check_symmetricSEXP, SEXP min_abs_corrSEXP, SEXP n_puritySEXP, SEXP squaredSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type posterior_mat(posterior_matSEXP);
-    Rcpp::traits::input_parameter< LogicalVector >::type keep(keepSEXP);
-    Rcpp::traits::input_parameter< double >::type coverage(coverageSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type X(XSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type R(RSEXP);
-    Rcpp::traits::input_parameter< bool >::type check_symmetric(check_symmetricSEXP);
-    Rcpp::traits::input_parameter< double >::type min_abs_corr(min_abs_corrSEXP);
-    Rcpp::traits::input_parameter< int >::type n_purity(n_puritySEXP);
-    Rcpp::traits::input_parameter< bool >::type squared(squaredSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_cs(posterior_mat, keep, coverage, X, R, check_symmetric, min_abs_corr, n_purity, squared));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_glm_fit
-List get_glm_fit(arma::vec x, arma::vec y, List family, arma::vec offset, bool standardize, int max_iter, double tol);
-RcppExport SEXP _glmcs_get_glm_fit(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< List >::type family(familySEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
-    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_glm_fit(x, y, family, offset, standardize, max_iter, tol));
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
+    rcpp_result_gen = Rcpp::wrap(univariate_loglik_cox(x, y, offset, theta, ties));
     return rcpp_result_gen;
 END_RCPP
 }
-// get_cox_fit
-List get_cox_fit(arma::vec x, arma::mat y, arma::vec offset, bool standardize, std::string ties, int max_iter, double tol);
-RcppExport SEXP _glmcs_get_cox_fit(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+// univariate_irls_cox
+double univariate_irls_cox(arma::vec x, arma::mat y, arma::vec offset, std::string ties, int max_iter, double tol);
+RcppExport SEXP _glmcs_univariate_irls_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP tiesSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_cox_fit(x, y, offset, standardize, ties, max_iter, tol));
+    rcpp_result_gen = Rcpp::wrap(univariate_irls_cox(x, y, offset, ties, max_iter, tol));
     return rcpp_result_gen;
 END_RCPP
 }
-// null_glm_fit
-List null_glm_fit(arma::vec y, List family, arma::vec offset, int max_iter, double tol);
-RcppExport SEXP _glmcs_null_glm_fit(SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< List >::type family(familySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(null_glm_fit(y, family, offset, max_iter, tol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// null_cox_fit
-List null_cox_fit(arma::mat y, arma::vec offset, std::string ties);
-RcppExport SEXP _glmcs_null_cox_fit(SEXP ySEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
-    rcpp_result_gen = Rcpp::wrap(null_cox_fit(y, offset, ties));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_intercept
-double update_intercept(SEXP y, List family, arma::vec offset);
-RcppExport SEXP _glmcs_update_intercept(SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< List >::type family(familySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_intercept(y, family, offset));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_dispersion
-double update_dispersion(SEXP y, List family, arma::vec offset);
-RcppExport SEXP _glmcs_update_dispersion(SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< List >::type family(familySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_dispersion(y, family, offset));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_ser_fit
-DataFrame get_ser_fit(NumericMatrix X, SEXP y, SEXP family, NumericVector offset, bool standardize, std::string ties);
-RcppExport SEXP _glmcs_get_ser_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP tiesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
-    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_ser_fit(X, y, family, offset, standardize, ties));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_laser_fit
-List get_laser_fit(NumericMatrix X, SEXP y, SEXP family, int L, bool standardize, std::string ties, std::string algorithm, int max_iter, double step_size, double tol, Nullable<int> seed);
-RcppExport SEXP _glmcs_get_laser_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP LSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP algorithmSEXP, SEXP max_iterSEXP, SEXP step_sizeSEXP, SEXP tolSEXP, SEXP seedSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
-    Rcpp::traits::input_parameter< int >::type L(LSEXP);
-    Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
-    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
-    Rcpp::traits::input_parameter< std::string >::type algorithm(algorithmSEXP);
-    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    Rcpp::traits::input_parameter< double >::type step_size(step_sizeSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    Rcpp::traits::input_parameter< Nullable<int> >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_laser_fit(X, y, family, L, standardize, ties, algorithm, max_iter, step_size, tol, seed));
-    return rcpp_result_gen;
-END_RCPP
-}
-
-RcppExport SEXP _rcpp_module_boot_laser();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_glmcs_kl_divergence", (DL_FUNC) &_glmcs_kl_divergence, 2},
-    {"_glmcs_get_loglike", (DL_FUNC) &_glmcs_get_loglike, 6},
-    {"_glmcs_get_purity", (DL_FUNC) &_glmcs_get_purity, 5},
-    {"_glmcs_get_included", (DL_FUNC) &_glmcs_get_included, 5},
-    {"_glmcs_get_cs", (DL_FUNC) &_glmcs_get_cs, 9},
-    {"_glmcs_get_glm_fit", (DL_FUNC) &_glmcs_get_glm_fit, 7},
-    {"_glmcs_get_cox_fit", (DL_FUNC) &_glmcs_get_cox_fit, 7},
-    {"_glmcs_null_glm_fit", (DL_FUNC) &_glmcs_null_glm_fit, 5},
-    {"_glmcs_null_cox_fit", (DL_FUNC) &_glmcs_null_cox_fit, 3},
-    {"_glmcs_update_intercept", (DL_FUNC) &_glmcs_update_intercept, 3},
-    {"_glmcs_update_dispersion", (DL_FUNC) &_glmcs_update_dispersion, 3},
-    {"_glmcs_get_ser_fit", (DL_FUNC) &_glmcs_get_ser_fit, 6},
-    {"_glmcs_get_laser_fit", (DL_FUNC) &_glmcs_get_laser_fit, 11},
-    {"_rcpp_module_boot_laser", (DL_FUNC) &_rcpp_module_boot_laser, 0},
+    {"_glmcs_univariate_loglik_cox", (DL_FUNC) &_glmcs_univariate_loglik_cox, 5},
+    {"_glmcs_univariate_irls_cox", (DL_FUNC) &_glmcs_univariate_irls_cox, 6},
     {NULL, NULL, 0}
 };
 
