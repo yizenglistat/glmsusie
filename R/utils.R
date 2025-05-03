@@ -115,90 +115,95 @@ is_covered <- function(confidence_sets, true_active) {
   all(true_active %in% all_indices)
 }
 
-#' Summarize Confidence Sets Across Simulations
+#' Summarize Confidence Sets Regions Across Simulations
 #'
 #' @description
-#' Given a list of confidence sets (each a vector of selected variable indices)
-#' from multiple simulation replicates and the true active set, tabulate
-#' the unique sets, their frequencies, proportions, and whether they cover the true set.
+#' Given a list of simulation results where each run may return multiple
+#' confidence sets (e.g. \code{cs1}, \code{cs2}, …), this function enumerates
+#' the distinct patterns of sets, counts how often each occurs, computes the
+#' fraction of simulations, and tests whether the **union** of all sets in
+#' a pattern covers the true active variables.
 #'
-#' @param cs_list List of length \code{n_sims}, where each element is an integer
-#'   vector (possibly of length zero) of selected variable indices in that simulation.
+#' @param cs_list List of length \code{n_sims}. Each element is either:
+#'   \itemize{
+#'     \item an R list (e.g. \code{list(cs1=..., cs2=..., …)}) of integer vectors,
+#'     \item \code{NULL} or an empty list, meaning no confidence sets returned.
+#'   }
+#'   Each inner integer vector holds the indices in a single confidence set.
 #' @param true_active Integer vector of the true active variable indices.
 #'
-#' @return A data.frame with columns:
+#' @return A \code{data.frame} with columns:
 #' \describe{
-#'   \item{set}{Character representation of each unique confidence set, e.g. "\{1,3\}".}
-#'   \item{count}{Number of simulations in which this set was returned.}
-#'   \item{percent}{Proportion of simulations with this set (\code{count} / \code{n_sims}).}
-#'   \item{cover}{Logical: \code{TRUE} if the set contains all \code{true_active} indices.}
+#'   \item{sets}{Character: each unique simulation pattern rendered as
+#'     comma‐separated set literals, e.g.\  "\{1,4\}, \{2,3\}".  An empty
+#'     pattern is shown as "\{\}".}
+#'   \item{count}{Integer: number of simulations that produced exactly that
+#'     pattern of sets.}
+#'   \item{percent}{Numeric: \code{count} divided by \code{n_sims}.}
+#'   \item{cover}{Logical: \code{TRUE} if the union of all sets in the pattern
+#'     contains *every* element of \code{true_active}.}
 #' }
-#' Rows are sorted by decreasing \code{count}.
+#' Rows are sorted in descending order of \code{count}.
 #'
 #' @examples
-#' # Suppose over 100 sims we obtained these sets:
-#' cs_list <- list(c(1), c(1,2), c(1), integer(0), c(2), c(1))
-#' true_active <- 1
+#' # Six simulation replicates with varying numbers of confidence sets:
+#' cs_list <- list(
+#'   list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A
+#'   list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A again
+#'   list(cs1 = c(1,4),    cs2 = c(2,3), cs3 = c(2,4)), # pattern B
+#'   list(cs1 = c(1)),                                  # pattern C
+#'   NULL,                                              # pattern D (no sets)
+#'   list(cs1 = c(1,2,4), cs2 = c(2,3), cs3 = c(3))     # pattern E
+#' )
+#' true_active <- c(1,4)
 #' summarize_cs(cs_list, true_active)
 #'
 #' @export
 summarize_cs <- function(cs_list, true_active) {
   n_sims <- length(cs_list)
 
-  # Helper: normalize any input to a sorted integer vector
-  normalize <- function(s) {
-    if (is.null(s) || length(s) == 0L) {
-      return(integer(0))
+  # 1) Turn each sim’s list-of-sets into a single display string
+  make_key <- function(L) {
+    if (is.null(L) || length(L) == 0L) {
+      return("{}")
     }
-    if (is.numeric(s) || is.integer(s)) {
-      return(sort(unique(as.integer(s))))
-    }
-    if (is.list(s)) {
-      nums <- unlist(s, recursive = TRUE, use.names = FALSE)
-      if (is.numeric(nums)) {
-        return(sort(unique(as.integer(nums))))
+    sets <- lapply(L, function(s) {
+      if (length(s) == 0L) {
+        return("{}")
+      } else {
+        paste0("{", paste(sort(unique(as.integer(s))), collapse=","), "}")
       }
-    }
-    warning("Unable to normalize element to integer vector; treating as empty set.")
-    integer(0)
+    })
+    paste(sets, collapse = ", ")
   }
+  keys <- vapply(cs_list, make_key, character(1))
 
-  # 1) Normalize each simulation’s set
-  norm_list <- lapply(cs_list, normalize)
+  # 2) Tabulate unique patterns
+  uniq_keys <- unique(keys)
+  counts    <- as.integer(table(factor(keys, levels = uniq_keys)))
+  percents  <- counts / n_sims
 
-  # 2) Create string keys for uniqueness
-  keys <- vapply(norm_list, function(v) paste(v, collapse = ","), character(1))
+  # 3) Compute coverage for each unique pattern:
+  #    union all the sets in that pattern and see if it covers true_active
+  is_covered <- function(L) {
+    if (is.null(L) || length(L) == 0L) return(FALSE)
+    u <- unique(unlist(L, use.names = FALSE))
+    all(true_active %in% u)
+  }
+  # need to map uniq_keys back to one representative cs_list[[i]]
+  # build a lookup from key -> index of first occurrence
+  first_occ <- match(uniq_keys, keys)
+  covers <- vapply(first_occ, function(i) is_covered(cs_list[[i]]), logical(1))
 
-  # 3) Identify unique keys and tabulate
-  uniq_keys   <- unique(keys)
-  factor_keys <- factor(keys, levels = uniq_keys)
-  counts      <- as.integer(table(factor_keys))
-  percents    <- counts / n_sims
-
-  # 4) Decode unique keys back to integer vectors
-  uniq_sets <- lapply(uniq_keys, function(k) {
-    if (k == "") integer(0) else as.integer(strsplit(k, ",")[[1]])
-  })
-
-  # 5) Compute coverage for each unique set
-  covers <- vapply(uniq_sets, is_covered, logical(1), true_active = true_active)
-
-  # 6) Format display strings
-  display <- vapply(uniq_sets, function(v) {
-    if (length(v) == 0L) "{}" else paste0("{", paste(v, collapse = ","), "}")
-  }, character(1))
-
-  # 7) Assemble and sort the data.frame
+  # 4) Assemble
   df <- data.frame(
-    set     = display,
+    sets    = uniq_keys,
     count   = counts,
     percent = percents,
     cover   = covers,
     stringsAsFactors = FALSE
   )
-  df <- df[order(-df$count), ]
-  rownames(df) <- NULL
-  df
+  df[order(-df$count), , drop = FALSE]
 }
 
 #' Summarize Coefficient Estimates Across Simulations

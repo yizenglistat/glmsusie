@@ -2,35 +2,52 @@
 % Please edit documentation in R/utils.R
 \name{summarize_cs}
 \alias{summarize_cs}
-\title{Summarize Confidence Sets Across Simulations}
+\title{Summarize Confidence Sets Regions Across Simulations}
 \usage{
 summarize_cs(cs_list, true_active)
 }
 \arguments{
-\item{cs_list}{List of length \code{n_sims}, where each element is an integer
-vector (possibly of length zero) of selected variable indices in that simulation.}
+\item{cs_list}{List of length \code{n_sims}. Each element is either:
+\itemize{
+\item an R list (e.g. \code{list(cs1=..., cs2=..., …)}) of integer vectors,
+\item \code{NULL} or an empty list, meaning no confidence sets returned.
+}
+Each inner integer vector holds the indices in a single confidence set.}
 
 \item{true_active}{Integer vector of the true active variable indices.}
 }
 \value{
-A data.frame with columns:
+A \code{data.frame} with columns:
 \describe{
-\item{set}{Character representation of each unique confidence set, e.g. "\{1,3\}".}
-\item{count}{Number of simulations in which this set was returned.}
-\item{percent}{Proportion of simulations with this set (\code{count} / \code{n_sims}).}
-\item{cover}{Logical: \code{TRUE} if the set contains all \code{true_active} indices.}
+\item{sets}{Character: each unique simulation pattern rendered as
+comma‐separated set literals, e.g.\  "\{1,4\}, \{2,3\}".  An empty
+pattern is shown as "\{\}".}
+\item{count}{Integer: number of simulations that produced exactly that
+pattern of sets.}
+\item{percent}{Numeric: \code{count} divided by \code{n_sims}.}
+\item{cover}{Logical: \code{TRUE} if the union of all sets in the pattern
+contains \emph{every} element of \code{true_active}.}
 }
-Rows are sorted by decreasing \code{count}.
+Rows are sorted in descending order of \code{count}.
 }
 \description{
-Given a list of confidence sets (each a vector of selected variable indices)
-from multiple simulation replicates and the true active set, tabulate
-the unique sets, their frequencies, proportions, and whether they cover the true set.
+Given a list of simulation results where each run may return multiple
+confidence sets (e.g. \code{cs1}, \code{cs2}, …), this function enumerates
+the distinct patterns of sets, counts how often each occurs, computes the
+fraction of simulations, and tests whether the \strong{union} of all sets in
+a pattern covers the true active variables.
 }
 \examples{
-# Suppose over 100 sims we obtained these sets:
-cs_list <- list(c(1), c(1,2), c(1), integer(0), c(2), c(1))
-true_active <- 1
+# Six simulation replicates with varying numbers of confidence sets:
+cs_list <- list(
+  list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A
+  list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A again
+  list(cs1 = c(1,4),    cs2 = c(2,3), cs3 = c(2,4)), # pattern B
+  list(cs1 = c(1)),                                  # pattern C
+  NULL,                                              # pattern D (no sets)
+  list(cs1 = c(1,2,4), cs2 = c(2,3), cs3 = c(3))     # pattern E
+)
+true_active <- c(1,4)
 summarize_cs(cs_list, true_active)
 
 }
