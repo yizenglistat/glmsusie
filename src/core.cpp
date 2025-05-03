@@ -1,41 +1,61 @@
 #include "core.h"
+#include <Rcpp.h>
+#include <cmath>
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-//' @title Univariate Cox Partial Log-Likelihood
-//' @description
-//'   Computes the partial log‐likelihood for a univariate Cox proportional hazards model,
-//'   allowing either the Breslow or Efron approximation to handle tied event times.
-//'
-//' @param x Numeric vector of covariate values (length n).
-//' @param y Numeric matrix with two columns:  
-//'   * column 1 = event or censoring times  
-//'   * column 2 = status (1 = event, 0 = censored)
-//'   Must have n rows.
-//' @param offset Numeric vector or scalar; fixed component of the linear predictor.
-//'   If scalar, it is recycled to length n.
-//' @param theta Numeric scalar coefficient for x (default = 0).
-//' @param ties Character; method for tied times.  
-//'   * `"breslow"`: Breslow approximation  
-//'   * `"efron"` (default): Efron approximation
-//'
-//' @return A single numeric value: the partial log‐likelihood \eqn{\ell(\theta)}.
-//'
-//' @examples
-//' \dontrun{
-//' n <- 100
-//' x <- rnorm(n)
-//' time <- rexp(n, rate = exp(0.3 * x))
-//' status <- rbinom(n, 1, 0.7)
-//' y <- cbind(time, status)
-//'
-//' # compute log‐likelihood at theta = 0.5
-//' univariate_loglik_cox(x, y, offset = 0, theta = 0.5, ties = "efron")
-//' }
-//' @seealso \code{\link{univariate_irls_cox}}
-//' @export
+// [[Rcpp::export]]
+double update_dispersion(const arma::vec& y,
+                         SEXP family,
+                         arma::vec offset,
+                         std::string approach = "pearson") {
+  
+  int n = y.n_elem;
+  int p = 0;
+
+  // Expand offset if scalar or missing
+  if (offset.n_elem == 0) {
+    offset = arma::zeros(n);
+  } else if (offset.n_elem == 1 && n > 1) {
+    offset = arma::vec(n).fill(offset(0));
+  } else if (offset.n_elem != n) {
+    stop("offset must have length 1 or same length as y");
+  }
+
+  // Validate family object
+  if (TYPEOF(family) != VECSXP) {
+    stop("family must be a list (i.e., GLM family)");
+  }
+
+  List fam = as<List>(family);
+  Function linkinv = fam["linkinv"];
+  NumericVector mu_r = linkinv(wrap(offset));
+  arma::vec mu = as<arma::vec>(mu_r);
+
+  double dispersion = NA_REAL;
+
+  if (approach == "pearson") {
+    Function variance = fam["variance"];
+    NumericVector var_r = variance(mu_r);
+    arma::vec var_mu = as<arma::vec>(var_r);
+
+    arma::vec residuals = (y - mu) / arma::sqrt(var_mu + 1e-8);
+    dispersion = arma::accu(residuals % residuals) / (n - p);
+
+  } else if (approach == "deviance") {
+    Function dev_resids = fam["dev.resids"];
+    NumericVector dev = dev_resids(wrap(y), wrap(mu), NumericVector(n, 1.0));
+    dispersion = std::accumulate(dev.begin(), dev.end(), 0.0) / (n - p);
+
+  } else {
+    stop("approach must be 'pearson' or 'deviance'");
+  }
+
+  return dispersion;
+}
+
 // [[Rcpp::export]]
 double univariate_loglik_cox(
     const arma::vec& x,
@@ -108,36 +128,67 @@ double univariate_loglik_cox(
 }
 
 
-//' @title Fit Univariate Cox via Newton–Raphson (IRLS)
-//' @description
-//'   Finds the MLE of the coefficient in a univariate Cox model by iteratively
-//'   maximizing the partial likelihood using Newton–Raphson.
-//'
-//' @param x Numeric vector of covariate values (length n).
-//' @param y Numeric matrix with two columns: event time and status.
-//' @param offset Numeric vector or scalar offset term; recycled if scalar.
-//' @param ties Character; how to handle ties, `"breslow"` or `"efron"` (default).
-//' @param max_iter Integer; maximum number of NR iterations (default = 25).
-//' @param tol Numeric; convergence tolerance on theta (default = 1e-8).
-//'
-//' @return A single numeric value: the estimated coefficient \eqn{\hat\theta}.
-//'
-//' @examples
-//' \dontrun{
-//' n <- 100
-//' x <- rnorm(n)
-//' y <- cbind(rexp(n, rate=exp(0.5*x)), rbinom(n,1,0.8))
-//' theta_hat <- univariate_irls_cox(x, y, offset = 0, ties = "efron")
-//' }
-//' @seealso \code{\link{univariate_loglik_cox}}
-//' @export
+// [[Rcpp::export]]
+double univariate_loglik(
+    const arma::vec&   x,
+    SEXP               y,        // vector for GLM or matrix for Cox
+    List                family,  
+    double              theta,  
+    const arma::vec&    offset,  
+    std::string         ties     
+) {
+  int n = x.n_elem;
+  // --- offset must be length n ---
+  if ((int)offset.n_elem != n) {
+    stop("`offset` must be length(x)");
+  }
+
+  // --- extract family name ---
+  std::string famname = as<std::string>(family["family"]);
+
+  if (famname == "cox") {
+    // Cox: y must be an n×2 matrix
+    NumericMatrix Ym(y);
+    arma::mat ymat = as<arma::mat>(Ym);
+    if ((int)ymat.n_rows != n || (int)ymat.n_cols != 2) {
+      stop("For Cox, y must be an n×2 matrix (time,status)");
+    }
+    return univariate_loglik_cox(x, ymat, offset, theta, ties);
+  }
+  else {
+    // GLM families: y is a length-n vector
+    NumericVector Yv(y);
+    if ((int)Yv.size() != n) {
+      stop("For GLM families, y must be length(x)");
+    }
+    // get R functions
+    Function linkinv = family["linkinv"];
+    Function devres  = family["dev.resids"];
+
+    // linear predictor & mean
+    arma::vec eta = offset + theta * x;
+    NumericVector mu_r = linkinv(wrap(eta));
+
+    // deviance residuals → vector of length n
+    NumericVector w(n, 1.0);
+    NumericVector dev = devres(Yv, mu_r, w);
+
+    // R's dev.resids returns 2 * (–logLik), so:
+    // logLik = – sum(dev) / 2
+    double sum_dev = std::accumulate(dev.begin(), dev.end(), 0.0);
+    return - sum_dev / 2.0;
+  }
+}
+
 // [[Rcpp::export]]
 double univariate_irls_cox(arma::vec x, 
-                           arma::mat y,
-                           arma::vec offset,
-                           std::string ties = "efron",
-                           int max_iter = 25,
-                           double tol = 1e-8) {
+                          arma::mat y,
+                          arma::vec offset,
+                          std::string ties = "efron",
+                          double lambda = 0.0,       // Penalty strength parameter
+                          double tau = 1e-5,         // Truncation parameter for TLP
+                          int max_iter = 25,
+                          double tol = 1e-8) {
   
   // Extract time and status from y matrix
   int n = x.n_elem;
@@ -158,6 +209,11 @@ double univariate_irls_cox(arma::vec x,
     stop("offset must have length 1 or same length as x");
   }
   
+  // Check penalty parameters
+  if (tau <= 0) {
+    stop("tau must be positive");
+  }
+  
   // Sort data by time
   arma::uvec ord = arma::stable_sort_index(time);
   arma::vec time_sorted = time.elem(ord);
@@ -165,9 +221,10 @@ double univariate_irls_cox(arma::vec x,
   arma::vec x_sorted = x.elem(ord);
   arma::vec offset_sorted = offset.elem(ord);
   
-  // IRLS loop for Cox regression
+  // IRLS loop for Cox regression with TLP
   double theta = 0.0;
   bool converged = false;
+  double c = lambda / tau;
   
   for (int iter = 0; iter < max_iter; iter++) {
     // Linear predictor
@@ -251,7 +308,7 @@ double univariate_irls_cox(arma::vec x,
         double sum_weighted_event_x = arma::sum(weighted_event_x);
         
         // Sum of x for all events at this time
-        double sum_event_x = arma::sum(event_x);
+        [[maybe_unused]] double sum_event_x = arma::sum(event_x);
         
         // Efron adjustment for score
         for (int j = 0; j < d; j++) {
@@ -292,8 +349,35 @@ double univariate_irls_cox(arma::vec x,
       break;
     }
     
-    // Newton-Raphson update
-    double theta_new = theta + score/info;
+    // Add TLP gradient and hessian adjustment
+    double theta_tlp = 0.0;
+    
+    if (lambda > 0) {
+      // Apply TLP using closed-form solution
+      // For Cox regression, the quadratic approximation gives us
+      // score = b and info = a in the notation from univariate_glm_truncLasso
+      
+      double a = info;
+      double b = score;
+      
+      // Ensure a is positive
+      if (a <= 0) a = 1e-8;
+      
+      // Capped-ℓ₁ closed form solution
+      if (std::abs(b) <= c) {
+        theta_tlp = 0.0;
+      } else if (std::abs(b) < a * tau + c) {
+        theta_tlp = (b - c * sgn(b)) / a;
+      } else {
+        theta_tlp = b / a;
+      }
+    } else {
+      // If no penalty (lambda = 0), use standard update
+      theta_tlp = score / info;
+    }
+    
+    // Apply the update
+    double theta_new = theta + theta_tlp;
     
     // Convergence check
     if (std::abs(theta_new - theta) < tol) {
@@ -306,8 +390,538 @@ double univariate_irls_cox(arma::vec x,
   }
   
   if (!converged) {
-    Rcpp::warning("Cox IRLS algorithm did not converge in %d iterations", max_iter);
+    Rcpp::warning("Cox IRLS algorithm with TLP did not converge in %d iterations", max_iter);
   }
   
   return theta;
+}
+
+
+// [[Rcpp::export]]
+double univariate_irls_glm(const arma::vec&   x,
+                           const arma::vec&   y,
+                           SEXP               family,
+                           arma::vec          offset,
+                           double             lambda     = 0.0,
+                           double             tau        = 1e-5,
+                           int                max_iter   = 25,
+                           double             tol        = 1e-8) {
+  int n = x.n_elem;
+  if ((int)y.n_elem != n)   stop("x and y must have same length");
+  if (offset.n_elem == 0)   offset = arma::zeros<arma::vec>(n);
+  if (offset.n_elem == 1 && n>1) offset = arma::vec(n).fill(offset(0));
+  if ((int)offset.n_elem != n) stop("offset must be length 1 or n");
+  if (tau <= 0)             stop("tau must be > 0");
+  if (TYPEOF(family) != VECSXP) stop("family must be a stats::family object");
+
+
+  // Extract family functions
+  List fam = as<List>(family);
+  Function linkinv = fam["linkinv"];
+  Function varfun = fam["variance"];
+  Function mu_eta = fam["mu.eta"];
+  double dispersion = fam["dispersion"];
+  CharacterVector family_name = fam["family"];
+  bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
+  
+  // Initialize
+  arma::vec eta = offset;
+  // Bound eta for numerical stability (especially for Poisson)
+  if (is_poisson) {
+    eta = arma::clamp(eta, -20.0, 20.0);  // Prevent overflow in exp()
+  }
+  
+  NumericVector mu_r = linkinv(wrap(eta));
+  arma::vec mu = as<arma::vec>(mu_r);
+  
+  // Ensure mu is valid (especially for Poisson where mu > 0)
+  if (is_poisson) {
+    for (int i = 0; i < n; i++) {
+      if (mu[i] <= 0) mu[i] = 1e-8;
+    }
+  }
+  
+  double theta = 0.0, theta_new = 0.0;
+  double c = lambda / tau;
+  
+  for (int iter = 0; iter < max_iter; ++iter) {
+    // Calculate IRLS weights & working response
+    NumericVector var_r = varfun(wrap(mu));
+    NumericVector gprime = mu_eta(wrap(eta));  // Using eta instead of mu_r for derivative
+    
+    // Handle numerical issues
+    for (int i = 0; i < n; i++) {
+      // For Poisson with log link, gprime = mu, and var_mu = mu
+      // For small mu, we can get unstable values - set a floor
+      if (R_IsNaN(var_r[i]) || var_r[i] <= 0) var_r[i] = 1e-8;
+      if (R_IsNaN(gprime[i]) || gprime[i] <= 0) gprime[i] = 1e-8;
+    }
+    
+    arma::vec var_mu = as<arma::vec>(var_r);
+    arma::vec gprime_vec = as<arma::vec>(gprime);
+    
+    // Calculate weights (w = gprime² / (var_mu * dispersion))
+    arma::vec w = arma::square(gprime_vec) / (var_mu * dispersion);
+    
+    // Handle weights that are too large or NaN
+    for (int i = 0; i < n; i++) {
+      if (!arma::is_finite(w[i]) || w[i] <= 0) w[i] = 1e-8;
+      else if (w[i] > 1e8) w[i] = 1e8;  // Cap large weights
+    }
+    
+    // Calculate working response
+    arma::vec z(n);
+    for (int i = 0; i < n; i++) {
+      double diff = y[i] - mu[i];
+      z[i] = eta[i] + diff / gprime_vec[i];
+      // Handle extreme values
+      if (!arma::is_finite(z[i])) z[i] = eta[i];
+    }
+    
+    // Weighted LS subproblem
+    arma::vec z0 = z - offset;
+    double a = arma::dot(w % x, x);
+    double b = arma::dot(w % x, z0);
+    
+    // Ensure a is positive
+    if (a <= 0) a = 1e-8;
+    
+    // Capped-ℓ₁ closed form solution
+    if (std::abs(b) <= c) {
+      theta_new = 0.0;
+    } else if (std::abs(b) < a * tau + c) {
+      theta_new = (b - c * sgn(b)) / a;
+    } else {
+      theta_new = b / a;
+    }
+    
+    // Check convergence
+    if (std::abs(theta_new - theta) < tol) {
+      theta = theta_new;
+      break;
+    }
+    theta = theta_new;
+    
+    // Update eta and mu for next IRLS iteration
+    eta = offset + theta * x;
+    
+    // Bound eta for numerical stability (especially for Poisson)
+    if (is_poisson) {
+      eta = arma::clamp(eta, -20.0, 20.0);  // Prevent overflow in exp()
+    }
+    
+    mu_r = linkinv(wrap(eta));
+    mu = as<arma::vec>(mu_r);
+    
+    // Ensure mu is valid (especially for Poisson where mu > 0)
+    if (is_poisson) {
+      for (int i = 0; i < n; i++) {
+        if (mu[i] <= 0) mu[i] = 1e-8;
+      }
+    }
+  }
+  
+  return theta;
+}
+
+// [[Rcpp::export]]
+List univariate_fit(
+    const arma::vec& x, 
+    SEXP y, 
+    SEXP family,
+    arma::vec offset,
+    bool standardize = true,
+    std::string ties = "efron",
+    double lambda = 0.0,
+    double tau = 0.5,
+    double null_threshold = 1e-6)
+{
+  // Get dimensions and extract family type
+  int n = x.n_elem;
+  bool is_cox = TYPEOF(family) == STRSXP ? as<std::string>(family) == "cox" : 
+                 as<std::string>(as<List>(family)["family"]) == "cox";
+  
+  // Handle offset
+  if (offset.n_elem == 1 && n > 1) offset = arma::vec(n, arma::fill::value(offset(0)));
+  
+  // Standardize predictor (only if non-constant)
+  double x_mean = 0.0, x_norm = 1.0;
+  arma::vec x_std = x;
+  bool all_zero = arma::all(arma::abs(x) <= 1e-10);
+  
+  if (standardize && !all_zero) {
+    x_mean = arma::mean(x);
+    x_std = x - x_mean;
+    x_norm = arma::norm(x_std, 2);
+    if (x_norm > 1e-10) x_std /= x_norm;
+    else { x_std = x; x_mean = 0.0; x_norm = 1.0; }
+  }
+  
+  // Fit model using appropriate function
+  double theta_std = 0.0;
+  
+  if (!all_zero) {
+    if (is_cox) {
+      // Convert y to appropriate format for Cox
+      arma::mat y_mat = TYPEOF(y) == VECSXP ? 
+        arma::mat(n, 2) : as<arma::mat>(y);
+      
+      if (TYPEOF(y) == VECSXP) {
+        NumericVector time = as<NumericVector>(as<List>(y)[0]);
+        NumericVector status = as<NumericVector>(as<List>(y)[1]);
+        y_mat.col(0) = as<arma::vec>(time);
+        y_mat.col(1) = as<arma::vec>(status);
+      }
+      
+      theta_std = univariate_irls_cox(x_std, y_mat, offset, ties, lambda, tau);
+    } else {
+      // Convert y for GLM
+      arma::vec y_vec = TYPEOF(y) == VECSXP ? 
+        as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
+        as<arma::vec>(as<NumericVector>(y));
+      
+      theta_std = univariate_irls_glm(x_std, y_vec, family, offset, lambda, tau);
+    }
+  }
+  
+  // Transform coefficient, apply threshold, and compute metrics
+  double theta = theta_std / x_norm;
+  if (std::abs(theta) <= null_threshold) theta = 0.0;
+  
+  double loglik = univariate_loglik(x, y, family, theta, offset, ties);
+  double bic = -2.0 * loglik + std::log(n) * (theta != 0.0 ? 2.0 : 0.0);
+  
+  return List::create(
+    Named("theta") = theta,
+    Named("loglik") = loglik,
+    Named("bic") = bic
+  );
+}
+
+
+// [[Rcpp::export]]
+Rcpp::List single_effect_fit(
+    const arma::mat&   X,
+    SEXP               y,
+    SEXP               family,
+    arma::vec          offset,
+    bool               standardize = true,
+    std::string        ties = "efron",
+    double             lambda = 0.0,
+    double             tau = 0.5,
+    double             null_threshold = 1e-6
+) {
+  // Get dimensions
+  int n = X.n_rows;
+  int p = X.n_cols;
+  
+  // Initialize result vectors
+  arma::vec theta(p, arma::fill::zeros);
+  arma::vec loglik(p, arma::fill::zeros);
+  arma::vec bic(p, arma::fill::zeros);
+  arma::vec bic_diff(p, arma::fill::zeros);
+  
+  // Expand offset if needed
+  if (offset.n_elem == 1 && n > 1) {
+    offset = arma::vec(n, arma::fill::value(offset(0)));
+  }
+  
+  // Fit null model
+  List res_null = univariate_fit(
+    arma::zeros<arma::vec>(n),
+    y,
+    family,
+    offset,
+    standardize,
+    ties,
+    lambda,
+    tau,
+    null_threshold
+  );
+  
+  double null_bic = as<double>(res_null["bic"]);
+  
+  // Fit univariate models for each predictor
+  for (int j = 0; j < p; j++) {
+    arma::vec x_j = X.col(j);
+    
+    List res = univariate_fit(
+      x_j,
+      y,
+      family,
+      offset,
+      standardize,
+      ties,
+      lambda,
+      tau,
+      null_threshold
+    );
+    
+    theta[j] = as<double>(res["theta"]);
+    loglik[j] = as<double>(res["loglik"]);
+    bic[j] = as<double>(res["bic"]);
+    bic_diff[j] = bic[j] - null_bic;
+  }
+  
+  // Shift BIC differences so minimum is 0
+  double min_bic_diff = bic_diff.min();
+  bic_diff = bic_diff - min_bic_diff;
+  
+  // Calculate Bayes factors and posterior model probabilities
+  arma::vec bf = arma::exp(-0.5 * bic_diff);
+  double sum_bf = arma::sum(bf);
+  arma::vec pmp = bf / sum_bf;
+  
+  // Threshold small values
+  for (int j = 0; j < p; j++) {
+    if (pmp[j] <= null_threshold) {
+      theta[j] = 0.0;
+      pmp[j] = 0.0;
+    }
+  }
+  
+  // Calculate PMP-weighted expectations
+  arma::vec expect_theta = pmp % theta;
+  double expect_variance = arma::mean(pmp % arma::square(theta));
+  
+  // Threshold small expected values
+  for (int j = 0; j < p; j++) {
+    if (expect_theta[j] <= null_threshold) {
+      expect_theta[j] = 0.0;
+    }
+  }
+  
+  if (expect_variance <= null_threshold) {
+    expect_variance = 0.0;
+  }
+  
+  // Return results as a list
+  return List::create(
+    Named("loglik") = loglik,
+    Named("bic") = bic,
+    Named("bic_diff") = bic_diff,
+    Named("bf") = bf,
+    Named("pmp") = pmp,
+    Named("theta") = theta,
+    Named("expect_theta") = expect_theta,
+    Named("expect_variance") = expect_variance
+  );
+}
+
+// [[Rcpp::export]]
+List additive_effect_fit(
+    const arma::mat& X,
+    SEXP y,
+    int L,
+    SEXP family = R_NilValue,
+    bool standardize = true,
+    std::string ties = "efron",
+    double lambda = 0.0,
+    double tau = 0.5,
+    double null_threshold = 1e-6,
+    double tol = 5e-2,
+    int max_iter = 100)
+{
+  // Start timing using standard C++ time
+  clock_t start_time = clock();
+  
+  // Get dimensions
+  int n = X.n_rows;
+  int p = X.n_cols;
+  L = std::min(10, L);
+  
+  // Initialize family and check if we need to estimate dispersion
+  List fam;
+  bool is_cox = false;
+  bool estimate_dispersion = false;
+  
+  if (TYPEOF(family) == STRSXP) {
+    std::string fam_str = as<std::string>(family);
+    is_cox = (fam_str == "cox");
+    if (is_cox) {
+      fam = List::create(
+        Named("family") = "cox",
+        Named("link") = "log",
+        Named("dispersion") = 1.0
+      );
+    }
+  } else if (TYPEOF(family) == VECSXP) {
+    fam = as<List>(family);
+    if (fam.containsElementNamed("family")) {
+      std::string fam_str = as<std::string>(fam["family"]);
+      is_cox = (fam_str == "cox");
+      
+      if (!is_cox && fam.containsElementNamed("dispersion")) {
+        fam["dispersion"] = 1.0;
+      }
+      
+      // Check if dispersion should be estimated
+      if (!is_cox) {
+        std::string fam_str = as<std::string>(fam["family"]);
+        estimate_dispersion = (
+          fam_str == "gaussian" || 
+          fam_str == "Gamma" || 
+          fam_str == "inverse.gaussian" || 
+          fam_str == "quasibinomial" || 
+          fam_str == "quasipoisson"
+        );
+      }
+    }
+  } else {
+    Rcpp::stop("Family must be a string or a list");
+  }
+  
+  // Initialize parameters
+  double intercept = 0.0;
+  arma::mat theta(p, L, arma::fill::zeros);
+  
+  // Initialize result matrices
+  arma::mat loglik(p, L, arma::fill::zeros);
+  arma::mat bic(p, L, arma::fill::zeros);
+  arma::mat bic_diff(p, L, arma::fill::zeros);
+  arma::mat bf(p, L, arma::fill::zeros);
+  arma::mat pmp(p, L, arma::fill::zeros);
+  arma::vec expect_variance(L, arma::fill::zeros);
+  
+  // Log-likelihood tracking
+  arma::vec expect_loglik(max_iter, arma::fill::zeros);
+  
+  // Main iterations
+  int iter;
+  for (iter = 0; iter < max_iter; iter++) {
+    // Calculate current linear predictor
+    arma::vec linear_predictor(n, arma::fill::zeros);
+    linear_predictor.fill(intercept);
+    linear_predictor += X * theta * arma::ones<arma::vec>(L);
+    
+    // Update each single effect
+    for (int l = 0; l < L; l++) {
+      // Update offset by removing current effect
+      arma::vec offset = linear_predictor - X * theta.col(l);
+      
+      // Fit single effect
+      List res = single_effect_fit(
+        X,
+        y,
+        fam,
+        offset,
+        standardize,
+        ties,
+        lambda,
+        tau,
+        null_threshold
+      );
+      
+      // Extract results
+      arma::vec res_theta = as<arma::vec>(res["theta"]);
+      arma::vec res_loglik = as<arma::vec>(res["loglik"]);
+      arma::vec res_bic = as<arma::vec>(res["bic"]);
+      arma::vec res_bic_diff = as<arma::vec>(res["bic_diff"]);
+      arma::vec res_bf = as<arma::vec>(res["bf"]);
+      arma::vec res_pmp = as<arma::vec>(res["pmp"]);
+      
+      // Apply thresholding to expect_theta
+      arma::vec res_expect_theta = as<arma::vec>(res["expect_theta"]);
+      for (int j = 0; j < p; j++) {
+        if (res_expect_theta(j) <= null_threshold) {
+          res_expect_theta(j) = 0.0;
+        }
+      }
+      
+      // Update parameters
+      theta.col(l) = res_expect_theta;
+      loglik.col(l) = res_loglik;
+      bic.col(l) = res_bic;
+      bic_diff.col(l) = res_bic_diff;
+      bf.col(l) = res_bf;
+      pmp.col(l) = res_pmp;
+      expect_variance(l) = as<double>(res["expect_variance"]);
+      
+      // Update linear predictor for next effect
+      linear_predictor = offset + X * theta.col(l);
+    }
+    
+    // Update intercept (GLM only)
+    if (!is_cox) {
+      arma::vec ones(n, arma::fill::ones);
+      arma::vec current_offset = X * (theta * arma::ones<arma::vec>(L));
+      
+      // Convert y to vector for GLM
+      arma::vec y_vec = TYPEOF(y) == VECSXP ? 
+          as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
+          as<arma::vec>(as<NumericVector>(y));
+      
+      intercept = univariate_irls_glm(
+        ones,
+        y_vec,
+        fam,
+        current_offset,
+        0.0,  // No penalty on intercept
+        tau,
+        100,
+        1e-8
+      );
+    }
+    
+    // Update dispersion if needed
+    if (estimate_dispersion) {
+      arma::vec full_pred = arma::ones(n) * intercept + X * (theta * arma::ones<arma::vec>(L));
+      
+      // Convert y to vector for GLM
+      arma::vec y_vec = TYPEOF(y) == VECSXP ? 
+          as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
+          as<arma::vec>(as<NumericVector>(y));
+      
+      double new_dispersion = update_dispersion(
+        y_vec,
+        fam,
+        full_pred,
+        "pearson"
+      );
+      
+      fam["dispersion"] = new_dispersion;
+    }
+    
+    // Compute expected log-likelihood
+    double ell = 0.0;
+    for (int l = 0; l < L; l++) {
+      for (int j = 0; j < p; j++) {
+        ell += pmp(j, l) * loglik(j, l);
+      }
+    }
+    expect_loglik(iter) = ell / (p * L);
+    
+    // Check convergence
+    if (iter > 0 && std::abs(expect_loglik(iter) - expect_loglik(iter-1)) < tol) {
+      break;
+    }
+  }
+  
+  // Identify kept effects
+  arma::uvec kept(L);
+  for (int l = 0; l < L; l++) {
+    kept(l) = (expect_variance(l) > tol);
+  }
+  
+  // Calculate elapsed time
+  clock_t end_time = clock();
+  double elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+  
+  // Return results
+  return List::create(
+    Named("niter") = iter + 1,
+    Named("loglik") = loglik,
+    Named("expect_loglik") = expect_loglik.subvec(0, iter),
+    Named("final_loglik") = expect_loglik(iter),
+    Named("intercept") = intercept,
+    Named("dispersion") = as<double>(fam["dispersion"]),
+    Named("theta") = theta,
+    Named("pmp") = pmp,
+    Named("bic") = bic,
+    Named("bic_diff") = bic_diff,
+    Named("bf") = bf,
+    Named("expect_variance") = expect_variance,
+    Named("kept") = kept,
+    Named("elapsed_time") = elapsed_time
+  );
 }

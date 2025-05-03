@@ -5,7 +5,7 @@
 \alias{glmcs-package}
 \title{glmcs: Generalized Linear Models with Confident Sets}
 \description{
-Implements likelihood-based additive single-effect regression (LASER) via a block-coordinate ascent algorithm, providing confident sets for variable selection with uncertainty quantification. Features include robust variable selection under high multicollinearity, confident sets that capture posterior uncertainty in variable inclusion, flexible modeling for linear, generalized linear, and Cox regression, high performance via C++ backend, and configurable parameters for number of effects, coverage, and convergence tolerance.
+Implements likelihood-based additive single-effect regression (LASER) via a blockwise coordinate ascent algorithm, providing confident sets for variable selection with uncertainty quantification. Features include robust variable selection under high multicollinearity, confident sets that capture posterior uncertainty in variable inclusion, flexible modeling for linear, generalized linear, and Cox regression, high performance via C++ backend, and configurable parameters for number of effects, coverage, and convergence tolerance.
 }
 \seealso{
 Useful links:

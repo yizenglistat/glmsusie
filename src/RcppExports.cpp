@@ -11,6 +11,20 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// update_dispersion
+double update_dispersion(const arma::vec& y, SEXP family, arma::vec offset, std::string approach);
+RcppExport SEXP _glmcs_update_dispersion(SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP approachSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< std::string >::type approach(approachSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_dispersion(y, family, offset, approach));
+    return rcpp_result_gen;
+END_RCPP
+}
 // univariate_loglik_cox
 double univariate_loglik_cox(const arma::vec& x, const arma::mat& y, arma::vec offset, double theta, std::string ties);
 RcppExport SEXP _glmcs_univariate_loglik_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP thetaSEXP, SEXP tiesSEXP) {
@@ -26,9 +40,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// univariate_loglik
+double univariate_loglik(const arma::vec& x, SEXP y, List family, double theta, const arma::vec& offset, std::string ties);
+RcppExport SEXP _glmcs_univariate_loglik(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< List >::type family(familySEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
+    rcpp_result_gen = Rcpp::wrap(univariate_loglik(x, y, family, theta, offset, ties));
+    return rcpp_result_gen;
+END_RCPP
+}
 // univariate_irls_cox
-double univariate_irls_cox(arma::vec x, arma::mat y, arma::vec offset, std::string ties, int max_iter, double tol);
-RcppExport SEXP _glmcs_univariate_irls_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP tiesSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+double univariate_irls_cox(arma::vec x, arma::mat y, arma::vec offset, std::string ties, double lambda, double tau, int max_iter, double tol);
+RcppExport SEXP _glmcs_univariate_irls_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -36,16 +66,101 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(univariate_irls_cox(x, y, offset, ties, max_iter, tol));
+    rcpp_result_gen = Rcpp::wrap(univariate_irls_cox(x, y, offset, ties, lambda, tau, max_iter, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// univariate_irls_glm
+double univariate_irls_glm(const arma::vec& x, const arma::vec& y, SEXP family, arma::vec offset, double lambda, double tau, int max_iter, double tol);
+RcppExport SEXP _glmcs_univariate_irls_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(univariate_irls_glm(x, y, family, offset, lambda, tau, max_iter, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// univariate_fit
+List univariate_fit(const arma::vec& x, SEXP y, SEXP family, arma::vec offset, bool standardize, std::string ties, double lambda, double tau, double null_threshold);
+RcppExport SEXP _glmcs_univariate_fit(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP null_thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
+    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type null_threshold(null_thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(univariate_fit(x, y, family, offset, standardize, ties, lambda, tau, null_threshold));
+    return rcpp_result_gen;
+END_RCPP
+}
+// single_effect_fit
+Rcpp::List single_effect_fit(const arma::mat& X, SEXP y, SEXP family, arma::vec offset, bool standardize, std::string ties, double lambda, double tau, double null_threshold);
+RcppExport SEXP _glmcs_single_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP null_thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
+    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type null_threshold(null_thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(single_effect_fit(X, y, family, offset, standardize, ties, lambda, tau, null_threshold));
+    return rcpp_result_gen;
+END_RCPP
+}
+// additive_effect_fit
+List additive_effect_fit(const arma::mat& X, SEXP y, int L, SEXP family, bool standardize, std::string ties, double lambda, double tau, double null_threshold, double tol, int max_iter);
+RcppExport SEXP _glmcs_additive_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP LSEXP, SEXP familySEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP null_thresholdSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
+    Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
+    Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type null_threshold(null_thresholdSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
+    rcpp_result_gen = Rcpp::wrap(additive_effect_fit(X, y, L, family, standardize, ties, lambda, tau, null_threshold, tol, max_iter));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_glmcs_update_dispersion", (DL_FUNC) &_glmcs_update_dispersion, 4},
     {"_glmcs_univariate_loglik_cox", (DL_FUNC) &_glmcs_univariate_loglik_cox, 5},
-    {"_glmcs_univariate_irls_cox", (DL_FUNC) &_glmcs_univariate_irls_cox, 6},
+    {"_glmcs_univariate_loglik", (DL_FUNC) &_glmcs_univariate_loglik, 6},
+    {"_glmcs_univariate_irls_cox", (DL_FUNC) &_glmcs_univariate_irls_cox, 8},
+    {"_glmcs_univariate_irls_glm", (DL_FUNC) &_glmcs_univariate_irls_glm, 8},
+    {"_glmcs_univariate_fit", (DL_FUNC) &_glmcs_univariate_fit, 9},
+    {"_glmcs_single_effect_fit", (DL_FUNC) &_glmcs_single_effect_fit, 9},
+    {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 11},
     {NULL, NULL, 0}
 };
 
