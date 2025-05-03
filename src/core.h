@@ -30,17 +30,35 @@ double update_dispersion(const arma::vec& y,
  * 
  * @param x Vector of covariate values
  * @param y Matrix with 2 columns (time, status)
- * @param offset Vector of offset values
  * @param theta Coefficient value
+ * @param offset Vector of offset values
  * @param ties Method for handling tied event times ("breslow" or "efron")
  * @return Log-likelihood value
  */
 double univariate_loglik_cox(
     const arma::vec& x,
     const arma::mat& y,
-    arma::vec offset,
     double theta,
+    arma::vec offset,
     std::string ties
+);
+
+/**
+ * Calculate the log-likelihood for a univariate GLM model
+ *
+ * @param x Vector of predictor values
+ * @param y Vector of response values
+ * @param family An R family object (as SEXP)
+ * @param theta Coefficient value
+ * @param offset Vector of offset values (optional)
+ * @return The calculated log-likelihood value
+ */
+double univariate_loglik_glm(
+    const arma::vec& x,
+    const arma::vec& y,
+    SEXP family,
+    double theta,
+    const arma::vec& offset
 );
 
 /**
@@ -48,7 +66,7 @@ double univariate_loglik_cox(
  *
  * @param x      Numeric covariate vector of length n
  * @param y      SEXP: numeric vector (GLM) or n×2 matrix for Cox
- * @param family Rcpp::List GLM family object or Cox family list
+ * @param family SEXP: GLM family object or Cox family list
  * @param theta  Numeric coefficient to evaluate log-likelihood
  * @param offset Numeric offset (length 1 or n)
  * @param ties   Method for ties in Cox: "breslow" or "efron"
@@ -57,7 +75,7 @@ double univariate_loglik_cox(
 double univariate_loglik(
     const arma::vec& x,
     SEXP             y,
-    Rcpp::List       family,
+    SEXP             family,
     double           theta,
     const arma::vec& offset,
     std::string      ties

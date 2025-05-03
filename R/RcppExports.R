@@ -5,8 +5,12 @@ update_dispersion <- function(y, family, offset, approach = "pearson") {
     .Call(`_glmcs_update_dispersion`, y, family, offset, approach)
 }
 
-univariate_loglik_cox <- function(x, y, offset, theta = 0.0, ties = "efron") {
-    .Call(`_glmcs_univariate_loglik_cox`, x, y, offset, theta, ties)
+univariate_loglik_cox <- function(x, y, theta, offset, ties = "efron") {
+    .Call(`_glmcs_univariate_loglik_cox`, x, y, theta, offset, ties)
+}
+
+univariate_loglik_glm <- function(x, y, family, theta, offset) {
+    .Call(`_glmcs_univariate_loglik_glm`, x, y, family, theta, offset)
 }
 
 univariate_loglik <- function(x, y, family, theta, offset, ties) {

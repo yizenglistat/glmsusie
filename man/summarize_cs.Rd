@@ -2,9 +2,9 @@
 % Please edit documentation in R/utils.R
 \name{summarize_cs}
 \alias{summarize_cs}
-\title{Summarize Confidence Sets Regions Across Simulations}
+\title{Summarize Multi‐Set Confidence Regions Across Simulations}
 \usage{
-summarize_cs(cs_list, true_active)
+summarize_cs(cs_list, true_active, decimal = 2)
 }
 \arguments{
 \item{cs_list}{List of length \code{n_sims}. Each element is either:
@@ -15,11 +15,13 @@ summarize_cs(cs_list, true_active)
 Each inner integer vector holds the indices in a single confidence set.}
 
 \item{true_active}{Integer vector of the true active variable indices.}
+
+\item{decimal}{Nonnegative integer.}
 }
 \value{
 A \code{data.frame} with columns:
 \describe{
-\item{sets}{Character: each unique simulation pattern rendered as
+\item{set}{Character: each unique simulation pattern rendered as
 comma‐separated set literals, e.g.\  "\{1,4\}, \{2,3\}".  An empty
 pattern is shown as "\{\}".}
 \item{count}{Integer: number of simulations that produced exactly that
@@ -35,19 +37,7 @@ Given a list of simulation results where each run may return multiple
 confidence sets (e.g. \code{cs1}, \code{cs2}, …), this function enumerates
 the distinct patterns of sets, counts how often each occurs, computes the
 fraction of simulations, and tests whether the \strong{union} of all sets in
-a pattern covers the true active variables.
-}
-\examples{
-# Six simulation replicates with varying numbers of confidence sets:
-cs_list <- list(
-  list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A
-  list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A again
-  list(cs1 = c(1,4),    cs2 = c(2,3), cs3 = c(2,4)), # pattern B
-  list(cs1 = c(1)),                                  # pattern C
-  NULL,                                              # pattern D (no sets)
-  list(cs1 = c(1,2,4), cs2 = c(2,3), cs3 = c(3))     # pattern E
-)
-true_active <- c(1,4)
-summarize_cs(cs_list, true_active)
-
+a pattern covers the true active variables.  Within each pattern, the
+individual sets are ordered first by their size (smallest first), then
+lexicographically by their indices.
 }

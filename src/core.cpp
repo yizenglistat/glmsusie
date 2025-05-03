@@ -60,8 +60,8 @@ double update_dispersion(const arma::vec& y,
 double univariate_loglik_cox(
     const arma::vec& x,
     const arma::mat& y,
+    double theta,
     arma::vec offset,
-    double theta = 0.0,
     std::string ties = "efron"
 ) {
   // Validate dimensions
@@ -127,25 +127,106 @@ double univariate_loglik_cox(
   return logLik;
 }
 
+// [[Rcpp::export]]
+double univariate_loglik_glm(
+    const arma::vec& x,
+    const arma::vec& y,  
+    SEXP family,
+    double theta,
+    const arma::vec& offset
+) {
+  int n = x.n_elem;
+  
+  // Check if y has correct dimensions
+  if (y.n_elem != n) {
+    stop("Length of 'y' must match length of 'x'");
+  }
+  
+  // Check if offset is empty, if so, create a zero vector
+  arma::vec offset_vec;
+  if (offset.n_elem == 0) {
+    offset_vec = arma::zeros(n);
+  } else if (offset.n_elem != n) {
+    stop("'offset' must have length equal to x");
+  } else {
+    offset_vec = offset;
+  }
+  
+  // Convert family to List to properly access elements
+  List fam(family);
+  
+  // Get family functions for link and deviance
+  Function linkinv = fam["linkinv"];
+  Function dev_resids = fam["dev.resids"];
+  
+  // Calculate linear predictor and fitted values
+  arma::vec eta = offset_vec + theta * x;
+  NumericVector eta_r = wrap(eta);
+  NumericVector mu_r = linkinv(eta_r);
+  
+  // Use unit weights
+  NumericVector w(n, 1.0);
+  
+  // Calculate deviance residuals
+  NumericVector y_r = wrap(y);
+  NumericVector dev = dev_resids(y_r, mu_r, w);
+  
+  // Convert to log-likelihood: loglik = -sum(dev)/2
+  double sum_dev = sum(NumericVector(dev));
+  
+  // For families with estimated dispersion (gaussian, Gamma, inverse.gaussian),
+  // we should profile out the dispersion parameter
+  std::string family_name;
+  try {
+    family_name = as<std::string>(fam["family"]);
+  } catch(...) {
+    // If we can't extract the family name, default to fixed dispersion
+    return -sum_dev / 2.0;
+  }
+  
+  if (family_name == "gaussian") {
+    // For Gaussian, profile out sigma^2
+    double sigma2 = sum_dev / n;
+    return -0.5 * n * log(2.0 * M_PI * sigma2) - 0.5 * n;
+  } 
+  else if (family_name == "Gamma") {
+    // For Gamma, profile out the shape parameter
+    double shape = n / sum_dev; 
+    return n * shape * log(shape) - n * lgamma(shape) - n * shape;
+  }
+  else if (family_name == "inverse.gaussian") {
+    // For inverse.gaussian, profile out lambda
+    double lambda = n / sum_dev;
+    return 0.5 * n * log(lambda / (2.0 * M_PI)) - 
+           1.5 * sum(log(y_r)) - 0.5 * lambda * sum_dev;
+  }
+  else {
+    // For families with fixed dispersion (binomial, poisson)
+    return -sum_dev / 2.0;
+  }
+}
+
 
 // [[Rcpp::export]]
 double univariate_loglik(
     const arma::vec&   x,
     SEXP               y,        // vector for GLM or matrix for Cox
-    List                family,  
-    double              theta,  
-    const arma::vec&    offset,  
-    std::string         ties     
+    SEXP               family,  
+    double             theta,  
+    const arma::vec&   offset,  
+    std::string        ties     
 ) {
   int n = x.n_elem;
   // --- offset must be length n ---
   if ((int)offset.n_elem != n) {
     stop("`offset` must be length(x)");
   }
-
+  
   // --- extract family name ---
-  std::string famname = as<std::string>(family["family"]);
-
+  // Convert family to List first
+  List fam(family);
+  std::string famname = as<std::string>(fam["family"]);
+  
   if (famname == "cox") {
     // Cox: y must be an n×2 matrix
     NumericMatrix Ym(y);
@@ -153,30 +234,12 @@ double univariate_loglik(
     if ((int)ymat.n_rows != n || (int)ymat.n_cols != 2) {
       stop("For Cox, y must be an n×2 matrix (time,status)");
     }
-    return univariate_loglik_cox(x, ymat, offset, theta, ties);
+    return univariate_loglik_cox(x, ymat, theta, offset, ties);
   }
   else {
-    // GLM families: y is a length-n vector
-    NumericVector Yv(y);
-    if ((int)Yv.size() != n) {
-      stop("For GLM families, y must be length(x)");
-    }
-    // get R functions
-    Function linkinv = family["linkinv"];
-    Function devres  = family["dev.resids"];
-
-    // linear predictor & mean
-    arma::vec eta = offset + theta * x;
-    NumericVector mu_r = linkinv(wrap(eta));
-
-    // deviance residuals → vector of length n
-    NumericVector w(n, 1.0);
-    NumericVector dev = devres(Yv, mu_r, w);
-
-    // R's dev.resids returns 2 * (–logLik), so:
-    // logLik = – sum(dev) / 2
-    double sum_dev = std::accumulate(dev.begin(), dev.end(), 0.0);
-    return - sum_dev / 2.0;
+    NumericVector y_r(y);
+    arma::vec y_arma = as<arma::vec>(y_r);
+    return univariate_loglik_glm(x, y_arma, family, theta, offset);
   }
 }
 

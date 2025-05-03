@@ -4,7 +4,7 @@
 \alias{summarize_coef}
 \title{Summarize Coefficient Estimates Across Simulations}
 \usage{
-summarize_coef(sims_coef, true_theta)
+summarize_coef(sims_coef, true_theta, decimal = 2)
 }
 \arguments{
 \item{sims_coef}{Numeric matrix of dimension \eqn{p \times n_{\text{sim}}}, where each
@@ -12,6 +12,8 @@ row corresponds to one predictor and each column to a simulation replicate.}
 
 \item{true_theta}{Numeric vector of length \eqn{p}, containing the true coefficient
 values for each predictor.}
+
+\item{decimal}{Nonnegative integer.}
 }
 \value{
 A data.frame with columns:

@@ -50,8 +50,8 @@ NULL
 #' @param y Numeric matrix of shape \code{n × 2}, where:
 #'        - \code{y[,1]} contains event/censoring times
 #'        - \code{y[,2]} contains event status (1 = event, 0 = censored)
-#' @param offset Numeric vector of length \code{n}, or scalar. Optional offset in the linear predictor.
 #' @param theta Numeric scalar: the coefficient to evaluate the log-likelihood at.
+#' @param offset Numeric vector of length \code{n}, or scalar. Optional offset in the linear predictor.
 #' @param ties Character string: tie-handling method. Must be either \code{"breslow"} or \code{"efron"}.
 #'
 #' @return Numeric scalar: the partial log-likelihood value.

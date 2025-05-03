@@ -26,29 +26,44 @@ BEGIN_RCPP
 END_RCPP
 }
 // univariate_loglik_cox
-double univariate_loglik_cox(const arma::vec& x, const arma::mat& y, arma::vec offset, double theta, std::string ties);
-RcppExport SEXP _glmcs_univariate_loglik_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP thetaSEXP, SEXP tiesSEXP) {
+double univariate_loglik_cox(const arma::vec& x, const arma::mat& y, double theta, arma::vec offset, std::string ties);
+RcppExport SEXP _glmcs_univariate_loglik_cox(SEXP xSEXP, SEXP ySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
-    rcpp_result_gen = Rcpp::wrap(univariate_loglik_cox(x, y, offset, theta, ties));
+    rcpp_result_gen = Rcpp::wrap(univariate_loglik_cox(x, y, theta, offset, ties));
+    return rcpp_result_gen;
+END_RCPP
+}
+// univariate_loglik_glm
+double univariate_loglik_glm(const arma::vec& x, const arma::vec& y, SEXP family, double theta, const arma::vec& offset);
+RcppExport SEXP _glmcs_univariate_loglik_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP offsetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type offset(offsetSEXP);
+    rcpp_result_gen = Rcpp::wrap(univariate_loglik_glm(x, y, family, theta, offset));
     return rcpp_result_gen;
 END_RCPP
 }
 // univariate_loglik
-double univariate_loglik(const arma::vec& x, SEXP y, List family, double theta, const arma::vec& offset, std::string ties);
+double univariate_loglik(const arma::vec& x, SEXP y, SEXP family, double theta, const arma::vec& offset, std::string ties);
 RcppExport SEXP _glmcs_univariate_loglik(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< List >::type family(familySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type offset(offsetSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
@@ -155,6 +170,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_update_dispersion", (DL_FUNC) &_glmcs_update_dispersion, 4},
     {"_glmcs_univariate_loglik_cox", (DL_FUNC) &_glmcs_univariate_loglik_cox, 5},
+    {"_glmcs_univariate_loglik_glm", (DL_FUNC) &_glmcs_univariate_loglik_glm, 5},
     {"_glmcs_univariate_loglik", (DL_FUNC) &_glmcs_univariate_loglik, 6},
     {"_glmcs_univariate_irls_cox", (DL_FUNC) &_glmcs_univariate_irls_cox, 8},
     {"_glmcs_univariate_irls_glm", (DL_FUNC) &_glmcs_univariate_irls_glm, 8},

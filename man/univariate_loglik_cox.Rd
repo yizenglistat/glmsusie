@@ -10,9 +10,9 @@
 - \code{y[,1]} contains event/censoring times
 - \code{y[,2]} contains event status (1 = event, 0 = censored)}
 
-\item{offset}{Numeric vector of length \code{n}, or scalar. Optional offset in the linear predictor.}
-
 \item{theta}{Numeric scalar: the coefficient to evaluate the log-likelihood at.}
+
+\item{offset}{Numeric vector of length \code{n}, or scalar. Optional offset in the linear predictor.}
 
 \item{ties}{Character string: tie-handling method. Must be either \code{"breslow"} or \code{"efron"}.}
 }
