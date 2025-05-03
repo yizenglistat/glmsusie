@@ -962,7 +962,7 @@ List additive_effect_fit(
 
   int last;
   if (iter == max_iter) {
-    last = max_iter - 1
+    last = max_iter - 1;
   } else {
     last = iter;
   }
