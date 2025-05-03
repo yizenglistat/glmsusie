@@ -791,7 +791,7 @@ List additive_effect_fit(
   // Get dimensions
   int n = X.n_rows;
   int p = X.n_cols;
-  L = std::min(10, L);
+  L = std::min(10, p);
   
   // Initialize family and check if we need to estimate dispersion
   List fam;
