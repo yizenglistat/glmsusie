@@ -980,10 +980,10 @@ List additive_effect_fit(
   
   // Return results
   return List::create(
-    Named("niter") = iter + 1,
+    Named("niter") = last + 1,
     Named("loglik") = loglik,
-    Named("expect_loglik") = expect_loglik.subvec(0, iter),
-    Named("final_loglik") = expect_loglik(iter),
+    Named("expect_loglik") = expect_loglik.subvec(0, last),
+    Named("final_loglik") = expect_loglik(last),
     Named("intercept") = intercept,
     Named("dispersion") = as<double>(fam["dispersion"]),
     Named("theta") = theta,
