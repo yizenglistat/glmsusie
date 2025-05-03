@@ -776,7 +776,7 @@ List additive_effect_fit(
     const arma::mat& X,
     SEXP y,
     int L,
-    SEXP family = R_NilValue,
+    SEXP family,
     bool standardize = true,
     std::string ties = "efron",
     double lambda = 0.0,
@@ -958,6 +958,13 @@ List additive_effect_fit(
     if (iter > 0 && std::abs(expect_loglik(iter) - expect_loglik(iter-1)) < tol) {
       break;
     }
+  }
+
+  int last;
+  if (iter == max_iter) {
+    last = max_iter - 1
+  } else {
+    last = iter;
   }
   
   // Identify kept effects
