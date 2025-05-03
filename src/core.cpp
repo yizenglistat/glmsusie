@@ -898,11 +898,12 @@ List additive_effect_fit(
   }
   
   // Identify kept effects
-  arma::uvec kept(L);
-  for (int l = 0; l < L; l++) {
-    kept(l) = (expect_variance(l) > tol);
+  // arma::uvec kept = (expect_variance > tol);
+  std::vector<bool> kept(expect_variance.n_elem);
+  for (size_t i = 0; i < expect_variance.n_elem; ++i) {
+    kept[i] = (expect_variance[i] > tol);
   }
-  
+
   // Calculate elapsed time
   clock_t end_time = clock();
   double elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
