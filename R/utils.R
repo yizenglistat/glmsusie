@@ -133,6 +133,7 @@ is_covered <- function(confidence_sets, true_active) {
 #'   }
 #'   Each inner integer vector holds the indices in a single confidence set.
 #' @param true_active Integer vector of the true active variable indices.
+#' @param decimal Nonnegative integer. 
 #'
 #' @return A \code{data.frame} with columns:
 #' \describe{
@@ -158,7 +159,7 @@ is_covered <- function(confidence_sets, true_active) {
 #' summarize_cs(cs_list, true_active)
 #'
 #' @export
-summarize_cs <- function(cs_list, true_active) {
+summarize_cs <- function(cs_list, true_active, decimal=2) {
   n_sims <- length(cs_list)
 
   # normalize a single simulation's list-of-sets into a canonical, sorted string
@@ -207,7 +208,7 @@ summarize_cs <- function(cs_list, true_active) {
   df <- data.frame(
     set     = uniq_keys,
     count   = counts,
-    percent = percents,
+    percent = round(percents, decimal),
     cover   = covers,
     stringsAsFactors = FALSE
   )
@@ -225,6 +226,7 @@ summarize_cs <- function(cs_list, true_active) {
 #'   row corresponds to one predictor and each column to a simulation replicate.
 #' @param true_theta Numeric vector of length \eqn{p}, containing the true coefficient
 #'   values for each predictor.
+#' @param decimal Nonnegative integer. 
 #'
 #' @return A data.frame with columns:
 #' \describe{
@@ -242,7 +244,7 @@ summarize_cs <- function(cs_list, true_active) {
 #' summarize_coef(sims_coef, true_theta)
 #'
 #' @export
-summarize_coef <- function(sims_coef, true_theta) {
+summarize_coef <- function(sims_coef, true_theta, decimal=2) {
   if (!is.matrix(sims_coef)) {
     stop("`sims_coef` must be a numeric matrix of size p x n_sims")
   }
@@ -256,8 +258,8 @@ summarize_coef <- function(sims_coef, true_theta) {
   # Return a data.frame
   data.frame(
     true = true_theta,
-    mean = mean_est,
-    ssd  = ssd_est,
+    mean = round(mean_est,decimal),
+    ssd  = round(ssd_est,decimal),
     row.names = NULL,
     stringsAsFactors = FALSE
   )
