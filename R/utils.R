@@ -115,14 +115,16 @@ is_covered <- function(confidence_sets, true_active) {
   all(true_active %in% all_indices)
 }
 
-#' Summarize Confidence Sets Regions Across Simulations
+#' Summarize Multi‐Set Confidence Regions Across Simulations
 #'
 #' @description
 #' Given a list of simulation results where each run may return multiple
 #' confidence sets (e.g. \code{cs1}, \code{cs2}, …), this function enumerates
 #' the distinct patterns of sets, counts how often each occurs, computes the
 #' fraction of simulations, and tests whether the **union** of all sets in
-#' a pattern covers the true active variables.
+#' a pattern covers the true active variables.  Within each pattern, the
+#' individual sets are ordered first by their size (smallest first), then
+#' lexicographically by their indices.
 #'
 #' @param cs_list List of length \code{n_sims}. Each element is either:
 #'   \itemize{
@@ -134,7 +136,7 @@ is_covered <- function(confidence_sets, true_active) {
 #'
 #' @return A \code{data.frame} with columns:
 #' \describe{
-#'   \item{sets}{Character: each unique simulation pattern rendered as
+#'   \item{set}{Character: each unique simulation pattern rendered as
 #'     comma‐separated set literals, e.g.\  "\{1,4\}, \{2,3\}".  An empty
 #'     pattern is shown as "\{\}".}
 #'   \item{count}{Integer: number of simulations that produced exactly that
@@ -146,14 +148,11 @@ is_covered <- function(confidence_sets, true_active) {
 #' Rows are sorted in descending order of \code{count}.
 #'
 #' @examples
-#' # Six simulation replicates with varying numbers of confidence sets:
 #' cs_list <- list(
-#'   list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A
-#'   list(cs1 = c(1,4),    cs2 = c(2,3)),               # pattern A again
-#'   list(cs1 = c(1,4),    cs2 = c(2,3), cs3 = c(2,4)), # pattern B
-#'   list(cs1 = c(1)),                                  # pattern C
-#'   NULL,                                              # pattern D (no sets)
-#'   list(cs1 = c(1,2,4), cs2 = c(2,3), cs3 = c(3))     # pattern E
+#'   list(cs1 = c(4),     cs2 = c(1)),          # unordered -> will become "{1}, {4}"
+#'   list(cs1 = c(2,4),   cs2 = c(3)),          # becomes "{3}, {2,4}"
+#'   list(cs1 = c(1,4),   cs2 = c(2,3)),        # "{1,4}, {2,3}"
+#'   NULL                                          # "{}"
 #' )
 #' true_active <- c(1,4)
 #' summarize_cs(cs_list, true_active)
@@ -162,42 +161,51 @@ is_covered <- function(confidence_sets, true_active) {
 summarize_cs <- function(cs_list, true_active) {
   n_sims <- length(cs_list)
 
-  # 1) Turn each sim’s list-of-sets into a single display string
-  make_key <- function(L) {
+  # normalize a single simulation's list-of-sets into a canonical, sorted string
+  keyify <- function(L) {
     if (is.null(L) || length(L) == 0L) {
       return("{}")
     }
+    # extract and normalize each set
     sets <- lapply(L, function(s) {
-      if (length(s) == 0L) {
-        return("{}")
-      } else {
-        paste0("{", paste(sort(unique(as.integer(s))), collapse=","), "}")
-      }
+      s <- unique(as.integer(s))
+      if (length(s) == 0L) return(integer(0))
+      sort(s)
     })
-    paste(sets, collapse = ", ")
+    # order by size, then lexicographically
+    lengths <- vapply(sets, length, integer(1))
+    keys    <- vapply(sets, function(v) paste(v, collapse=","), character(1))
+    ord     <- order(lengths, keys)
+    sets    <- sets[ord]
+    # render back to "{...}" and join
+    rendered <- vapply(sets, function(v) {
+      if (length(v) == 0L) return("{}")
+      paste0("{", paste(v, collapse=","), "}")
+    }, character(1))
+    paste(rendered, collapse = ", ")
   }
-  keys <- vapply(cs_list, make_key, character(1))
 
-  # 2) Tabulate unique patterns
+  # build keys for all sims
+  keys <- vapply(cs_list, keyify, character(1))
+
+  # tabulate unique patterns
   uniq_keys <- unique(keys)
   counts    <- as.integer(table(factor(keys, levels = uniq_keys)))
   percents  <- counts / n_sims
 
-  # 3) Compute coverage for each unique pattern:
-  #    union all the sets in that pattern and see if it covers true_active
+  # compute coverage: union of all sets in a pattern covers true_active?
   is_covered <- function(L) {
     if (is.null(L) || length(L) == 0L) return(FALSE)
-    u <- unique(unlist(L, use.names = FALSE))
+    u <- unique(unlist(L, recursive = FALSE, use.names = FALSE))
     all(true_active %in% u)
   }
-  # need to map uniq_keys back to one representative cs_list[[i]]
-  # build a lookup from key -> index of first occurrence
+  # find a representative for each unique key
   first_occ <- match(uniq_keys, keys)
-  covers <- vapply(first_occ, function(i) is_covered(cs_list[[i]]), logical(1))
+  covers    <- vapply(first_occ, function(i) is_covered(cs_list[[i]]), logical(1))
 
-  # 4) Assemble
+  # assemble data.frame
   df <- data.frame(
-    sets    = uniq_keys,
+    set     = uniq_keys,
     count   = counts,
     percent = percents,
     cover   = covers,
