@@ -975,7 +975,7 @@ List additive_effect_fit(
   // arma::uvec kept = (expect_variance > tol);
   std::vector<bool> kept(expect_variance.n_elem);
   for (size_t i = 0; i < expect_variance.n_elem; ++i) {
-    kept[i] = (expect_variance[i] > eps);
+    kept[i] = (expect_variance[i] < eps);
   }
 
   // Calculate elapsed time
