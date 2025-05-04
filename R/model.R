@@ -20,6 +20,7 @@
 #' @param lambda Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).
 #' @param tau Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).
 #' @param ties String specifying method for handling tied events in Cox regression: "efron" (default) or "breslow".
+#' @param eps precision
 #' @param max_iter Integer specifying maximum number of fitting iterations (default: 100).
 #' @param seed Integer seed for reproducibility (default: NULL).
 #'
@@ -45,6 +46,7 @@ glmcs <- function(X, y, L=10L,
                 ties = c("efron", "breslow"),
                 lambda = 0.0,
                 tau = 0.5,
+                eps = 1e-5,
                 max_iter = 100L,
                 seed = NULL) {
  
@@ -97,6 +99,7 @@ glmcs <- function(X, y, L=10L,
    ties = ties, 
    lambda = lambda,
    tau = tau,
+   eps = eps,
    max_iter = max_iter
  )
  

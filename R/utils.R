@@ -148,16 +148,6 @@ is_covered <- function(confidence_sets, true_active) {
 #' }
 #' Rows are sorted in descending order of \code{count}.
 #'
-#' @examples
-#' cs_list <- list(
-#'   list(cs1 = c(4),     cs2 = c(1)),          # unordered -> will become "{1}, {4}"
-#'   list(cs1 = c(2,4),   cs2 = c(3)),          # becomes "{3}, {2,4}"
-#'   list(cs1 = c(1,4),   cs2 = c(2,3)),        # "{1,4}, {2,3}"
-#'   NULL                                          # "{}"
-#' )
-#' true_active <- c(1,4)
-#' summarize_cs(cs_list, true_active)
-#'
 #' @export
 summarize_cs <- function(cs_list, true_active, decimal=2) {
   n_sims <- length(cs_list)

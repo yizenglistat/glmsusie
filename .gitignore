@@ -10,3 +10,6 @@
 
 files/
 docs
+inst/doc
+/doc/
+/Meta/

@@ -29,6 +29,8 @@
 
 \item{tol}{Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).}
 
+\item{eps}{Numeric; precision (default: 1e-5)}
+
 \item{max_iter}{Integer; maximum number of coordinate-ascent iterations (default: 100).}
 }
 \value{

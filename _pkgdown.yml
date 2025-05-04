@@ -1,4 +1,23 @@
 url: https://yizenglistat.github.io/glmcs/
 destination: docs
+
+home:
+  title: "glmcs: Generalized Linear Models with Confidence Sets"
+
+navbar:
+  type: default
+  left:
+    - text: Reference
+      href: reference/index.html
+    - text: Articles
+      href: articles/index.html
+  right:
+    - icon: fab fa-github
+      href: https://github.com/yizenglistat/glmcs
+
 template:
   bootstrap: 5
+  bootswatch: journal    # try "litera", "journal", "flatly", etc.
+
+search:
+  provider: pkgdown

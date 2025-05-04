@@ -745,7 +745,10 @@ Rcpp::List single_effect_fit(
   
   // Calculate PMP-weighted expectations
   arma::vec expect_theta = pmp % theta;
-  double expect_variance = arma::mean(pmp % arma::square(theta));
+  double mu1 = arma::dot(pmp, theta);
+  double mu2 = arma::dot(pmp, theta % theta);
+  double expect_variance = mu2 - mu1*mu1;
+
   
   // Threshold small expected values
   for (int j = 0; j < p; j++) {
@@ -783,6 +786,7 @@ List additive_effect_fit(
     double tau = 0.5,
     double null_threshold = 1e-6,
     double tol = 5e-2,
+    double eps = 1e-5,
     int max_iter = 100)
 {
   // Start timing using standard C++ time
@@ -831,7 +835,7 @@ List additive_effect_fit(
       }
     }
   } else {
-    Rcpp::stop("Family must be a string or a list");
+    Rcpp::stop("family must be a family object; e.g., gaussian() or binomial()");
   }
   
   // Initialize parameters
@@ -971,7 +975,7 @@ List additive_effect_fit(
   // arma::uvec kept = (expect_variance > tol);
   std::vector<bool> kept(expect_variance.n_elem);
   for (size_t i = 0; i < expect_variance.n_elem; ++i) {
-    kept[i] = (expect_variance[i] > 1e-1);
+    kept[i] = (expect_variance[i] > eps);
   }
 
   // Calculate elapsed time

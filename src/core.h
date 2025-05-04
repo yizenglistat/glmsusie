@@ -217,6 +217,7 @@ List single_effect_fit(
  * @param tau Truncation parameter
  * @param null_threshold Threshold for setting values to zero
  * @param tol Convergence tolerance
+ * @param eps precision tolerance
  * @param max_iter Maximum number of iterations
  * 
  * @return List with fitted model components
@@ -232,6 +233,7 @@ List additive_effect_fit(
     double tau,
     double null_threshold,
     double tol,
+    double eps,
     int max_iter
 );
 

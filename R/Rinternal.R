@@ -308,6 +308,7 @@ NULL
 #' @param tau Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).
 #' @param null_threshold Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).
 #' @param tol Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).
+#' @param eps Numeric; precision (default: 1e-5)
 #' @param max_iter Integer; maximum number of coordinate-ascent iterations (default: 100).
 #'
 #' @return A list with components:
