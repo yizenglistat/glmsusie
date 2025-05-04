@@ -3,8 +3,91 @@
 #include <cmath>
 #include <RcppArmadillo.h>
 using namespace Rcpp;
+using namespace arma;
 
 // [[Rcpp::depends(RcppArmadillo)]]
+
+// [[Rcpp::export]]
+LogicalVector iskept(const arma::mat& prob_mat, std::string method) {
+  int n = prob_mat.n_rows;
+  int m = prob_mat.n_cols;
+  // empty
+  if (m == 0) return LogicalVector(0);
+
+  // uniform distribution
+  arma::vec u = arma::ones<arma::vec>(n) / static_cast<double>(n);
+  double eps = 1e-12;
+  arma::vec d(m);
+  // compute distances
+  for (int j = 0; j < m; ++j) {
+    arma::vec p = prob_mat.col(j);
+    if (method == "tv") {
+      d(j) = 0.5 * sum(abs(p - u));
+    } else if (method == "js") {
+      arma::vec p0 = arma::max(p, eps * arma::ones<arma::vec>(n));
+      arma::vec M  = 0.5 * (p0 + u);
+      d(j) = 0.5 * (sum(p0 % log(p0 / M)) + sum(u % log(u / M)));
+    } else if (method == "hellinger") {
+      d(j) = sqrt(sum(square(sqrt(p) - sqrt(u)))) / std::sqrt(2.0);
+    } else if (method == "l2") {
+      d(j) = norm(p - u, 2);
+    } else if (method == "chi2") {
+      d(j) = sum(square(p - u) / (u + eps));
+    } else if (method == "kl") {
+      arma::vec ratio = p / (u + eps);
+      d(j) = sum(p % log(ratio));
+    } else if (method == "kolmogorov") {
+      d(j) = max(abs(cumsum(p) - cumsum(u)));
+    } else if (method == "wasserstein") {
+      d(j) = sum(abs(cumsum(p) - cumsum(u)));
+    } else {
+      stop("Unknown method");
+    }
+  }
+  // result vector
+  LogicalVector result(m, false);
+  // trivial case
+  if (m == 1) {
+    result[0] = true;
+    return result;
+  }
+  // attempt 1D k-means via Armadillo
+  arma::rowvec data = d.t();        // 1 x m
+  arma::rowvec centroids;
+  bool ok = arma::kmeans(centroids, data, 2, random_spread, 10, false);
+  if (ok && centroids.n_elem == 2) {
+    // assign clusters
+    std::vector<int> cl(m);
+    arma::vec mean_vals(2, fill::zeros);
+    arma::uvec counts(2, fill::zeros);
+    for (int j = 0; j < m; ++j) {
+      double dist0 = std::abs(d(j) - centroids(0));
+      double dist1 = std::abs(d(j) - centroids(1));
+      int cidx = (dist1 < dist0) ? 1 : 0;
+      cl[j] = cidx;
+      mean_vals(cidx) += d(j);
+      counts(cidx) += 1;
+    }
+    // compute means
+    for (int k = 0; k < 2; ++k) {
+      if (counts(k) > 0) mean_vals(k) /= counts(k);
+    }
+    int high = (mean_vals(1) > mean_vals(0)) ? 1 : 0;
+    for (int j = 0; j < m; ++j) {
+      result[j] = (cl[j] == high);
+    }
+    return result;
+  }
+  // fallback: max-gap
+  arma::vec ds = sort(d);
+  arma::vec diffs = diff(ds);
+  arma::uword idx = diffs.index_max();
+  double thr = 0.5 * (ds(idx) + ds(idx+1));
+  for (int j = 0; j < m; ++j) {
+    result[j] = (d(j) > thr);
+  }
+  return result;
+}
 
 // [[Rcpp::export]]
 double update_dispersion(const arma::vec& y,
@@ -786,7 +869,6 @@ List additive_effect_fit(
     double tau = 0.5,
     double null_threshold = 1e-6,
     double tol = 5e-2,
-    double eps = 1e-5,
     int max_iter = 100)
 {
   // Start timing using standard C++ time
@@ -972,11 +1054,8 @@ List additive_effect_fit(
   }
   
   // Identify kept effects
-  // arma::uvec kept = (expect_variance > tol);
-  std::vector<bool> kept(expect_variance.n_elem);
-  for (size_t i = 0; i < expect_variance.n_elem; ++i) {
-    kept[i] = (expect_variance[i] < eps);
-  }
+  LogicalVector kept_logical = iskept(pmp, "chi2"); 
+  std::vector<bool> kept(kept_logical.begin(), kept_logical.end());
 
   // Calculate elapsed time
   clock_t end_time = clock();

@@ -12,12 +12,11 @@ glmcs(
   coverage = 0.95,
   cor_threshold = 0.5,
   standardize = TRUE,
-  null_threshold = 1e-06,
+  null_threshold = 1e-05,
   tol = 0.05,
   ties = c("efron", "breslow"),
   lambda = 0,
   tau = 0.5,
-  eps = 1e-05,
   max_iter = 100L,
   seed = NULL
 )
@@ -48,8 +47,6 @@ within a credible set (default: 0.5).}
 \item{lambda}{Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).}
 
 \item{tau}{Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).}
-
-\item{eps}{precision}
 
 \item{max_iter}{Integer specifying maximum number of fitting iterations (default: 100).}
 

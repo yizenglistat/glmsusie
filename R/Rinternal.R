@@ -1,3 +1,46 @@
+#' Determine Non‑Uniform Columns via Distance Measures
+#'
+#' @description
+#' Identifies which columns of a probability matrix deviate from the uniform distribution
+#' by computing a chosen distance metric and splitting the distances into two clusters.
+#'
+#' @details
+#' Given a probability matrix \code{prob_mat} of dimension \eqn{n \times m} whose columns sum to 1,
+#' this function computes, for each column \eqn{j}, a distance \eqn{d_j} between
+#' \code{prob_mat[, j]} and the uniform distribution
+#' \eqn{u = (1/n, \dots, 1/n)}.  Supported metrics are total variation,
+#' Jensen–Shannon divergence, Hellinger distance, L2 distance, Chi‑squared,
+#' Kullback–Leibler divergence, Kolmogorov–Smirnov statistic, and
+#' 1st‑Wasserstein distance.  The distances \eqn{\{d_1,\dots,d_m\}}
+#' are then clustered via \eqn{k=2} k‑means and the cluster with the larger
+#' mean is marked “non‑uniform.”  If clustering fails, a maximum‑gap threshold
+#' on the sorted distances is used instead.
+#'
+#' @param prob_mat Numeric \eqn{n \times m} matrix of probabilities (each column sums to 1).
+#' @param method   Character; one of \code{"tv"}, \code{"js"}, \code{"hellinger"},
+#'                 \code{"l2"}, \code{"chi2"}, \code{"kl"},
+#'                 \code{"kolmogorov"}, or \code{"wasserstein"}.
+#'
+#' @return Logical vector of length \eqn{m}, where \code{TRUE} indicates
+#'         a column is deemed non‑uniform.
+#'
+#' @examples
+#' # A 5×3 probability matrix
+#' P <- matrix(c(
+#'   0.2, 0.33, 0.10,
+#'   0.2, 0.33, 0.20,
+#'   0.2, 0.33, 0.30,
+#'   0.2, 0.01, 0.30,
+#'   0.2, 0.00, 0.10
+#' ), nrow = 5, byrow = TRUE)
+#' iskept(P, method = "js")
+#'
+#' @useDynLib glmcs, .registration = TRUE
+#' @importFrom Rcpp evalCpp
+#' @name iskept
+#' @export
+NULL
+
 #' Estimate Dispersion for GLM Family
 #'
 #' @description
@@ -308,7 +351,6 @@ NULL
 #' @param tau Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).
 #' @param null_threshold Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).
 #' @param tol Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).
-#' @param eps Numeric; precision (default: 1e-5)
 #' @param max_iter Integer; maximum number of coordinate-ascent iterations (default: 100).
 #'
 #' @return A list with components:

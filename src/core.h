@@ -6,9 +6,28 @@
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
 
+// //' and /** */ different commenting yields different RcppExport.
+
+/**
+ * @brief Determine which columns deviate from the uniform distribution.
+ *
+ * Computes various distances between each column of a probability matrix
+ * and the uniform distribution, then clusters distances into two groups
+ * and returns a LogicalVector marking the "non-uniform" columns.
+ *
+ * @param prob_mat An n×m matrix of probabilities (each column sums to 1).
+ * @param method   Distance metric: one of "tv", "js", "hellinger",
+ *                 "l2", "chi2", "kl", "kolmogorov", or "wasserstein".
+ *
+ * @return LogicalVector of length m: TRUE for columns deemed non-uniform.
+ */
+LogicalVector iskept(
+    const arma::mat& prob_mat,
+    std::string      method
+);
+
 // helper for sign
 inline double sgn(double z) { return (z>0) - (z<0); }
-
 
 /**
  * @brief Estimate GLM dispersion using Pearson or Deviance methods.
@@ -217,7 +236,6 @@ List single_effect_fit(
  * @param tau Truncation parameter
  * @param null_threshold Threshold for setting values to zero
  * @param tol Convergence tolerance
- * @param eps precision tolerance
  * @param max_iter Maximum number of iterations
  * 
  * @return List with fitted model components
@@ -233,7 +251,6 @@ List additive_effect_fit(
     double tau,
     double null_threshold,
     double tol,
-    double eps,
     int max_iter
 );
 
