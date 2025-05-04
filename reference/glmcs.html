@@ -54,12 +54,11 @@ Poisson, Gamma GLMs, and Cox regression models.</p>
 <span>  coverage <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  cor_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  standardize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  null_threshold <span class="op">=</span> <span class="fl">1e-06</span>,</span>
+<span>  null_threshold <span class="op">=</span> <span class="fl">1e-05</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  ties <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"efron"</span>, <span class="st">"breslow"</span><span class="op">)</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  eps <span class="op">=</span> <span class="fl">1e-05</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">100L</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -117,10 +116,6 @@ within a credible set (default: 0.5).</p></dd>
 
 <dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
 <dd><p>Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).</p></dd>
-
-
-<dt id="arg-eps">eps<a class="anchor" aria-label="anchor" href="#arg-eps"></a></dt>
-<dd><p>precision</p></dd>
 
 
 <dt id="arg-max-iter">max_iter<a class="anchor" aria-label="anchor" href="#arg-max-iter"></a></dt>
