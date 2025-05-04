@@ -8,7 +8,7 @@ using namespace arma;
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // [[Rcpp::export]]
-LogicalVector iskept(const arma::mat& prob_mat, std::string method) {
+LogicalVector iskept(const arma::mat& prob_mat, std::string method = "chi2") {
   int n = prob_mat.n_rows;
   int m = prob_mat.n_cols;
   // empty
