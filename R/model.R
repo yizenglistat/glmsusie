@@ -46,7 +46,7 @@ glmcs <- function(X, y, L=10L,
                 ties = c("efron", "breslow"),
                 lambda = 0.0,
                 tau = 0.5,
-                eps = 1e-5,
+                eps = 1e-8,
                 max_iter = 100L,
                 seed = NULL) {
  
