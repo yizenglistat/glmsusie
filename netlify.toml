@@ -1,6 +1,3 @@
 [build]
-  command   = "Rscript -e 'pkgdown::build_site()'"
+  command   = "Rscript -e 'remotes::install_deps(dependencies = TRUE); pkgdown::build_site()'"
   publish   = "docs"
-
-[[plugins]]
-  package   = "netlify-plugin-r"
