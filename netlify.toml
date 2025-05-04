@@ -1,0 +1,6 @@
+[build]
+  command   = "Rscript -e 'pkgdown::build_site()'"
+  publish   = "docs"
+
+[[plugins]]
+  package   = "netlify-plugin-r"

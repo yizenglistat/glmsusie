@@ -1,0 +1,4 @@
+url: https://yizenglistat.github.io/glmcs/
+destination: docs
+template:
+  bootstrap: 5
