@@ -11,21 +11,21 @@
   box-shadow: none !important;
   border: none !important;
   background: transparent !important;
-  color: #AA336A !important;
+  color: #B61BA9 !important;
 }
 
 /* Style for active nav items - just the text color */
 .navbar-light .navbar-nav .nav-link.active,
 .navbar-light .navbar-nav .show > .nav-link,
 .navbar-light .navbar-nav .active > .nav-link {
-  color: #AA336A !important;
+  color: #B61BA9 !important;
   font-weight: bold;
 }
 
 /* Add hover color for navbar links */
 .navbar-light .navbar-nav .nav-link:hover,
 .navbar-light .navbar-nav .nav-link:focus {
-  color: #AA336A !important;
+  color: #2F96B8 !important;
   box-shadow: none !important;
   text-decoration: none !important;
   background: transparent !important;
@@ -39,7 +39,7 @@
 
 /* Add hover color for ALL links site-wide */
 a:hover, a:focus {
-  color: #AA336A !important;
+  color: #2F96B8 !important;
   text-decoration: none !important;
   cursor: pointer;
 }
@@ -50,6 +50,26 @@ a:hover, a:focus {
 .page-link:hover,
 .sidebar a:hover,
 .toc-link:hover {
-  color: #AA336A !important;
+  color: #B61BA9 !important;
   cursor: pointer;
 }
+
+/* Turn off underlines everywhere */
+a,
+.navbar-nav .nav-link,
+.sidebar a,
+.toc-link,
+.page-link {
+  text-decoration: none !important;
+}
+
+/* Keep hover color but still no underline */
+a:hover,
+.navbar-nav .nav-link:hover,
+.sidebar a:hover,
+.toc-link:hover,
+.page-link:hover {
+  text-decoration: none !important;
+}
+
+
