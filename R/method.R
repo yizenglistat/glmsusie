@@ -197,7 +197,8 @@ summary.glmcs <- function(object, ...) {
     family = object$family,
     coefficients = coef_table,
     confidence_sets = object$cs$sets,
-    coverage = object$cs$claimed,
+    coverage = object$coverage,
+    claimed = object$cs$claimed,
     effects_kept = object$kept,
     dispersion = object$dispersion,
     iterations = object$niter,
@@ -236,14 +237,14 @@ print.summary.glmcs <- function(x, digits = max(3, getOption("digits") - 3),
   }
   
   if (!is.null(x$confidence_sets) && length(x$confidence_sets) > 0) {
-    cat("\nConfidence Sets:\n")
+    cat(paste0("\n", round(x$coverage * 100), "% Confidence Sets:\n"))
     n_sets <- length(x$confidence_sets)
     sets_to_show <- min(max_sets, n_sets)
     
     # Create a data frame for confidence sets
     cs_table <- data.frame(
       Set = sapply(x$confidence_sets, function(cs) paste0("{", paste(cs, collapse = ", "), "}")),
-      Coverage = round(x$coverage, digits)
+      Coverage = round(x$claimed, digits)
     )
     
     # Display the first max_sets rows
@@ -350,7 +351,7 @@ plot_cs_matrix <- function(prob_mat,
       guide  = ggplot2::guide_axis(n.dodge = 2)
     ) +
     ggplot2::labs(
-      title = "glmcs Confidence Sets Visualization",
+      title = "glmcs Confidence Sets",
       x     = "Variable",
       y     = NULL
     ) +

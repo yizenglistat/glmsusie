@@ -85,7 +85,7 @@ summary(fit)
 # X3   0.0094     0.0131
 # X4   0.0062     0.0072
 
-# Confidence Sets:
+# 95% Confidence Sets:
 #        Set Coverage
 # cs1    {5}   0.9928
 # cs2 {1, 2}   0.9869

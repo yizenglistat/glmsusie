@@ -236,6 +236,7 @@ glmcs <- function(X, y, L = 10L,
     )
     
     result$cs <- cs
+    result$coverage <- coverage
   }
   
   # Calculate marginal inclusion probabilities
