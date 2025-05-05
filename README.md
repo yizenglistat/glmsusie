@@ -64,32 +64,35 @@ theta[c(2, 5)] <- 1
 prob <- plogis(0.5 + X %*% theta)
 y <- rbinom(n, 1, prob)
 
-res <- glmcs(X           = X, 
+fit <- glmcs(X           = X, 
              y           = y,
              family      = binomial("logit"),
              L           = 10L,
              coverage    = 0.95,
              seed        = SEED)
+summary(fit)
+# Call:
+# glmcs(X = X, y = y, L = 10L, family = binomial("logit"), coverage = 0.95, 
+#     seed = SEED)
 
-print(res$cs)
-# $sets
-# $sets$cs1
-# [1] 5
+# Family: binomial 
 
-# $sets$cs2
-# [1] 1 2
+# Coefficients: (sorted by magnitude)
+#    Estimate MarginProb
+# X5   0.9220     0.9928
+# X2   0.6883     0.8754
+# X1   0.0833     0.1115
+# X3   0.0094     0.0131
+# X4   0.0062     0.0072
 
+# Confidence Sets:
+#        Set Coverage
+# cs1    {5}   0.9928
+# cs2 {1, 2}   0.9869
 
-# $claimed
-# [1] 0.9905875 0.9851817
+# Model converged after 3 iterations.
+# Computation time: 0.01 seconds.
 ```
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/f9f587bb-abad-4bdb-9572-7f557a5dfdef" alt="Variable selection visualization: two confidence sets" width="800"/>
-  <br>
-  <em>Figure 1: Variable selection visualization showing two confidence sets. Point sizes reflect confidence values; larger points indicate higher confidence. Points of the same color belong to the same confidence set.</em>
-</p>
-
 
 ## Main Functions
 
