@@ -1,31 +1,55 @@
-url: https://yizenglistat.github.io/glmcs/
-destination: docs
-
-home:
-  title: "glmcs: Generalized Linear Models with Confidence Sets"
+url: https://yizenglistat.github.io/glmcs
+destination: doc
 
 navbar:
-  type: default
   left:
-    - text: Home
+    - text: "Home"
       href: index.html
-    - text: Vignettes
+    - text: "Vignettes"
       href: articles/index.html
+    - text: "Functions"
+      href: reference/index.html
   right:
-    - icon: Source
+    - icon: fa-github
       href: https://github.com/yizenglistat/glmcs
-
-template:
-  bootstrap: 5
-  bootswatch: litera    # try "litera", "journal", "flatly", etc.
+    - icon: fa-envelope
+      href: mailto:yizenglistat@gmail.com
+    - icon: fa-book
+      href: https://doi.org/your-paper-doi
 
 articles:
   - title: "Vignettes"
     desc: >
-      The following vignettes provide detailed illustrations of the glmcs package, 
-      as well as guidance on correct application of the statistical methods.
+      The following vignettes provide detailed illustrations of the
+      susieR package, as well as guidance on correct application of the
+      statistical methods.
     contents:
-      - A minimal woring example
+    - mwe
+    - glm
 
-search:
-  provider: pkgdown
+footer:
+  structure: 
+    left: developed_by
+    right: [built_with, legal]
+
+template:
+  bootstrap: 5
+  bootswatch: simplex
+  light-switch: false
+  bslib:
+    bg: "white"            # page background
+    fg: "black"            # default text color
+    primary: "black"       # link / accent color
+    link-color: "#8e3563"  # Replace with your desired link color
+    link-hover-color: "#8e3563"  # Replace with your desired hover color
+    navbar-light-hover-color: "#8e3563"  # This targets navbar links in light mode
+    navbar-dark-hover-color: "#8e3563"   # This targets navbar links in dark mode
+    base_font: {google: "Lato"}
+    heading_font: {google: "Lato"}
+    # Attempt to remove shadows with transparent values
+    btn-link-box-shadow: "none"
+    btn-link-hover-box-shadow: "none"
+    navbar-light-active-shadow: "none"
+    # Try to neutralize any background effects
+    navbar-light-hover-bg: "#8e3563"
+    navbar-light-active-bg: "#8e3563"

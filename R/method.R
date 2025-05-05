@@ -351,17 +351,14 @@ plot_cs_matrix <- function(prob_mat,
     ) +
     ggplot2::labs(
       title = "glmcs Confidence Sets Visualization",
-      x     = "Variable Index",
+      x     = "Variable",
       y     = NULL
     ) +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(
-      panel.grid.major.x = ggplot2::element_line(color = "grey80", linewidth = 0.3),
-      panel.grid.major.y = ggplot2::element_line(color = "grey80", linewidth = 0.3),
-      panel.grid.minor   = ggplot2::element_blank(),
-      axis.ticks.length  = grid::unit(0.25, "lines"),
-      axis.line.x        = ggplot2::element_line(color = "black", linewidth = 0.5),
-      axis.line.y        = ggplot2::element_line(color = "black", linewidth = 0.5)
+      panel.grid.major.x = ggplot2::element_line(color = "grey90", linewidth = 0.3),
+      panel.grid.major.y = ggplot2::element_line(color = "grey90", linewidth = 0.3),
+      panel.grid.minor   = ggplot2::element_blank()
     )
     return(p)
 }

@@ -1,5 +1,5 @@
 ---
-title: "A Minimal Example"
+title: "GLM Examples"
 author: "Yizeng Li"
 date: "`r Sys.Date()`"
 output:
@@ -9,7 +9,7 @@ output:
     fig_width: 5
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{A Minimal Example}
+  %\VignetteIndexEntry{GLM Examples}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -33,7 +33,7 @@ The *glmcs* package implements likelihood-based additive single-sffect regressio
 
 - Simulate a high-dimensional sparse Gaussian linear regression model
 - Fit a Gaussian LASER model via `glmcs()`
-- Visualize coefficient esimates, inclusion probabilities, and confidence sets
+- Visualize coefficient esimates, marginal inclusion probabilities, and confidence sets
 - Evaluate predictive performance vs. [SuSiE](https://stephenslab.github.io/susieR/index.html)
 
 ## Simulate data
@@ -82,7 +82,7 @@ We recover four peaks at the true locations
 plot(fit, which="coefficients")
 ```
 
-### Estimated inclusion probability
+### Estimated marginal inclusion probability (confidence)
 Shows the inclusion probability each variable is included in any single-effect component:
 
 ```{r prob}
@@ -90,7 +90,7 @@ Shows the inclusion probability each variable is included in any single-effect c
 plot(fit, which="probabilities")
 ```
 
-### Estimated 95% confidence sets
+### Estimated $95\%$ confidence sets
 Each confidence set (CS) contains a small group of variables where at least one is likely to be active, with $95\%$ confidence.
 
 ```{r cs}
