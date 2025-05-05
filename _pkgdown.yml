@@ -7,17 +7,25 @@ home:
 navbar:
   type: default
   left:
-    - text: Reference
-      href: reference/index.html
-    - text: Articles
+    - text: Home
+      href: index.html
+    - text: Vignettes
       href: articles/index.html
   right:
-    - icon: fab fa-github
+    - icon: Source
       href: https://github.com/yizenglistat/glmcs
 
 template:
   bootstrap: 5
-  bootswatch: journal    # try "litera", "journal", "flatly", etc.
+  bootswatch: litera    # try "litera", "journal", "flatly", etc.
+
+articles:
+  - title: "Vignettes"
+    desc: >
+      The following vignettes provide detailed illustrations of the glmcs package, 
+      as well as guidance on correct application of the statistical methods.
+    contents:
+      - A minimal woring example
 
 search:
   provider: pkgdown
