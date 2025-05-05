@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>A Minimal Example • glmcs</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Lato-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -17,7 +18,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">glmcs</a>
 
@@ -31,13 +32,15 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Vignettes</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Tutorials</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmcs"><span class="fa fa-github"></span></a></li>
-<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com"><span class="fa fa-envelope"></span></a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi"><span class="fa fa-book"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../search/index.html" aria-label="Search"><span class="fa fa-solid fa-search"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmcs"><span class="fa fa-brands fa-github"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com"><span class="fa fa-solid fa-envelope"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi"><span class="fa fa-solid fa-book"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../#" aria-label="Toggle dark mode"><span class="fa fa-solid fa-circle-half-stroke"></span></a></li>
       </ul>
 </div>
 
@@ -82,11 +85,9 @@ confidence sets</li>
 <div class="section level3">
 <h3 id="simulate-data">Simulate data<a class="anchor" aria-label="anchor" href="#simulate-data"></a>
 </h3>
-<p>We generate
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>1000</mn></mrow><annotation encoding="application/x-tex">n=1000</annotation></semantics></math>)
-observations and
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>1000</mn></mrow><annotation encoding="application/x-tex">p=1000</annotation></semantics></math>)
-variables, with only 4 true active (nonzero) effects.</p>
+<p>We generate (<span class="math inline">n=1000</span>) observations
+and (<span class="math inline">p=1000</span>) variables, with only 4
+true active (nonzero) effects.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span>    <span class="co"># sample size</span></span>
@@ -104,12 +105,10 @@ variables, with only 4 true active (nonzero) effects.</p>
 <div class="section level3">
 <h3 id="fit-the-laser-model">Fit the LASER model<a class="anchor" aria-label="anchor" href="#fit-the-laser-model"></a>
 </h3>
-<p>We allow up to
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">L=10</annotation></semantics></math>)
-single effects and use the default Gaussian family. Generally, this
-method is robust to larger
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
-values and present minimal risk of overfitting.</p>
+<p>We allow up to (<span class="math inline">L=10</span>) single effects
+and use the default Gaussian family. Generally, this method is robust to
+larger <span class="math inline">L</span> values and present minimal
+risk of overfitting.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># load glmcs library</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/yizenglistat/glmcs" class="external-link">glmcs</a></span><span class="op">)</span></span>
@@ -122,37 +121,37 @@ values and present minimal risk of overfitting.</p>
 <span>  family         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; glmcs(X = X, y = y, L = L, family = gaussian())</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Family: gaussian </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Coefficients: (sorted by magnitude)</span></span>
-<span><span class="co">#&gt;      Estimate MarginProb</span></span>
-<span><span class="co">#&gt; X300   1.0363          1</span></span>
-<span><span class="co">#&gt; X200   1.0082          1</span></span>
-<span><span class="co">#&gt; X100   0.9661          1</span></span>
-<span><span class="co">#&gt; X400   0.9505          1</span></span>
-<span><span class="co">#&gt; X1     0.0000          0</span></span>
-<span><span class="co">#&gt; X2     0.0000          0</span></span>
-<span><span class="co">#&gt; X3     0.0000          0</span></span>
-<span><span class="co">#&gt; X4     0.0000          0</span></span>
-<span><span class="co">#&gt; X5     0.0000          0</span></span>
-<span><span class="co">#&gt; X6     0.0000          0</span></span>
-<span><span class="co">#&gt; ... (990 more coefficients not shown)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 95% Confidence Sets:</span></span>
-<span><span class="co">#&gt;       Set Coverage</span></span>
-<span><span class="co">#&gt; cs1 {300}        1</span></span>
-<span><span class="co">#&gt; cs2 {200}        1</span></span>
-<span><span class="co">#&gt; cs3 {400}        1</span></span>
-<span><span class="co">#&gt; cs4 {100}        1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Dispersion parameter: 0.9343 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model converged after 3 iterations.</span></span>
-<span><span class="co">#&gt; Computation time: 6.58 seconds.</span></span></code></pre></div>
+<span><span class="co"># </span></span>
+<span><span class="co"># Call:</span></span>
+<span><span class="co"># glmcs(X = X, y = y, L = L, family = gaussian())</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Family: gaussian </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Coefficients: (sorted by magnitude)</span></span>
+<span><span class="co">#      Estimate MarginProb</span></span>
+<span><span class="co"># X300   1.0363          1</span></span>
+<span><span class="co"># X200   1.0082          1</span></span>
+<span><span class="co"># X100   0.9661          1</span></span>
+<span><span class="co"># X400   0.9505          1</span></span>
+<span><span class="co"># X1     0.0000          0</span></span>
+<span><span class="co"># X2     0.0000          0</span></span>
+<span><span class="co"># X3     0.0000          0</span></span>
+<span><span class="co"># X4     0.0000          0</span></span>
+<span><span class="co"># X5     0.0000          0</span></span>
+<span><span class="co"># X6     0.0000          0</span></span>
+<span><span class="co"># ... (990 more coefficients not shown)</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># 95% Confidence Sets:</span></span>
+<span><span class="co">#       Set Coverage</span></span>
+<span><span class="co"># cs1 {300}        1</span></span>
+<span><span class="co"># cs2 {200}        1</span></span>
+<span><span class="co"># cs3 {400}        1</span></span>
+<span><span class="co"># cs4 {100}        1</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Dispersion parameter: 0.9343 </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Model converged after 3 iterations.</span></span>
+<span><span class="co"># Computation time: 13.26 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -180,9 +179,7 @@ single-effect component:</p>
 <h4 id="estimated-95-confidence-sets">Estimated 95% confidence sets<a class="anchor" aria-label="anchor" href="#estimated-95-confidence-sets"></a>
 </h4>
 <p>Each confidence set (CS) contains a small group of variables where at
-least one is likely to be active, with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>95</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">95\%</annotation></semantics></math>
-confidence.</p>
+least one is likely to be active, with <span class="math inline">95\%</span> confidence.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"sets"</span><span class="op">)</span></span></code></pre></div>
@@ -202,9 +199,9 @@ confidence.</p>
 <span>  Method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"susie"</span>, <span class="st">"glmcs"</span><span class="op">)</span>,</span>
 <span>  RMSE   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rmse_susie</span>, <span class="va">rmse_glmcs</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;   Method      RMSE</span></span>
-<span><span class="co">#&gt; 1  susie 0.9728844</span></span>
-<span><span class="co">#&gt; 2  glmcs 0.9728829</span></span></code></pre></div>
+<span><span class="co">#   Method      RMSE</span></span>
+<span><span class="co"># 1  susie 0.9728844</span></span>
+<span><span class="co"># 2  glmcs 0.9728829</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -219,7 +216,7 @@ confidence.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2. NULL</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>
