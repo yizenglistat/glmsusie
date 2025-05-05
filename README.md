@@ -1,4 +1,4 @@
-# glmcs: Generalized Linear Models with Confidence   Sets
+# glmcs: Generalized Linear Models with Confidence Sets
 
 <!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/network)
