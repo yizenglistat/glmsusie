@@ -1,21 +1,39 @@
 url: https://yizenglistat.github.io/glmcs
 destination: doc
-
 navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "Vignettes"
+    - text: "Tutorials"
       href: articles/index.html
     - text: "Functions"
       href: reference/index.html
   right:
-    - icon: fa-github
+    - icon: fa-solid fa-search
+      href: search/index.html
+      aria-label: "Search"
+    - icon: fa-brands fa-github
       href: https://github.com/yizenglistat/glmcs
-    - icon: fa-envelope
+    - icon: fa-solid fa-envelope
       href: mailto:yizenglistat@gmail.com
-    - icon: fa-book
+    - icon: fa-solid fa-book
       href: https://doi.org/your-paper-doi
+    - icon: fa-solid fa-circle-half-stroke
+      href: "#"
+      aria-label: "Toggle dark mode"
+      id: lightswitch
+
+search:
+  provider: pkgdown
+  location: navbar
+  link:
+    icon: fa-search
+    text: "Search"
+    aria-label: "Search"
+
+home:
+  sidebar:
+    structure: [links, authors, license, citation, dev]
 
 articles:
   - title: "Vignettes"
@@ -27,29 +45,23 @@ articles:
     - mwe
     - glm
 
-footer:
-  structure: 
-    left: developed_by
-    right: [built_with, legal]
-
 template:
   bootstrap: 5
-  bootswatch: simplex
-  light-switch: false
+  bootswatch: flatly
+  light-switch: true
+  math-rendering: katex
   bslib:
-    bg: "white"            # page background
-    fg: "black"            # default text color
-    primary: "black"       # link / accent color
-    link-color: "#8e3563"  # Replace with your desired link color
-    link-hover-color: "#8e3563"  # Replace with your desired hover color
-    navbar-light-hover-color: "#8e3563"  # This targets navbar links in light mode
-    navbar-dark-hover-color: "#8e3563"   # This targets navbar links in dark mode
+    # Light mode colors
+    bg: "white"
+    fg: "black"
+    link-color: "#e91e63"           # pink
+    link-hover-color: "#e91e63"     # pink hover
+
+    # Dark mode overrides
+    bg-dark: "#121212"
+    fg-dark: "white"
+    link-color-dark: "#2196f3"          # blue
+    link-hover-color-dark: "#2196f3"    # blue hover
+
     base_font: {google: "Lato"}
     heading_font: {google: "Lato"}
-    # Attempt to remove shadows with transparent values
-    btn-link-box-shadow: "none"
-    btn-link-hover-box-shadow: "none"
-    navbar-light-active-shadow: "none"
-    # Try to neutralize any background effects
-    navbar-light-hover-bg: "#8e3563"
-    navbar-light-active-bg: "#8e3563"
