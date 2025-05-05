@@ -1,5 +1,5 @@
 ---
-title: "GLM Examples"
+title: "Poisson Regression Examples"
 author: "Yizeng Li"
 date: "`r Sys.Date()`"
 output:
@@ -9,7 +9,7 @@ output:
     fig_width: 5
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{GLM Examples}
+  %\VignetteIndexEntry{Poisson Regression Examples}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

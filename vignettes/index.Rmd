@@ -4,7 +4,7 @@ output: rmarkdown::html_document
 ---
 
 <div style="display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:1.5rem;">
-  <img src="../images/placeholder.svg" alt="Minimal Example" style="width:150px; margin-right:1rem;"/>
+  <img src="../images/placeholder.svg" alt="A Minimal Example" style="width:150px; margin-right:1rem;"/>
   <div>
   <h><em>A Minimal Example</em></h>
   <p>A quick walkthrough of glmcs on a simulated dataset to illustrate variable selection and confidence sets. [read more](mwe.html)</p> 
@@ -12,9 +12,33 @@ output: rmarkdown::html_document
 </div>
 
 <div style="display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:1.5rem;">
-  <img src="../images/placeholder.svg" alt="GLM Examples" style="width:150px; margin-right:1rem;" />
+  <img src="../images/placeholder.svg" alt="Gaussian Regression Examples" style="width:150px; margin-right:1rem;" />
   <div>
-  <h><em>GLM Examples</em></h>
-  <p>Demonstration of glmcs applied to generalized linear models and cox regression model. [read more](mwe.html)</p>
+  <h><em>Gaussian Regression Examples</em></h>
+  <p>Demonstration of glmcs applied to generalized linear models and cox regression model. [read more](gaussian.html)</p>
+  </div>
+</div>
+
+<div style="display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:1.5rem;">
+  <img src="../images/placeholder.svg" alt="Logistic Regression Examples" style="width:150px; margin-right:1rem;" />
+  <div>
+  <h><em>Logistic Regression Examples</em></h>
+  <p>Demonstration of glmcs applied to generalized linear models and cox regression model. [read more](logit.html)</p>
+  </div>
+</div>
+
+<div style="display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:1.5rem;">
+  <img src="../images/placeholder.svg" alt="Poisson Regression Examples" style="width:150px; margin-right:1rem;" />
+  <div>
+  <h><em>Poisson Regression Examples</em></h>
+  <p>Demonstration of glmcs applied to generalized linear models and cox regression model. [read more](poisson.html)</p>
+  </div>
+</div>
+
+<div style="display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:1.5rem;">
+  <img src="../images/placeholder.svg" alt="Cox Regression Examples" style="width:150px; margin-right:1rem;" />
+  <div>
+  <h><em>Cox Regression Examples</em></h>
+  <p>Demonstration of glmcs applied to generalized linear models and cox regression model. [read more](cox.html)</p>
   </div>
 </div>

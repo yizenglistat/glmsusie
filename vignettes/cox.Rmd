@@ -1,0 +1,115 @@
+---
+title: "Cox Regression Examples"
+author: "Yizeng Li"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+    fig_width: 5
+    fig_height: 4
+vignette: >
+  %\VignetteIndexEntry{Cox Regression Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse   = TRUE,
+  comment    = "#",
+  echo       = TRUE,
+  message    = FALSE,
+  warning    = FALSE,
+  fig.align  = "center",
+  dpi        = 120
+)
+library(ggplot2)
+```
+
+# Introduction
+
+The *glmcs* package implements likelihood-based additive single-sffect regression (LASER), a sparse model that represents the overall effect as a sum of a small number of *single-effect* components. In this vignette we:
+
+- Simulate a high-dimensional sparse Gaussian linear regression model
+- Fit a Gaussian LASER model via `glmcs()`
+- Visualize coefficient esimates, inclusion probabilities, and confidence sets
+- Evaluate predictive performance vs. [SuSiE](https://stephenslab.github.io/susieR/index.html)
+
+# Simulate data
+We generate ($n=1000$) observations and ($p=1000$) variables, with only 4 true active (nonzero) effects.
+
+```{r simulate}
+set.seed(42)
+n <- 1000    # sample size
+p <- 1000    # number of predictors
+L <- 10      # number of single-effect components
+
+# true sparse coefficients
+theta_true <- rep(0, p)
+theta_true[c(100, 200, 300, 400)] <- 1
+
+# covariate matrix and response
+X <- matrix(rnorm(n * p), nrow = n, ncol = p)
+y <- drop(X %*% theta_true + rnorm(n))
+```
+
+# Fit the LASER model
+We allow up to ($L=10$) single effects and use the default Gaussian family. Generally, this method is robust to larger $L$ values and present minimal risk of overfitting. 
+ 
+```{r fit}
+# load glmcs library
+library(glmcs)
+
+# model fitting
+fit <- glmcs(
+  X              = X,
+  y              = y,
+  L              = L,
+  family         = gaussian()
+)
+summary(fit)
+```
+
+
+# Results
+
+## Coefficient estimates
+We recover four peaks at the true locations
+
+```{r coef}
+# plot coefficients
+plot(fit, which="coefficients")
+```
+
+## Estimated inclusion probability
+Shows the inclusion probability each variable is included in any single-effect component:
+
+```{r prob}
+# plot coefficients
+plot(fit, which="probabilities")
+```
+
+## Estimated 95% confidence sets
+Each confidence set (CS) contains a small group of variables where at least one is likely to be active, with $95\%$ confidence.
+
+```{r cs}
+# plot coefficients
+plot(fit, which="sets")
+```
+
+## Performance evalution
+
+```{r perform}
+# compare with SuSiE
+fitted_susie  <- fitted(susieR::susie(X, y, L))
+fitted_glmcs  <- fitted(fit)
+rmse_susie    <- sqrt(mean((y - fitted_susie)^2))
+rmse_glmcs    <- sqrt(mean((y - fitted_glmcs)^2))
+
+data.frame(
+  Method = c("susie", "glmcs"),
+  RMSE   = c(rmse_susie, rmse_glmcs)
+)
+```
+

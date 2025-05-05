@@ -29,7 +29,10 @@ articles:
     title: "Vignettes"
     contents:
         - mwe
-        - glm
+        - gaussian
+        - logit
+        - poisson
+        - cox
 
 template:
   bootstrap: 5
