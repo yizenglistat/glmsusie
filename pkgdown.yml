@@ -2,10 +2,13 @@ pandoc: 3.1.11
 pkgdown: 2.1.2
 pkgdown_sha: ~
 articles:
-  glm: glm.html
+  cox: cox.html
+  gaussian: gaussian.html
   index: index.html
+  logit: logit.html
   mwe: mwe.html
-last_built: 2025-05-05T19:22Z
+  poisson: poisson.html
+last_built: 2025-05-05T19:38Z
 urls:
   reference: https://yizenglistat.github.io/glmcs/reference
   article: https://yizenglistat.github.io/glmcs/articles

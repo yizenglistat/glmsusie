@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>A Minimal Example • glmcs</title>
+<title>Gaussian Regression Examples • glmcs</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +13,7 @@
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="A Minimal Example">
+<meta property="og:title" content="Gaussian Regression Examples">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -53,13 +53,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>A Minimal Example</h1>
+      <h1>Gaussian Regression Examples</h1>
                         <h4 data-toc-skip class="author">Yizeng Li</h4>
             
             <h4 data-toc-skip class="date">2025-05-05</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/yizenglistat/glmcs/blob/main/vignettes/mwe.Rmd" class="external-link"><code>vignettes/mwe.Rmd</code></a></small>
-      <div class="d-none name"><code>mwe.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/yizenglistat/glmcs/blob/main/vignettes/gaussian.Rmd" class="external-link"><code>vignettes/gaussian.Rmd</code></a></small>
+      <div class="d-none name"><code>gaussian.Rmd</code></div>
     </div>
 
     
@@ -151,7 +151,7 @@ risk of overfitting.</p>
 <span><span class="co"># Dispersion parameter: 0.9343 </span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># Model converged after 3 iterations.</span></span>
-<span><span class="co"># Computation time: 13 seconds.</span></span></code></pre></div>
+<span><span class="co"># Computation time: 13.01 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -163,7 +163,7 @@ risk of overfitting.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"coefficients"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mwe_files/figure-html/coef-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="gaussian_files/figure-html/coef-1.png" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="estimated-inclusion-probability">Estimated inclusion probability<a class="anchor" aria-label="anchor" href="#estimated-inclusion-probability"></a>
@@ -173,7 +173,7 @@ single-effect component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"probabilities"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mwe_files/figure-html/prob-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="gaussian_files/figure-html/prob-1.png" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="estimated-95-confidence-sets">Estimated 95% confidence sets<a class="anchor" aria-label="anchor" href="#estimated-95-confidence-sets"></a>
@@ -183,7 +183,7 @@ least one is likely to be active, with <span class="math inline">95\%</span> con
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"sets"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mwe_files/figure-html/cs-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="gaussian_files/figure-html/cs-1.png" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="performance-evalution">Performance evalution<a class="anchor" aria-label="anchor" href="#performance-evalution"></a>
