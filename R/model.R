@@ -11,7 +11,7 @@
 #' At each iteration, the algorithm cyclically updates one component while holding
 #' the others fixed. For each component, it fits a univariate model for each predictor,
 #' computes model probabilities (via BIC), and updates coefficients as probability-weighted
-#' averages. The approach extends traditional GLMs by providing Bayesian-inspired credible
+#' averages. The approach extends traditional GLMs by providing Bayesian-inspired confidence
 #' sets for variable selection.
 #'
 #' Supported model families include:
@@ -36,10 +36,10 @@
 #' @param family A family object specifying the model type (e.g., \code{gaussian()}, 
 #'        \code{binomial()}, \code{poisson()}, \code{Gamma()}) or \code{list(family="cox")}
 #'        for Cox regression.
-#' @param coverage Numeric in [0,1] specifying the target coverage probability 
-#'        for credible sets (default: 0.95).
-#' @param cor_threshold Numeric in [0,1] specifying the minimum absolute correlation 
-#'        required for variables to be grouped in the same credible set (default: 0.5).
+#' @param coverage Numeric in \eqn{[0,1]} specifying the target coverage probability 
+#'        for confidence sets (default: 0.95).
+#' @param cor_threshold Numeric in \eqn{[0,1]} specifying the minimum absolute correlation 
+#'        required for variables to be grouped in the same confidence set (default: 0.5).
 #' @param standardize Logical indicating whether to center and scale predictors 
 #'        before fitting (default: TRUE).
 #' @param null_threshold Numeric specifying the threshold below which coefficients 
@@ -72,7 +72,7 @@
 #'   \item{bf}{p × L matrix of Bayes factors}
 #'   \item{marginal}{Vector of marginal inclusion probabilities for each predictor}
 #'   \item{kept}{Logical vector indicating which effects were retained}
-#'   \item{cs}{List of credible sets based on posterior probabilities}
+#'   \item{cs}{List of confidence sets based on posterior probabilities}
 #'   \item{niter}{Number of iterations performed}
 #'   \item{max_iter}{Number of maximum iterations}
 #'   \item{elapsed}{Elapsed computation time in seconds}
@@ -219,9 +219,9 @@ glmcs <- function(X, y, L = 10L,
   colnames(result$theta) <- paste0("Effect", 1:ncol(result$theta))
   colnames(result$pmp) <- paste0("Effect", 1:ncol(result$pmp))
   
-  # Calculate credible sets
+  # Calculate confidence sets
   if (!is.null(result$pmp) && !is.null(result$kept)) {
-    # Calculate correlation matrix if needed for credible sets
+    # Calculate correlation matrix if needed for confidence sets
     R <- NULL
     if (cor_threshold > 0) {
       R <- stats::cor(X)

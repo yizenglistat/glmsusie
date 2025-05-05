@@ -2,7 +2,7 @@
 % Please edit documentation in R/model.R
 \name{glmcs}
 \alias{glmcs}
-\title{glmcs: Generalized Linear Model with Confidence Sets}
+\title{Generalized Linear Models with Confidence Sets (GLMCS)}
 \usage{
 glmcs(
   X,
@@ -14,59 +14,142 @@ glmcs(
   standardize = TRUE,
   null_threshold = 1e-05,
   tol = 0.05,
-  ties = c("efron", "breslow"),
   lambda = 0,
-  tau = 0.5,
-  max_iter = 100L,
+  tau = 1e-05,
+  ties = c("efron", "breslow"),
+  max_iter = 500L,
   seed = NULL
 )
 }
 \arguments{
-\item{X}{Numeric matrix or vector of predictors. If a vector, it will be converted to a matrix.}
+\item{X}{Numeric matrix of predictors (n × p). If a vector is provided, it will
+be converted to a single-column matrix.}
 
-\item{y}{Response variable (vector for GLMs, matrix with time and status for Cox regression).}
+\item{y}{Response variable:
+\itemize{
+\item For GLMs: numeric vector of length n
+\item For Cox models: numeric matrix with 2 columns (time, status) and n rows
+}}
 
-\item{L}{Integer specifying the number of components to fit (must be at least 1 and less than ncol(X)).}
+\item{L}{Integer specifying the number of components to fit (default: 10).
+Will be truncated to min(10, ncol(X)) if necessary.}
 
-\item{family}{A family object specifying the model type (e.g., \code{gaussian()}, \code{binomial()},
-\code{poisson()}, \code{Gamma()}, or \code{cox()}).}
+\item{family}{A family object specifying the model type (e.g., \code{gaussian()},
+\code{binomial()}, \code{poisson()}, \code{Gamma()}) or \code{list(family="cox")}
+for Cox regression.}
 
-\item{coverage}{Numeric in \code{[0,1]} specifying the target coverage probability for credible sets (default: 0.95).}
+\item{coverage}{Numeric in \eqn{[0,1]} specifying the target coverage probability
+for confidence sets (default: 0.95).}
 
-\item{cor_threshold}{Numeric in \code{[0,1]} specifying the minimum absolute correlation for variables
-within a credible set (default: 0.5).}
+\item{cor_threshold}{Numeric in \eqn{[0,1]} specifying the minimum absolute correlation
+required for variables to be grouped in the same confidence set (default: 0.5).}
 
-\item{standardize}{Logical indicating whether to standardize predictors (default: TRUE).}
+\item{standardize}{Logical indicating whether to center and scale predictors
+before fitting (default: TRUE).}
 
-\item{null_threshold}{Numeric specifying the threshold below which coefficients are set to zero (default: 1e-6).}
+\item{null_threshold}{Numeric specifying the threshold below which coefficients
+are set to zero (default: 1e-5).}
 
-\item{tol}{Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).}
+\item{tol}{Numeric specifying convergence tolerance for the expected log-likelihood
+between iterations (default: 5e-2).}
 
-\item{ties}{String specifying method for handling tied events in Cox regression: "efron" (default) or "breslow".}
+\item{lambda}{Numeric penalty weight for the truncated-L1 penalty (default: 0.0).
+If 0, no penalization is applied.}
 
-\item{lambda}{Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).}
+\item{tau}{Numeric truncation parameter for the truncated-L1 penalty (default: 1e-5).
+Controls the transition from L1 to L0 regularization.}
 
-\item{tau}{Numeric specifying convergence tolerance for log-likelihood (default: 5e-2).}
+\item{ties}{Character string specifying the method for handling tied event times
+in Cox regression: "efron" (default) or "breslow".}
 
-\item{max_iter}{Integer specifying maximum number of fitting iterations (default: 100).}
+\item{max_iter}{Integer specifying maximum number of coordinate ascent iterations
+(default: 100).}
 
 \item{seed}{Integer seed for reproducibility (default: NULL).}
 }
 \value{
-A list with components:
+A list with class "glmcs" containing:
 \describe{
-\item{theta}{Matrix of estimated coefficients (p by L)}
+\item{call}{The matched call}
+\item{X}{The model matrix}
+\item{y}{The response vector/matrix}
+\item{family}{The family object used}
+\item{theta}{p × L matrix of estimated coefficients for each single effect}
 \item{intercept}{Estimated intercept (NULL for Cox regression)}
-\item{pmp}{Matrix of posterior model probabilities (p by L)}
+\item{pmp}{p × L matrix of posterior model probabilities}
 \item{dispersion}{Estimated dispersion parameter}
-\item{loglik}{Matrix of log-likelihoods (p by L)}
-\item{cs}{Credible sets obtained from posterior probabilities}
+\item{loglik}{p × L matrix of log-likelihoods}
+\item{bic}{p × L matrix of BIC values}
+\item{bic_diff}{p × L matrix of BIC differences from null model}
+\item{bf}{p × L matrix of Bayes factors}
+\item{marginal}{Vector of marginal inclusion probabilities for each predictor}
+\item{kept}{Logical vector indicating which effects were retained}
+\item{cs}{List of confidence sets based on posterior probabilities}
 \item{niter}{Number of iterations performed}
+\item{max_iter}{Number of maximum iterations}
+\item{elapsed}{Elapsed computation time in seconds}
 }
 }
 \description{
-Fits a sparse likelihood-based additive single-effect (LASER) model
-using the iteratively blockwise coordinate ascent alogirthm
-across various generalized linear model families. Supports Gaussian, binomial,
-Poisson, Gamma GLMs, and Cox regression models.
+Fits a sparse Likelihood-based Additive Single-Effect Regression (LASER) model
+using iteratively blockwise coordinate ascent. The model represents the coefficient
+vector as a sum of sparse "single effects" and produces confidence sets for variable
+selection based on posterior model probabilities.
+}
+\details{
+The LASER model decomposes the coefficient vector into a sum of L sparse components.
+At each iteration, the algorithm cyclically updates one component while holding
+the others fixed. For each component, it fits a univariate model for each predictor,
+computes model probabilities (via BIC), and updates coefficients as probability-weighted
+averages. The approach extends traditional GLMs by providing Bayesian-inspired confidence
+sets for variable selection.
+
+Supported model families include:
+\itemize{
+\item Gaussian linear regression
+\item Binomial logistic regression
+\item Poisson regression
+\item Gamma regression
+\item Other GLM family regression
+\item Cox proportional hazards regression
+}
+}
+\examples{
+\dontrun{
+# Gaussian linear regression example
+set.seed(42)
+n <- 100
+p <- 50
+X <- matrix(rnorm(n*p), n, p)
+colnames(X) <- paste0("X", 1:p)
+true_beta <- c(rep(1, 5), rep(0, p-5))
+y <- X \%*\% true_beta + rnorm(n)
+
+# Fit model with 3 components
+fit <- glmcs(X, y, L = 3, family = gaussian())
+
+# Examine results
+summary(fit)
+plot(fit)
+
+# Extract coefficients
+coef(fit)
+coef(fit, intercept = TRUE)
+
+# Cox regression example
+X <- matrix(rnorm(100*10), 100, 10)
+colnames(X) <- paste0("X", 1:10)
+times <- rexp(100, rate = exp(0.5 * X[,1] + 0.5 * X[,2]))
+status <- rbinom(100, 1, 0.7)
+y_cox <- cbind(times, status)
+
+fit_cox <- glmcs(X, y_cox, L = 2, family = list(family = "cox"))
+summary(fit_cox)
+}
+
+}
+\seealso{
+\code{\link{summary.glmcs}} for summarizing model results,
+\code{\link{coef.glmcs}} for extracting coefficients,
+\code{\link{plot.glmcs}} for plotting results
 }

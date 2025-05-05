@@ -301,16 +301,19 @@ print.glmcs <- function(x, ...) {
   invisible(x)
 }
 
-#’ Plot inclusion probabilities for a set of “confidence sets”
-#’
-#’ @param prob_mat Numeric matrix (r × p) of probabilities (each row sums to 1).
-#’ @param row_labels Optional character vector of length r. Default `paste0("CS", 1:r)`.
-#’ @param var_labels Optional character or numeric vector of length p. Default 1:p.
-#’ @param low_col Colour for P≈0. Default `"white"`.
-#’ @param high_col Colour for P≈1. Default `"black"`.
-#’ @return A ggplot2 object showing crosses of size ∝ P and colour ∝ P.
-#’ @import ggplot2
-#’ @export
+#' Plot inclusion probabilities for a set of "confidence sets"
+#'
+#' @param prob_mat Numeric matrix (r × p) of probabilities (each row sums to 1).
+#' @param row_labels Optional character vector of length r. Default `paste0("CS", 1:r)`.
+#' @param var_labels Optional character or numeric vector of length p. Default 1:p.
+#' @param low_col Colour for P≈0. Default `"white"`.
+#' @param high_col Colour for P≈1. Default `"black"`.
+#' @param drop_zero Logical; if `TRUE`, drop zero-probability entries (default: `TRUE`).
+#' @return A ggplot2 object showing crosses of size ∝ P and colour ∝ P.
+#'
+#' @import ggplot2
+#' @importFrom rlang .data
+#' @export
 plot_cs_matrix <- function(prob_mat,
                            row_labels = paste0("CS", seq_len(nrow(prob_mat))),
                            var_labels = seq_len(ncol(prob_mat)),
@@ -333,8 +336,8 @@ plot_cs_matrix <- function(prob_mat,
   x_breaks <- sort(unique(df$Var))
   # x_labels <- var_labels[x_breaks]
   
-  p<- ggplot2::ggplot(df, ggplot2::aes(x = Var, y = Row)) +
-    ggplot2::geom_point(ggplot2::aes(size = P, colour = P, alpha = P),
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$Var, y = .data$Row)) +
+    ggplot2::geom_point(ggplot2::aes(size = .data$P, colour = .data$P, alpha = .data$P),
                         shape = 7, stroke = 1) +
     ggplot2::scale_size_continuous(range = c(0, 4), guide = "none") +
     ggplot2::scale_colour_gradient(low  = low_col,
@@ -360,7 +363,6 @@ plot_cs_matrix <- function(prob_mat,
       axis.line.x        = ggplot2::element_line(color = "black", linewidth = 0.5),
       axis.line.y        = ggplot2::element_line(color = "black", linewidth = 0.5)
     )
-
     return(p)
 }
 
@@ -380,7 +382,7 @@ plot_cs_matrix <- function(prob_mat,
 #' @param ... Additional arguments passed to plotting functions.
 #'
 #' @return A ggplot2 object.
-#'
+#' @importFrom rlang .data
 #' @export
 plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"), 
                        n_top = 20, ...) {
@@ -426,10 +428,10 @@ plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"),
     idx      <- as.integer(gsub("^X", "", raw_vars))
     newlv    <- paste0("X[", idx, "]")
     levels(plot_data$Variable) <- newlv
-    p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = Coefficient, y = Variable)) +
+    p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = .data$Coefficient, y = .data$Variable)) +
       ggplot2::geom_point(size = 2.5, shape = 7) +  # Changed to cross shape (4)
-      ggplot2::geom_segment(ggplot2::aes(x = 0, xend = Coefficient, 
-                                        yend = Variable), color = "gray90", linewidth = 0.2) +
+      ggplot2::geom_segment(ggplot2::aes(x = 0, xend = .data$Coefficient, 
+                                        yend = .data$Variable), color = "gray90", linewidth = 0.2) +
       ggplot2::labs(title = "glmcs Coefficient Estimates",
                    x = "Coefficient Value", y = NULL) +
       ggplot2::theme_minimal() +
@@ -447,10 +449,10 @@ plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"),
     idx      <- as.integer(gsub("^X", "", raw_vars))
     newlv <- paste0("X[", idx, "]")
     levels(plot_data$Variable) <- newlv
-    p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = Probability, y = Variable)) +
+    p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = .data$Probability, y = .data$Variable)) +
       ggplot2::geom_point(size = 2.5, shape = 7) +  # Changed to cross shape (4)
-      ggplot2::geom_segment(ggplot2::aes(x = 0, xend = Probability, 
-                                        yend = Variable), color = "gray90", linewidth = 0.2) +
+      ggplot2::geom_segment(ggplot2::aes(x = 0, xend = .data$Probability, 
+                                        yend = .data$Variable), color = "gray90", linewidth = 0.2) +
       ggplot2::labs(title = "glmcs Inclusion Probabilities",
                    x = "Probability", y = NULL) +
       ggplot2::theme_minimal() +
