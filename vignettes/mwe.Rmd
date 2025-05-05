@@ -8,6 +8,9 @@ output:
     toc_depth: 2
     fig_width: 5
     fig_height: 4
+tags: 
+  - "linear regression"
+  - "Gaussian"
 vignette: >
   %\VignetteIndexEntry{A Minimal Example}
   %\VignetteEngine{knitr::rmarkdown}

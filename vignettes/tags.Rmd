@@ -1,0 +1,210 @@
+---
+title: "Tags"
+output: rmarkdown::html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(yaml)
+library(purrr)
+library(dplyr)
+# Function to extract YAML front matter from Rmd files
+extract_yaml <- function(file) {
+  lines <- readLines(file, warn = FALSE)
+  if (length(lines) == 0) return(NULL)
+  
+  # Find YAML delimiters
+  delim_line <- which(lines == "---")
+  if (length(delim_line) < 2) return(NULL)
+  
+  # Extract YAML content
+  yaml_text <- paste(lines[(delim_line[1] + 1):(delim_line[2] - 1)], collapse = "\n")
+  tryCatch({
+    yaml_content <- yaml::yaml.load(yaml_text)
+    return(yaml_content)
+  }, error = function(e) {
+    return(NULL)
+  })
+}
+# Get all vignette files
+vignette_files <- list.files(".", pattern = "\\.Rmd$", full.names = TRUE)
+vignette_files <- vignette_files[!grepl("tags\\.Rmd$", vignette_files)]  # Exclude tags.Rmd itself
+# Extract tags from all vignettes
+vignette_data <- lapply(vignette_files, function(file) {
+  yaml_data <- extract_yaml(file)
+  if (!is.null(yaml_data) && !is.null(yaml_data$tags)) {
+    data.frame(
+      file = file,
+      title = yaml_data$title,
+      tags = I(list(yaml_data$tags)),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    NULL
+  }
+})
+# Remove NULL entries and combine
+vignette_data <- do.call(rbind, vignette_data[!sapply(vignette_data, is.null)])
+# Create a data frame with one row per tag-article combination
+if (!is.null(vignette_data) && nrow(vignette_data) > 0) {
+  tag_data <- purrr::map_df(1:nrow(vignette_data), function(i) {
+    article <- vignette_data[i, ]
+    if (length(article$tags[[1]]) > 0) {
+      purrr::map_df(article$tags[[1]], function(tag) {
+        data.frame(
+          tag = tag,
+          title = article$title,
+          file = basename(article$file),
+          stringsAsFactors = FALSE
+        )
+      })
+    }
+  })
+  
+  # Convert filenames to HTML links
+  tag_data$html_file <- gsub("\\.Rmd$", ".html", tag_data$file)
+  
+  # Count articles per tag
+  tag_counts <- tag_data %>%
+    group_by(tag) %>%
+    summarize(count = n(), .groups = "drop") %>%
+    arrange(desc(count))
+    
+  # Calculate font sizes for tags (scale between 1.0 and 2.5em based on count)
+  max_count <- max(tag_counts$count)
+  min_count <- min(tag_counts$count)
+  tag_counts$font_size <- 1.0 + 1.5 * (tag_counts$count - min_count) / 
+                         max(1, (max_count - min_count))
+} else {
+  tag_data <- data.frame()
+  tag_counts <- data.frame()
+}
+```
+
+```{css, echo=FALSE}
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.tag-item {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background-color: #D57BCD;
+  color: white !important;
+  text-decoration: none !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 5px;
+}
+
+.tag-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.tag-count {
+  font-size: 0.8em;
+  opacity: 0.85;
+  font-weight: normal;
+}
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #B61BA9, transparent);
+  margin: 2em 0;
+}
+
+h2.tag-heading {
+  color: #B61BA9;
+  border-bottom: none;
+  padding-bottom: 5px;
+  display: inline-block;
+}
+
+.article-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.article-list li {
+  margin-bottom: 10px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.article-list li:before {
+  content: "•";
+  color: #B61BA9;
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+.article-list a {
+  color: #333;
+  text-decoration: none;
+  border-bottom: none; /* Removed the underline */
+  transition: color 0.2s;
+}
+
+.article-list a:hover {
+  color: #B61BA9;
+  border-bottom: none; /* No underline on hover either */
+}
+```
+
+```{r results='asis'}
+if (nrow(tag_counts) > 0) {
+  # Output a tag cloud with different sized tags based on count
+  cat('<div class="tag-cloud">\n')
+
+  for (i in 1:nrow(tag_counts)) {
+    tag <- tag_counts$tag[i]
+    count <- tag_counts$count[i]
+    font_size <- tag_counts$font_size[i]
+    
+    # Create the HTML for each tag with font-size inline style
+    cat(sprintf('<a href="#%s" class="tag-item" style="font-size: %.1fem;">%s <span class="tag-count">(%d)</span></a>\n',
+                tolower(gsub("[^a-zA-Z0-9]", "-", tag)),
+                font_size,
+                tag,
+                count))
+  }
+
+  cat('</div>\n\n')
+  cat('<div class="section-divider"></div>\n\n')
+  
+  # Then, for each tag, list all articles
+  for (i in 1:nrow(tag_counts)) {
+    tag <- tag_counts$tag[i]
+    count <- tag_counts$count[i]
+    
+    cat(sprintf('<h2 id="%s" class="tag-heading">%s <span class="tag-count">(%d)</span></h2>\n', 
+                tolower(gsub("[^a-zA-Z0-9]", "-", tag)),
+                tag, 
+                count))
+    
+    # Get articles with this tag
+    articles <- tag_data %>% filter(tag == !!tag) %>% arrange(title)
+    
+    cat('<ul class="article-list">\n')
+    for (j in 1:nrow(articles)) {
+      cat(sprintf('<li><a href="%s">%s</a></li>\n', 
+                  articles$html_file[j], 
+                  articles$title[j]))
+    }
+    cat('</ul>\n\n')
+  }
+} else {
+  cat("No tagged articles found. Make sure your vignettes have a 'tags' field in their YAML front matter.")
+}
+```

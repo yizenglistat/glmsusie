@@ -8,6 +8,10 @@ output:
     toc_depth: 2
     fig_width: 5
     fig_height: 4
+tags:
+  - "binary regression"
+  - "logistic"
+  - "multicollinearity"
 vignette: >
   %\VignetteIndexEntry{Logistic Regression Examples}
   %\VignetteEngine{knitr::rmarkdown}

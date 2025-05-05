@@ -8,6 +8,10 @@ output:
     toc_depth: 2
     fig_width: 5
     fig_height: 4
+tags:
+  - "count regression"
+  - "poisson"
+  - "multicollinearity"
 vignette: >
   %\VignetteIndexEntry{Poisson Regression Examples}
   %\VignetteEngine{knitr::rmarkdown}

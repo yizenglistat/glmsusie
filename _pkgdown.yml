@@ -4,10 +4,10 @@ navbar:
   left:
     - text: "About"
       href: index.html
-    - text: "Tutorials"
+    - text: "Vignettes"
       href: articles/index.html
-    - text: "Functions"
-      href: reference/index.html
+    - text: "Tags"
+      href: articles/tags.html
   right:
     - icon: fa-brands fa-github
       href: https://github.com/yizenglistat/glmcs
@@ -22,9 +22,10 @@ home:
 
 articles:
   index:
-    title: "Tutorials"
+    title: "Vignettes"
     contents:
       - index
+      - tags
   sections:
     title: "Vignettes"
     contents:
