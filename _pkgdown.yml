@@ -39,13 +39,13 @@ template:
     bg: "white"
     fg: "black"
     navbar-color: "black"
-    navbar-bg: "#AA336A"
-    primary: "#AA336A"
+    navbar-bg: "#B61BA9"
+    primary: "#B61BA9"
     navbar-light-color: "black"      # Text color for navbar items
     navbar-light-hover-color: "black" # Hover color for navbar items
     navbar-light-active-color: "black" # Active link color
-    link-color: "#AA336A"
-    link-hover-color: "#AA336A"
+    link-color: "#B61BA9"
+    link-hover-color: "#B61BA9"
 
     btn-link-box-shadow: "none"
     btn-link-hover-box-shadow: "none"
