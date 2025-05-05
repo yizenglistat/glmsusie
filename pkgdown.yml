@@ -2,8 +2,9 @@ pandoc: 3.1.11
 pkgdown: 2.1.2
 pkgdown_sha: ~
 articles:
-  home: home.html
-last_built: 2025-05-04T23:31Z
+  glm: glm.html
+  mwe: mwe.html
+last_built: 2025-05-05T08:17Z
 urls:
   reference: https://yizenglistat.github.io/glmcs/reference
   article: https://yizenglistat.github.io/glmcs/articles
