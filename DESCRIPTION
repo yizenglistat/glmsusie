@@ -10,7 +10,7 @@ Authors@R: c(
 Description: Implements likelihood-based additive single-effect regression (LASER) via a blockwise coordinate ascent algorithm, providing confident sets for variable selection with uncertainty quantification. Features include robust variable selection under high multicollinearity, confident sets that capture posterior uncertainty in variable inclusion, flexible modeling for linear, generalized linear, and Cox regression, high performance via C++ backend, and configurable parameters for number of effects, coverage, and convergence tolerance.
 URL: https://github.com/yizenglistat/glmcs
 BugReports: https://github.com/yizenglistat/glmcs/issues
-License: GPL (>= 3)
+License: GPL-3
 Maintainer: Yizeng Li <yizenglistat@gmail.com>
 Depends: 
     R (>= 3.5.0)

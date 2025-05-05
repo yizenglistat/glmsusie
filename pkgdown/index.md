@@ -1,5 +1,3 @@
-# glmcs
-
 ## About
 
 The `glmcs` package provides an innovative approach to variable selection in generalized linear models and other regression frameworks, including Cox regression for survival analysis. Our method excels when predictors are highly correlated and the true model is sparse.

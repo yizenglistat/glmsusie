@@ -2,66 +2,54 @@ url: https://yizenglistat.github.io/glmcs
 destination: doc
 navbar:
   left:
-    - text: "Home"
+    - text: "About"
       href: index.html
     - text: "Tutorials"
       href: articles/index.html
     - text: "Functions"
       href: reference/index.html
   right:
-    - icon: fa-solid fa-search
-      href: search/index.html
-      aria-label: "Search"
     - icon: fa-brands fa-github
       href: https://github.com/yizenglistat/glmcs
     - icon: fa-solid fa-envelope
       href: mailto:yizenglistat@gmail.com
     - icon: fa-solid fa-book
       href: https://doi.org/your-paper-doi
-    - icon: fa-solid fa-circle-half-stroke
-      href: "#"
-      aria-label: "Toggle dark mode"
-      id: lightswitch
-
-search:
-  provider: pkgdown
-  location: navbar
-  link:
-    icon: fa-search
-    text: "Search"
-    aria-label: "Search"
 
 home:
   sidebar:
-    structure: [links, authors, license, citation, dev]
+    structure: [links, license, citation, dev, authors]
 
 articles:
-  - title: "Vignettes"
-    desc: >
-      The following vignettes provide detailed illustrations of the
-      susieR package, as well as guidance on correct application of the
-      statistical methods.
+  index:
+    title: "Tutorials"
     contents:
-    - mwe
-    - glm
+      - index
+  sections:
+    title: "Vignettes"
+    contents:
+        - mwe
+        - glm
 
 template:
   bootstrap: 5
-  bootswatch: flatly
-  light-switch: true
+  light-switch: false
   math-rendering: katex
   bslib:
-    # Light mode colors
     bg: "white"
     fg: "black"
-    link-color: "#e91e63"           # pink
-    link-hover-color: "#e91e63"     # pink hover
+    navbar-color: "black"
+    navbar-bg: "#AA336A"
+    primary: "#AA336A"
+    navbar-light-color: "black"      # Text color for navbar items
+    navbar-light-hover-color: "black" # Hover color for navbar items
+    navbar-light-active-color: "black" # Active link color
+    link-color: "#AA336A"
+    link-hover-color: "#AA336A"
 
-    # Dark mode overrides
-    bg-dark: "#121212"
-    fg-dark: "white"
-    link-color-dark: "#2196f3"          # blue
-    link-hover-color-dark: "#2196f3"    # blue hover
+    btn-link-box-shadow: "none"
+    btn-link-hover-box-shadow: "none"
+    navbar-light-active-shadow: "none"
 
     base_font: {google: "Lato"}
     heading_font: {google: "Lato"}

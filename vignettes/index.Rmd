@@ -1,0 +1,20 @@
+---
+title: "Tutorials"
+output: rmarkdown::html_document
+---
+
+<div style="display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:1.5rem;">
+  <img src="../images/placeholder.svg" alt="Minimal Example" style="width:150px; margin-right:1rem;"/>
+  <div>
+  <h><em>A Minimal Example</em></h>
+  <p>A quick walkthrough of glmcs on a simulated dataset to illustrate variable selection and confidence sets. [read more](mwe.html)</p> 
+  </div>
+</div>
+
+<div style="display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:1.5rem;">
+  <img src="../images/placeholder.svg" alt="GLM Examples" style="width:150px; margin-right:1rem;" />
+  <div>
+  <h><em>GLM Examples</em></h>
+  <p>Demonstration of glmcs applied to generalized linear models and cox regression model. [read more](mwe.html)</p>
+  </div>
+</div>
