@@ -9,7 +9,7 @@
 .Rbuildignore
 
 files/
-docs
+docs/
 inst/doc
 /doc/
 /Meta/
