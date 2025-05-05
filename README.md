@@ -94,22 +94,6 @@ summary(fit)
 # Computation time: 0.01 seconds.
 ```
 
-## Main Functions
-
-- `glmcs(X, y, family, L, coverage, ...)`  
-  End‐to‐end wrapper: fits the LASER model, variable selection, builds confidence sets.
-
-- `get_laser_fit()`  
-  Core fitting engine (C++): returns raw posterior model probabilities, point estimates, p-values, etc.
-
-- `get_included()`, `get_cs()`  
-  Select significant single‐effect components and construct confidence sets with purity filtering (if applicable).
-
-- `get_glm_fit()`, `get_cox_fit()`, `null_glm_fit()`, `null_cox_fit()`  
-  Fast univariate fits (Gaussian, Binomial, Poisson, Gamma, inverse-Gaussian, Cox) via closed-form or IRLS.
-
-- Low-level utilities:  
-  - `get_loglike()`, `update_intercept()`, `update_dispersion()`, `get_purity()`, etc.
 
 ## Open Issues & Support
 

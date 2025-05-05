@@ -255,6 +255,44 @@ summarize_coef <- function(sims_coef, true_theta, decimal=2) {
   )
 }
 
+#’ Summarize Confidence Sets from a glmcs Fit
+#’
+#’ @param object A fitted model object of class “glmcs”
+#’ @return A named list with:
+#’   * \code{n_sets}: total number of confidence sets  
+#’   * \code{avg_size}: average size of those sets  
+#’   * \code{pct_singleton}: percent of sets of size 1  
+#’   * \code{max_size}: size of the largest set  
+#’ @export
+cs_statistics <- function(object) {
+  # pull out the list of sets
+  sets <- object$cs$sets
+  
+  # if no sets, return all zeros
+  if (is.null(sets) || length(sets) == 0L) {
+    return(list(
+      n_sets        = 0L,
+      avg_size      = 0,
+      pct_singleton = 0,
+      max_size      = 0L
+    ))
+  }
+  
+  # compute sizes
+  sizes <- vapply(sets, length, integer(1))
+  n_sets        <- length(sizes)
+  avg_size      <- mean(sizes)
+  pct_singleton <- mean(sizes == 1) * 100
+  max_size      <- max(sizes)
+  
+  list(
+    n_sets        = n_sets,
+    avg_size      = avg_size,
+    pct_singleton = pct_singleton,
+    max_size      = max_size
+  )
+}
+
 #' Construct Confidence Sets from Posterior Model Probabilities
 #'
 #' @description
