@@ -8,6 +8,8 @@ navbar:
       href: articles/index.html
     - text: "Tags"
       href: articles/tags.html
+    - text: "Functions"
+      href: reference/index.html
   right:
     - icon: fa-brands fa-github
       href: https://github.com/yizenglistat/glmcs
