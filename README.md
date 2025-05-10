@@ -48,11 +48,11 @@ cor_matrix <- matrix(0, nrow = p, ncol = p)
 diag(cor_matrix) <- 1
 
 # X1, X2, X3 highly correlated
-cor_matrix[1:3, 1:3] <- 0.95
+cor_matrix[1:3, 1:3] <- 0.98
 diag(cor_matrix[1:3, 1:3]) <- 1
 
 # X4, X5 highly correlated
-cor_matrix[4:5, 4:5] <- 0.95
+cor_matrix[4:5, 4:5] <- 0.98
 diag(cor_matrix[4:5, 4:5]) <- 1
 
 # Generate multivariate normal data
@@ -71,27 +71,27 @@ fit <- glmcs(X           = X,
              coverage    = 0.95,
              seed        = SEED)
 summary(fit)
-# Call:
-# glmcs(X = X, y = y, L = 10L, family = binomial("logit"), coverage = 0.95, 
-#     seed = SEED)
+## Call:
+## glmcs(X = X, y = y, L = 10L, family = binomial("logit"), coverage = 0.95,
+##     seed = SEED)
 
-# Family: binomial 
+## Family: binomial
 
-# Coefficients: (sorted by magnitude)
-#    Estimate MarginProb
-# X5   0.9220     0.9928
-# X2   0.6883     0.8754
-# X1   0.0833     0.1115
-# X3   0.0094     0.0131
-# X4   0.0062     0.0072
+## Coefficients: (sorted by magnitude)
+##    Estimate    PIP
+## X5   0.8867 0.9128
+## X3   0.6677 0.7747
+## X2   0.1026 0.1224
+## X1   0.0861 0.1028
+## X4   0.0825 0.0872
 
-# 95% Confidence Sets:
-#        Set Coverage
-# cs1    {5}   0.9928
-# cs2 {1, 2}   0.9869
+## 95% Confidence Sets:
+##           Set Coverage
+## cs1    {4, 5}        1
+## cs2 {1, 2, 3}        1
 
-# Model converged after 3 iterations.
-# Computation time: 0.01 seconds.
+## Model converged after 3 iterations.
+## Computation time: 0.01 seconds.
 ```
 
 
