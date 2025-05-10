@@ -156,9 +156,9 @@ glmcs <- function(X, y, L = 10L,
     stop("standardize must be TRUE or FALSE")
   }
   
-  if (is.null(family$dispersion)) {
-    family$dispersion <- 1.0
-  }
+  # if (is.null(family$dispersion)) {
+  #   family$dispersion <- 1.0
+  # }
 
   # Store column names if available
   col_names <- colnames(X)
@@ -179,7 +179,7 @@ glmcs <- function(X, y, L = 10L,
     if (is.matrix(y)) y <- drop(y)
   }
   
-  if(L>=ncol(X)) L <- p 
+  if(L>=ncol(X)) L <- ncol(X)
 
   # Match ties method for Cox regression
   ties <- match.arg(ties)
