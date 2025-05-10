@@ -230,7 +230,7 @@ print.summary.glmcs <- function(x, digits = max(3, getOption("digits") - 3),
   cat("\nCoefficients: (sorted by magnitude)\n")
   coef_table <- x$coefficients
   coef_table$Estimate <- round(coef_table$Estimate, digits)
-  coef_table$MarginProb <- round(coef_table$MarginProb, digits)
+  coef_table$PIP <- round(coef_table$PIP, digits)
   print(head(coef_table, 10))
   if (nrow(coef_table) > 10) {
     cat("... (", nrow(coef_table) - 10, " more coefficients not shown)\n", sep = "")
