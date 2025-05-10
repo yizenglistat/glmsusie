@@ -179,6 +179,8 @@ glmcs <- function(X, y, L = 10L,
     if (is.matrix(y)) y <- drop(y)
   }
   
+  if(L>=ncol(X)) L <- p 
+
   # Match ties method for Cox regression
   ties <- match.arg(ties)
   
