@@ -180,7 +180,7 @@ summary.glmcs <- function(object, ...) {
   # Prepare coefficient table
   coef_table <- data.frame(
     Estimate = theta,
-    MarginProb = marginal_probs,
+    PIP = marginal_probs,
     row.names = names(theta)
   )
   

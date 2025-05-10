@@ -156,6 +156,10 @@ glmcs <- function(X, y, L = 10L,
     stop("standardize must be TRUE or FALSE")
   }
   
+  if (is.null(family$dispersion)) {
+    family$dispersion <- 1.0
+  }
+
   # Store column names if available
   col_names <- colnames(X)
   if (is.null(col_names)) {
