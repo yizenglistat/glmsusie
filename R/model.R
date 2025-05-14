@@ -133,6 +133,8 @@ glmcs <- function(X, y, L = 10L,
   # Capture the call
   cl <- match.call()
   
+  family$dispersion <- 1.0
+
   # Set random seed if provided
   if (!is.null(seed)) set.seed(seed)
   
