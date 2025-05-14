@@ -8,41 +8,8 @@ using namespace Rcpp;
 
 // //' and /** */ different commenting yields different RcppExport.
 
-/**
- * @brief Determine which columns deviate from the uniform distribution.
- *
- * Computes various distances between each column of a probability matrix
- * and the uniform distribution, then clusters distances into two groups
- * and returns a LogicalVector marking the "non-uniform" columns.
- *
- * @param prob_mat An n×m matrix of probabilities (each column sums to 1).
- * @param method   Distance metric: one of "tv", "js", "hellinger",
- *                 "l2", "chi2", "kl", "kolmogorov", or "wasserstein".
- *
- * @return LogicalVector of length m: TRUE for columns deemed non-uniform.
- */
-LogicalVector iskept(
-    const arma::mat& prob_mat,
-    std::string      method
-);
-
 // helper for sign
 inline double sgn(double z) { return (z>0) - (z<0); }
-
-/**
- * @brief Estimate GLM dispersion using Pearson or Deviance methods.
- *
- * @param y           Response vector (length n).
- * @param family  GLM family object (must contain "linkinv", "variance", "dev.resids").
- * @param offset      Optional linear predictor vector or scalar. Defaults to zero vector.
- * @param approach    Dispersion estimation method: "pearson" or "deviance".
- *
- * @return Estimated dispersion value (double).
- */
-double update_dispersion(const arma::vec& y,
-                         SEXP family,
-                         arma::vec offset,
-                         std::string approach);
 
 /**
  * Calculate univariate Cox regression log-likelihood
@@ -70,6 +37,7 @@ double univariate_loglik_cox(
  * @param family An R family object (as SEXP)
  * @param theta Coefficient value
  * @param offset Vector of offset values (optional)
+ * @param intercept
  * @return The calculated log-likelihood value
  */
 double univariate_loglik_glm(
@@ -77,19 +45,21 @@ double univariate_loglik_glm(
     const arma::vec& y,
     SEXP family,
     double theta,
-    const arma::vec& offset
+    const arma::vec& offset,
+    double intercept
 );
 
 /**
  * Compute univariate log-likelihood for GLM or Cox model.
  *
- * @param x      Numeric covariate vector of length n
- * @param y      SEXP: numeric vector (GLM) or n×2 matrix for Cox
- * @param family SEXP: GLM family object or Cox family list
- * @param theta  Numeric coefficient to evaluate log-likelihood
- * @param offset Numeric offset (length 1 or n)
- * @param ties   Method for ties in Cox: "breslow" or "efron"
- * @return       Log-likelihood value
+ * @param x          Numeric covariate vector of length n
+ * @param y          SEXP: numeric vector (GLM) or n×2 matrix for Cox
+ * @param family     SEXP: GLM family object or Cox family list
+ * @param theta      Numeric coefficient to evaluate log-likelihood
+ * @param offset     Numeric offset (length 1 or n)
+ * @param intercept  Numeric intercept to evaluate log-likelihood
+ * @param ties       Method for ties in Cox: "breslow" or "efron"
+ * @return           Log-likelihood value
  */
 double univariate_loglik(
     const arma::vec& x,
@@ -97,6 +67,7 @@ double univariate_loglik(
     SEXP             family,
     double           theta,
     const arma::vec& offset,
+    double           intercept,
     std::string      ties
 );
 
@@ -126,33 +97,54 @@ double univariate_irls_cox(
 
 
 /**
- * Calculate truncated‐L1 IRLS estimate for a univariate GLM.
- *
- * Solves the penalized objective
- *   min_theta [ - logLik(theta) + lambda * min(1, |theta|/tau) ]
- * via iteratively reweighted least squares with a closed‐form update for
- * the capped‐L1 penalty at each step.
- *
- * @param x          Numeric covariate vector (length n).
- * @param y          Numeric response vector (length n).
- * @param family     Rcpp::List GLM family object (gaussian, binomial, poisson).
- * @param offset     Offset vector (length 1 or n) for the linear predictor.
- * @param lambda     Penalty weight; if ≤0 defaults to √(2 log n / n).
- * @param tau        Truncation parameter; defaults to 1e-5
- * @param max_iter   Maximum number of IRLS iterations.
- * @param tol        Convergence tolerance on θ updates.
- * @return           Estimated coefficient θ minimizing the penalized objective.
+ * @brief Fit a univariate generalized linear model
+ * 
+ * This function fits a generalized linear model (GLM) with a single predictor variable
+ * plus an intercept term. It is optimized for the univariate case and implements the same
+ * iteratively reweighted least squares (IRLS) algorithm as R's glm() function, but more 
+ * efficiently for the single-predictor case.
+ * 
+ * The model form is:
+ *    g(E[y]) = offset + intercept + theta * x
+ * 
+ * where g is the link function determined by the specified family.
+ * 
+ * @param x           Predictor variable (vector)
+ * @param y           Response variable (vector)
+ * @param family      R family object (e.g., gaussian(), binomial(), poisson())
+ * @param offset      Optional offset term in the linear predictor (use numeric(0) for none)
+ * @param max_iter    Maximum number of IRLS iterations
+ * @param tol         Convergence tolerance for parameter estimates
+ * 
+ * @return A list containing:
+ *    - intercept: The estimated intercept term
+ *    - theta: The estimated coefficient for the predictor variable
+ * 
+ * @details
+ * This function implements the IRLS algorithm for GLMs optimized for the univariate case.
+ * It supports all standard GLM families available in R, including:
+ *    - gaussian: Linear regression
+ *    - binomial: Logistic regression
+ *    - poisson: Poisson regression
+ *    - Others supported by R's family objects
+ * 
+ * The implementation includes numerical safeguards for stability:
+ *    - Handling of extreme values in the linear predictor
+ *    - Prevention of zeros or negative values in variance calculations
+ *    - Special handling for Poisson regression to prevent numerical issues
+ *    - Multiple fallback methods for matrix solution if standard solve fails
+ * 
+ * @note
+ * Results are identical to R's glm() function for the univariate case.
+ * 
  */
-double univariate_irls_glm(
-    const arma::vec& x,
-    const arma::vec& y,
-    SEXP             family,
-    arma::vec        offset,
-    double           lambda,
-    double           tau,
-    int              max_iter,
-    double           tol
-);
+Rcpp::List univariate_irls_glm(const arma::vec&   x,
+                               const arma::vec&   y,
+                               SEXP               family,
+                               arma::vec          offset,
+                               int                max_iter,
+                               double             tol);
+
 
 /**
  * Univariate fit for GLM or Cox with optional TLP penalty and standardization.
@@ -168,6 +160,7 @@ double univariate_irls_glm(
  * @param null_threshold Threshold below which theta is set to zero (default: 1e-6).
  *
  * @return List with elements:
+ *   - theta:   Estimated intercept.
  *   - theta:   Estimated coefficient.
  *   - loglik:  Unpenalized log-likelihood at theta.
  *   - bic:     Bayesian Information Criterion.

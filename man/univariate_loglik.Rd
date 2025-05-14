@@ -16,6 +16,9 @@ two columns (time, status) and n rows.}
 
 \item{offset}{Numeric scalar or vector of length n: offset in the linear predictor.}
 
+\item{intercept}{Numeric scalar: intercept term in the linear predictor (for GLM only).
+Default is 0.}
+
 \item{ties}{Character string: tie-handling method for Cox partial likelihood;
 one of \code{"efron"} or \code{"breslow"}.}
 }
@@ -30,8 +33,8 @@ generalized linear model (GLM) family or a Cox proportional hazards model.
 \dontrun{
 # Gaussian example
 x <- rnorm(100)
-y <- 2 * x + rnorm(100)
-univariate_loglik(x, y, family = gaussian(), theta = 2, offset = 0)
+y <- 1.5 + 2 * x + rnorm(100)
+univariate_loglik(x, y, family = gaussian(), theta = 2, intercept = 1.5)
 
 # Binomial example
 x <- rnorm(200)
@@ -39,9 +42,9 @@ eta <- -1 + 1.5 * x
 p <- plogis(eta)
 y <- rbinom(200, 1, p)
 univariate_loglik(x, y, family = binomial(link = "logit"),
-                  theta = 1.5, offset = 0)
+                  theta = 1.5, intercept = -1)
 
-# Cox example
+# Cox example (note: intercept not used in Cox models)
 x <- rnorm(50)
 times <- rexp(50)
 status <- rbinom(50, 1, 0.5)

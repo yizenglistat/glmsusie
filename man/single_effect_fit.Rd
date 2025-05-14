@@ -29,9 +29,16 @@
 }
 \value{
 A list of length p, where each element is itself a list with components:
-\item{theta}{Estimated coefficient for that predictor.}
 \item{loglik}{Unpenalized log‐likelihood at the fitted coefficient.}
 \item{bic}{Bayesian Information Criterion: \eqn{-2*logLik + 2\log(n)}.}
+\item{bic_diff}{BIC difference from null model.}
+\item{bf}{Bayes factor.}
+\item{pmp}{Posterior model probability.}
+\item{intercept}{Estimated intercept for that predictor.}
+\item{theta}{Estimated coefficient for that predictor.}
+\item{expect_intercept}{Expected value of intercept under model averaging.}
+\item{expect_theta}{Expected value of coefficient under model averaging.}
+\item{expect_variance}{Expected variance under model averaging.}
 }
 \description{
 Applies a single‐effect model to each column of a predictor matrix using either

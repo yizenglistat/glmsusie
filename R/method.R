@@ -1,3 +1,63 @@
+#’ Select “Kept” Columns by Cumulative-Probability Threshold or Uniform Deviation
+#’
+#’ @description
+#’ From a \code{p × L} matrix of probability vectors, identifies which columns
+#’ exhibit a “peak” before a cumulative probability threshold \code{thr} is reached.
+#’ If no column meets this criterion, selects the single column farthest from
+#’ the uniform distribution.
+#’
+#’ @details
+#’ 1. For each column, entries are sorted in descending order and their cumulative
+#’    sum is computed. If this sum exceeds \code{thr} before including all \code{p}
+#’    entries, that column is marked \code{TRUE} (“kept”).  
+#’ 2. If **no** column is marked \code{TRUE}, computes each column’s squared
+#’    Euclidean distance to the uniform vector \code{u = (1/p, …, 1/p)} and marks
+#’    only the column with the largest distance as \code{TRUE}.  
+#’ 3. Returns a logical vector of length \code{L}; names are preserved from
+#’    \code{colnames(X)} if present.
+#’
+#’ @param X   Numeric matrix with \code{p} rows and \code{L} columns, where each
+#’            column sums to 1 (a probability vector).
+#’ @param thr Numeric scalar in \[0,1\]; the cumulative-sum cutoff to identify
+#’            “peaky” columns. Default is \code{0.99}.
+#’
+#’ @return Logical vector of length \code{L}:  
+#’         \code{TRUE} indicates a column is selected (“kept”);  
+#’         \code{FALSE} otherwise.
+#’
+#’ @examples
+#’ set.seed(42)
+#’ p <- 5; L <- 4
+#’ X <- cbind(
+#’   c(0.8, 0.1, 0.05, 0.03, 0.02),
+#’   runif(p)/sum(runif(p)),
+#’   c(0.7, 0.1, 0.1, 0.05, 0.05),
+#’   rep(1/p, p)
+#’ )
+#’ iskept(X, thr = 0.95)
+#’ #>  TRUE FALSE  TRUE FALSE
+#’
+#’ @export
+iskept <- function(X, thr = 0.99) {
+  p <- nrow(X)
+  # 1) mark TRUE if cumulative sum of largest probs > thr before using all p entries
+  keep <- apply(X, 2, function(col) {
+    which(cumsum(sort(col, decreasing = TRUE)) > thr)[1] < p
+  })
+  
+  # 2) fallback: if none kept, pick column farthest from uniform
+  if (!any(keep)) {
+    u  <- rep(1/p, p)
+    d2 <- colSums((X - u)^2)
+    keep[which.max(d2)] <- TRUE
+  }
+  
+  # 3) preserve column names
+  if (!is.null(colnames(X))) names(keep) <- colnames(X)
+  
+  keep
+}
+
 #' Extract Model Coefficients from a glmcs Object
 #'
 #' @description
@@ -185,7 +245,7 @@ summary.glmcs <- function(object, ...) {
   )
   
   # Sort by absolute coefficient value
-  coef_table <- coef_table[order(abs(coef_table$Estimate), decreasing = TRUE), ]
+  coef_table <- coef_table[order(abs(coef_table$marginal), decreasing = TRUE), ]
   
   # Information about convergence
   converged <- object$niter < object$max_iter
@@ -227,9 +287,9 @@ print.summary.glmcs <- function(x, digits = max(3, getOption("digits") - 3),
   
   cat("\nFamily:", if(is.list(x$family)) x$family$family else x$family$family(), "\n")
   
-  cat("\nCoefficients: (sorted by magnitude)\n")
+  cat("\nCoefficients: (sorted by PIP)\n")
   coef_table <- x$coefficients
-  coef_table$Estimate <- round(coef_table$Estimate, digits)
+  coef_table$Estimate <- coef_table$Estimate
   coef_table$PIP <- round(coef_table$PIP, digits)
   print(head(coef_table, 10))
   if (nrow(coef_table) > 10) {

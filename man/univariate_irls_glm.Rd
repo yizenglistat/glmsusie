@@ -2,7 +2,7 @@
 % Please edit documentation in R/Rinternal.R
 \name{univariate_irls_glm}
 \alias{univariate_irls_glm}
-\title{Compute Truncated‐L1 IRLS Estimate for Univariate GLM}
+\title{Compute Generalized Linear Model Estimate for Univariate Predictor with Intercept}
 \arguments{
 \item{x}{Numeric vector of covariates (length n).}
 
@@ -13,31 +13,52 @@
 
 \item{offset}{Numeric scalar or vector (length n) giving the linear predictor offset.}
 
-\item{lambda}{Numeric penalty weight; if ≤0 defaults to \eqn{\sqrt{2\log(n)/n}}.}
-
-\item{tau}{Numeric truncation parameter; if ≤0 uses grid \{1/n,…,5/n\} for n≤500 and 1/n otherwise.}
-
 \item{max_iter}{Integer. Maximum number of IRLS iterations.}
 
-\item{tol}{Numeric convergence tolerance for θ.}
+\item{tol}{Numeric convergence tolerance for parameters.}
 }
 \value{
-Numeric scalar: the estimated coefficient \eqn{\hat\theta}.
+A list with components:
+\item{intercept}{Numeric scalar: the estimated intercept \eqn{\hat\beta_0}.}
+\item{theta}{Numeric scalar: the estimated coefficient \eqn{\hat\beta_1}.}
 }
 \description{
-Fits a single‐covariate GLM using IRLS with a truncated‐L1 penalty.
-Solves:
-\deqn{\min_\theta\;-\ell(\theta) \;+\;\lambda\,\min\bigl(1,|\theta|/\tau\bigr)}
-via iteratively reweighted least squares, with a closed‐form capped‐L1 update each step.
+Fits a GLM with intercept and single predictor using iteratively reweighted least squares (IRLS).
+Implements the model:
+\deqn{g(E[y]) = \beta_0 + \beta_1 x + \text{offset}}
+where \eqn{g} is the link function determined by the selected family.
+}
+\details{
+This function implements the standard IRLS algorithm for GLMs, optimized for the
+univariate predictor case with intercept. It provides identical results to R's
+\code{glm(y ~ x, family=family)} but is more computationally efficient for
+the single-predictor case.
+
+Numerical stability measures are implemented for handling extreme values, including
+special cases for Poisson regression and fallback methods for matrix solution if
+the standard solve fails.
 }
 \examples{
 \dontrun{
 set.seed(42)
 n <- 100
 x <- rnorm(n)
+
 # Gaussian example
-y <- 2*x + rnorm(n)
-univariate_irls_glm(x, y, gaussian(), offset=0,
-                    lambda=0, tau=0, max_iter=25, tol=1e-8)
+y_gaussian <- 2 + 0.5*x + rnorm(n)
+result <- univariate_irls_glm(x, y_gaussian, gaussian(), offset=numeric(0))
+print(result)
+
+# Poisson example
+eta <- 1 + 0.5*x
+y_poisson <- rpois(n, exp(eta))
+result <- univariate_irls_glm(x, y_poisson, poisson(), offset=numeric(0))
+print(result)
+
+# Binomial example
+prob <- 1/(1 + exp(-(0.5 + 0.8*x)))
+y_binomial <- rbinom(n, 1, prob)
+result <- univariate_irls_glm(x, y_binomial, binomial(), offset=numeric(0))
+print(result)
 }
 }

@@ -8,138 +8,6 @@ using namespace arma;
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // [[Rcpp::export]]
-LogicalVector iskept(const arma::mat& prob_mat, std::string method = "chi2") {
-  int n = prob_mat.n_rows;
-  int m = prob_mat.n_cols;
-  // empty
-  if (m == 0) return LogicalVector(0);
-
-  // uniform distribution
-  arma::vec u = arma::ones<arma::vec>(n) / static_cast<double>(n);
-  double eps = 1e-12;
-  arma::vec d(m);
-  // compute distances
-  for (int j = 0; j < m; ++j) {
-    arma::vec p = prob_mat.col(j);
-    if (method == "tv") {
-      d(j) = 0.5 * sum(abs(p - u));
-    } else if (method == "js") {
-      arma::vec p0 = arma::max(p, eps * arma::ones<arma::vec>(n));
-      arma::vec M  = 0.5 * (p0 + u);
-      d(j) = 0.5 * (sum(p0 % log(p0 / M)) + sum(u % log(u / M)));
-    } else if (method == "hellinger") {
-      d(j) = sqrt(sum(square(sqrt(p) - sqrt(u)))) / std::sqrt(2.0);
-    } else if (method == "l2") {
-      d(j) = norm(p - u, 2);
-    } else if (method == "chi2") {
-      d(j) = sum(square(p - u) / (u + eps));
-    } else if (method == "kl") {
-      arma::vec ratio = p / (u + eps);
-      d(j) = sum(p % log(ratio));
-    } else if (method == "kolmogorov") {
-      d(j) = max(abs(cumsum(p) - cumsum(u)));
-    } else if (method == "wasserstein") {
-      d(j) = sum(abs(cumsum(p) - cumsum(u)));
-    } else {
-      stop("Unknown method");
-    }
-  }
-  // result vector
-  LogicalVector result(m, false);
-  // trivial case
-  if (m == 1) {
-    result[0] = true;
-    return result;
-  }
-  // attempt 1D k-means via Armadillo
-  arma::rowvec data = d.t();        // 1 x m
-  arma::rowvec centroids;
-  bool ok = arma::kmeans(centroids, data, 2, random_spread, 10, false);
-  if (ok && centroids.n_elem == 2) {
-    // assign clusters
-    std::vector<int> cl(m);
-    arma::vec mean_vals(2, fill::zeros);
-    arma::uvec counts(2, fill::zeros);
-    for (int j = 0; j < m; ++j) {
-      double dist0 = std::abs(d(j) - centroids(0));
-      double dist1 = std::abs(d(j) - centroids(1));
-      int cidx = (dist1 < dist0) ? 1 : 0;
-      cl[j] = cidx;
-      mean_vals(cidx) += d(j);
-      counts(cidx) += 1;
-    }
-    // compute means
-    for (int k = 0; k < 2; ++k) {
-      if (counts(k) > 0) mean_vals(k) /= counts(k);
-    }
-    int high = (mean_vals(1) > mean_vals(0)) ? 1 : 0;
-    for (int j = 0; j < m; ++j) {
-      result[j] = (cl[j] == high);
-    }
-    return result;
-  }
-  // fallback: max-gap
-  arma::vec ds = sort(d);
-  arma::vec diffs = diff(ds);
-  arma::uword idx = diffs.index_max();
-  double thr = 0.5 * (ds(idx) + ds(idx+1));
-  for (int j = 0; j < m; ++j) {
-    result[j] = (d(j) > thr);
-  }
-  return result;
-}
-
-// [[Rcpp::export]]
-double update_dispersion(const arma::vec& y,
-                         SEXP family,
-                         arma::vec offset,
-                         std::string approach = "pearson") {
-  
-  int n = y.n_elem;
-  int p = 0;
-
-  // Expand offset if scalar or missing
-  if (offset.n_elem == 0) {
-    offset = arma::zeros(n);
-  } else if (offset.n_elem == 1 && n > 1) {
-    offset = arma::vec(n).fill(offset(0));
-  } else if (offset.n_elem != n) {
-    stop("offset must have length 1 or same length as y");
-  }
-
-  // Validate family object
-  if (TYPEOF(family) != VECSXP) {
-    stop("family must be a list (i.e., GLM family)");
-  }
-
-  List fam = as<List>(family);
-  Function linkinv = fam["linkinv"];
-  NumericVector mu_r = linkinv(wrap(offset));
-  arma::vec mu = as<arma::vec>(mu_r);
-
-  double dispersion = NA_REAL;
-
-  if (approach == "pearson") {
-    Function variance = fam["variance"];
-    NumericVector var_r = variance(mu_r);
-    arma::vec var_mu = as<arma::vec>(var_r);
-
-    arma::vec residuals = (y - mu) / arma::sqrt(var_mu + 1e-8);
-    dispersion = arma::accu(residuals % residuals) / (n - p);
-
-  } else if (approach == "deviance") {
-    Function dev_resids = fam["dev.resids"];
-    NumericVector dev = dev_resids(wrap(y), wrap(mu), NumericVector(n, 1.0));
-    dispersion = std::accumulate(dev.begin(), dev.end(), 0.0) / (n - p);
-
-  } else {
-    stop("approach must be 'pearson' or 'deviance'");
-  }
-
-  return dispersion;
-}
-
-// [[Rcpp::export]]
 double univariate_loglik_cox(
     const arma::vec& x,
     const arma::mat& y,
@@ -216,7 +84,8 @@ double univariate_loglik_glm(
     const arma::vec& y,  
     SEXP family,
     double theta,
-    const arma::vec& offset
+    const arma::vec& offset,
+    double intercept
 ) {
   int n = x.n_elem;
   
@@ -238,55 +107,119 @@ double univariate_loglik_glm(
   // Convert family to List to properly access elements
   List fam(family);
   
-  // Get family functions for link and deviance
+  // Get family functions
   Function linkinv = fam["linkinv"];
   Function dev_resids = fam["dev.resids"];
+  Function variance = fam["variance"];
   
-  // Calculate linear predictor and fitted values
-  arma::vec eta = offset_vec + theta * x;
+  // Calculate linear predictor with intercept and fitted values
+  arma::vec eta = intercept + offset_vec + theta * x;
   NumericVector eta_r = wrap(eta);
   NumericVector mu_r = linkinv(eta_r);
   
   // Use unit weights
   NumericVector w(n, 1.0);
   
-  // Calculate deviance residuals
-  NumericVector y_r = wrap(y);
-  NumericVector dev = dev_resids(y_r, mu_r, w);
-  
-  // Convert to log-likelihood: loglik = -sum(dev)/2
-  double sum_dev = sum(NumericVector(dev));
-  
-  // For families with estimated dispersion (gaussian, Gamma, inverse.gaussian),
-  // we should profile out the dispersion parameter
+  // Get the family name
   std::string family_name;
   try {
     family_name = as<std::string>(fam["family"]);
   } catch(...) {
-    // If we can't extract the family name, default to fixed dispersion
-    return -sum_dev / 2.0;
+    stop("Could not extract family name");
   }
   
+  // Calculate log-likelihood based on family
+  double loglik = 0.0;
+  
   if (family_name == "gaussian") {
-    // For Gaussian, profile out sigma^2
-    double sigma2 = sum_dev / n;
-    return -0.5 * n * log(2.0 * M_PI * sigma2) - 0.5 * n;
+    // For Gaussian: -n/2*log(2*pi*sigma^2) - sum((y-mu)^2)/(2*sigma^2)
+    NumericVector y_r = wrap(y);
+    NumericVector resid = y_r - mu_r;
+    double RSS = sum(resid * resid);
+    double sigma2 = RSS / n;  // ML estimate of sigma^2
+    loglik = -0.5 * n * log(2.0 * M_PI * sigma2) - 0.5 * RSS / sigma2;
   } 
+  else if (family_name == "binomial") {
+    // For binomial: sum(y*log(mu/(1-mu)) + log(1-mu))
+    NumericVector y_r = wrap(y);
+    loglik = 0.0;
+    for (int i = 0; i < n; i++) {
+      if (mu_r[i] <= 0.0 || mu_r[i] >= 1.0) {
+        stop("Fitted probabilities numerically 0 or 1 occurred");
+      }
+      double p = mu_r[i];
+      loglik += y_r[i] * log(p / (1.0 - p)) + log(1.0 - p);
+    }
+  }
+  else if (family_name == "poisson") {
+    // For Poisson: sum(y*log(mu) - mu - log(y!))
+    NumericVector y_r = wrap(y);
+    loglik = 0.0;
+    for (int i = 0; i < n; i++) {
+      if (mu_r[i] <= 0.0) {
+        stop("Non-positive fitted means in Poisson family");
+      }
+      // Omit factorial term for constants
+      loglik += y_r[i] * log(mu_r[i]) - mu_r[i];
+      // Subtract log(y!) only for non-zero y
+      if (y_r[i] > 0) {
+        loglik -= lgamma(y_r[i] + 1.0);
+      }
+    }
+  }
   else if (family_name == "Gamma") {
-    // For Gamma, profile out the shape parameter
-    double shape = n / sum_dev; 
-    return n * shape * log(shape) - n * lgamma(shape) - n * shape;
+    // For Gamma with shape parameter alpha:
+    // sum(alpha*log(alpha*y/mu) - alpha*y/mu - log(y) - lgamma(alpha))
+    NumericVector y_r = wrap(y);
+    NumericVector dev = dev_resids(y_r, mu_r, w);
+    double sum_dev = sum(NumericVector(dev));
+    double shape = n / sum_dev;  // ML estimate of shape parameter
+    
+    loglik = 0.0;
+    for (int i = 0; i < n; i++) {
+      if (y_r[i] <= 0.0 || mu_r[i] <= 0.0) {
+        stop("Non-positive responses or fitted values in Gamma family");
+      }
+      loglik += shape * log(shape * y_r[i] / mu_r[i]) - 
+                shape * y_r[i] / mu_r[i] - 
+                log(y_r[i]) - 
+                lgamma(shape);
+    }
   }
   else if (family_name == "inverse.gaussian") {
-    // For inverse.gaussian, profile out lambda
-    double lambda = n / sum_dev;
-    return 0.5 * n * log(lambda / (2.0 * M_PI)) - 
-           1.5 * sum(log(y_r)) - 0.5 * lambda * sum_dev;
+    // For inverse.gaussian:
+    // sum(0.5*log(lambda/(2*pi*y^3)) - 0.5*lambda*(y-mu)^2/(y*mu^2))
+    NumericVector y_r = wrap(y);
+    NumericVector dev = dev_resids(y_r, mu_r, w);
+    double sum_dev = sum(NumericVector(dev));
+    double lambda = n / sum_dev;  // ML estimate of dispersion parameter
+    
+    loglik = 0.0;
+    for (int i = 0; i < n; i++) {
+      if (y_r[i] <= 0.0 || mu_r[i] <= 0.0) {
+        stop("Non-positive responses or fitted values in inverse.gaussian family");
+      }
+      loglik += 0.5 * log(lambda / (2.0 * M_PI * pow(y_r[i], 3))) - 
+                0.5 * lambda * pow(y_r[i] - mu_r[i], 2) / (y_r[i] * pow(mu_r[i], 2));
+    }
+  }
+  else if (family_name == "quasi" || family_name == "quasibinomial" || 
+           family_name == "quasipoisson") {
+    // For quasi-families, use deviance-based approximation
+    NumericVector y_r = wrap(y);
+    NumericVector dev = dev_resids(y_r, mu_r, w);
+    double sum_dev = sum(NumericVector(dev));
+    loglik = -sum_dev / 2.0;
   }
   else {
-    // For families with fixed dispersion (binomial, poisson)
-    return -sum_dev / 2.0;
+    // For any other family, use deviance-based approximation
+    NumericVector y_r = wrap(y);
+    NumericVector dev = dev_resids(y_r, mu_r, w);
+    double sum_dev = sum(NumericVector(dev));
+    loglik = -sum_dev / 2.0;
   }
+  
+  return loglik;
 }
 
 
@@ -297,7 +230,8 @@ double univariate_loglik(
     SEXP               family,  
     double             theta,  
     const arma::vec&   offset,  
-    std::string        ties     
+    double             intercept = 0.0, 
+    std::string        ties = "efron"
 ) {
   int n = x.n_elem;
   // --- offset must be length n ---
@@ -322,7 +256,7 @@ double univariate_loglik(
   else {
     NumericVector y_r(y);
     arma::vec y_arma = as<arma::vec>(y_r);
-    return univariate_loglik_glm(x, y_arma, family, theta, offset);
+    return univariate_loglik_glm(x, y_arma, family, theta, offset, intercept);
   }
 }
 
@@ -544,33 +478,33 @@ double univariate_irls_cox(arma::vec x,
 
 
 // [[Rcpp::export]]
-double univariate_irls_glm(const arma::vec&   x,
-                           const arma::vec&   y,
-                           SEXP               family,
-                           arma::vec          offset,
-                           double             lambda     = 0.0,
-                           double             tau        = 1e-5,
-                           int                max_iter   = 25,
-                           double             tol        = 1e-8) {
+Rcpp::List univariate_irls_glm(const arma::vec&   x,
+                               const arma::vec&   y,
+                               SEXP               family,
+                               arma::vec          offset,
+                               int                max_iter   = 25,
+                               double             tol        = 1e-8) {
   int n = x.n_elem;
   if ((int)y.n_elem != n)   stop("x and y must have same length");
   if (offset.n_elem == 0)   offset = arma::zeros<arma::vec>(n);
   if (offset.n_elem == 1 && n>1) offset = arma::vec(n).fill(offset(0));
   if ((int)offset.n_elem != n) stop("offset must be length 1 or n");
-  if (tau <= 0)             stop("tau must be > 0");
   if (TYPEOF(family) != VECSXP) stop("family must be a stats::family object");
-
 
   // Extract family functions
   List fam = as<List>(family);
   Function linkinv = fam["linkinv"];
   Function varfun = fam["variance"];
   Function mu_eta = fam["mu.eta"];
-  double dispersion = fam["dispersion"];
+  double dispersion = as<double>(fam["dispersion"]);
   CharacterVector family_name = fam["family"];
   bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
   
-  // Initialize
+  // Initialize parameters
+  double intercept = 0.0, intercept_new = 0.0;
+  double theta = 0.0, theta_new = 0.0;
+  
+  // Initialize linear predictor
   arma::vec eta = offset;
   // Bound eta for numerical stability (especially for Poisson)
   if (is_poisson) {
@@ -586,9 +520,6 @@ double univariate_irls_glm(const arma::vec&   x,
       if (mu[i] <= 0) mu[i] = 1e-8;
     }
   }
-  
-  double theta = 0.0, theta_new = 0.0;
-  double c = lambda / tau;
   
   for (int iter = 0; iter < max_iter; ++iter) {
     // Calculate IRLS weights & working response
@@ -624,32 +555,59 @@ double univariate_irls_glm(const arma::vec&   x,
       if (!arma::is_finite(z[i])) z[i] = eta[i];
     }
     
-    // Weighted LS subproblem
+    // Weighted LS subproblem for intercept + theta*x
     arma::vec z0 = z - offset;
-    double a = arma::dot(w % x, x);
-    double b = arma::dot(w % x, z0);
     
-    // Ensure a is positive
-    if (a <= 0) a = 1e-8;
+    // Create design matrix with intercept (ones) and x
+    arma::mat X(n, 2);
+    X.col(0) = arma::ones<arma::vec>(n); // Intercept column
+    X.col(1) = x;                        // x column
     
-    // Capped-ℓ₁ closed form solution
-    if (std::abs(b) <= c) {
-      theta_new = 0.0;
-    } else if (std::abs(b) < a * tau + c) {
-      theta_new = (b - c * sgn(b)) / a;
-    } else {
-      theta_new = b / a;
+    // Create weighted X
+    arma::mat Xw = X;
+    for (int i = 0; i < n; i++) {
+      Xw.row(i) *= std::sqrt(w[i]);
     }
     
+    // Create weighted z
+    arma::vec zw = z0 % arma::sqrt(w);
+    
+    // Normal equations: (X'WX)b = X'Wz
+    arma::mat XtWX = Xw.t() * Xw;
+    arma::vec XtWz = Xw.t() * zw;
+    
+    // Solve for intercept and theta
+    arma::vec params;
+    bool solved = arma::solve(params, XtWX, XtWz);
+    
+    if (!solved) {
+      // Fallback to a more stable approach if standard solve fails
+      arma::mat XtWX_reg = XtWX;
+      XtWX_reg.diag() += 1e-6; // Add small regularization
+      solved = arma::solve(params, XtWX_reg, XtWz);
+      
+      if (!solved) {
+        // If still fails, use pseudoinverse
+        params = arma::pinv(XtWX) * XtWz;
+      }
+    }
+    
+    intercept_new = params(0);
+    theta_new = params(1);
+    
     // Check convergence
-    if (std::abs(theta_new - theta) < tol) {
+    if (std::abs(intercept_new - intercept) < tol && 
+        std::abs(theta_new - theta) < tol) {
+      intercept = intercept_new;
       theta = theta_new;
       break;
     }
+    
+    intercept = intercept_new;
     theta = theta_new;
     
     // Update eta and mu for next IRLS iteration
-    eta = offset + theta * x;
+    eta = offset + intercept + theta * x;
     
     // Bound eta for numerical stability (especially for Poisson)
     if (is_poisson) {
@@ -667,7 +625,13 @@ double univariate_irls_glm(const arma::vec&   x,
     }
   }
   
-  return theta;
+  // Return both parameters in a List
+  Rcpp::List result = Rcpp::List::create(
+    Rcpp::Named("intercept") = intercept,
+    Rcpp::Named("theta") = theta
+  );
+  
+  return result;
 }
 
 // [[Rcpp::export]]
@@ -693,51 +657,55 @@ List univariate_fit(
   // Standardize predictor (only if non-constant)
   double x_mean = 0.0, x_norm = 1.0;
   arma::vec x_std = x;
-  bool all_zero = arma::all(arma::abs(x) <= 1e-10);
   
-  if (standardize && !all_zero) {
+  if (standardize) {
     x_mean = arma::mean(x);
     x_std = x - x_mean;
     x_norm = arma::norm(x_std, 2);
     if (x_norm > 1e-10) x_std /= x_norm;
     else { x_std = x; x_mean = 0.0; x_norm = 1.0; }
+
   }
   
   // Fit model using appropriate function
+  double intercept_std = 0.0;
   double theta_std = 0.0;
   
-  if (!all_zero) {
-    if (is_cox) {
-      // Convert y to appropriate format for Cox
-      arma::mat y_mat = TYPEOF(y) == VECSXP ? 
-        arma::mat(n, 2) : as<arma::mat>(y);
-      
-      if (TYPEOF(y) == VECSXP) {
-        NumericVector time = as<NumericVector>(as<List>(y)[0]);
-        NumericVector status = as<NumericVector>(as<List>(y)[1]);
-        y_mat.col(0) = as<arma::vec>(time);
-        y_mat.col(1) = as<arma::vec>(status);
-      }
-      
-      theta_std = univariate_irls_cox(x_std, y_mat, offset, ties, lambda, tau);
-    } else {
-      // Convert y for GLM
-      arma::vec y_vec = TYPEOF(y) == VECSXP ? 
-        as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
-        as<arma::vec>(as<NumericVector>(y));
-      
-      theta_std = univariate_irls_glm(x_std, y_vec, family, offset, lambda, tau);
+  if (is_cox) {
+    // Convert y to appropriate format for Cox
+    arma::mat y_mat = TYPEOF(y) == VECSXP ? 
+      arma::mat(n, 2) : as<arma::mat>(y);
+    
+    if (TYPEOF(y) == VECSXP) {
+      NumericVector time = as<NumericVector>(as<List>(y)[0]);
+      NumericVector status = as<NumericVector>(as<List>(y)[1]);
+      y_mat.col(0) = as<arma::vec>(time);
+      y_mat.col(1) = as<arma::vec>(status);
     }
+    
+    theta_std = univariate_irls_cox(x_std, y_mat, offset, ties, lambda, tau);
+  } else {
+    // Convert y for GLM
+    arma::vec y_vec = TYPEOF(y) == VECSXP ? 
+      as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
+      as<arma::vec>(as<NumericVector>(y));
+    
+    Rcpp::List res = univariate_irls_glm(x_std, y_vec, family, offset);
+
+    intercept_std = as<double>(res["intercept"]);
+    theta_std     = as<double>(res["theta"]);
+
   }
   
   // Transform coefficient, apply threshold, and compute metrics
   double theta = theta_std / x_norm;
-  if (std::abs(theta) <= null_threshold) theta = 0.0;
-  
-  double loglik = univariate_loglik(x, y, family, theta, offset, ties);
-  double bic = -2.0 * loglik + std::log(n) * (theta != 0.0 ? 2.0 : 0.0);
+  double intercept = intercept_std - theta * x_mean;
+
+  double loglik = univariate_loglik(x, y, family, theta, offset, intercept, ties);
+  double bic = -2.0 * loglik + std::log(n) * (theta != 0.0 ? 1.0 : 0.0);
   
   return List::create(
+    Named("intercept") = intercept,
     Named("theta") = theta,
     Named("loglik") = loglik,
     Named("bic") = bic
@@ -762,6 +730,7 @@ Rcpp::List single_effect_fit(
   int p = X.n_cols;
   
   // Initialize result vectors
+  arma::vec intercept(p, arma::fill::zeros);
   arma::vec theta(p, arma::fill::zeros);
   arma::vec loglik(p, arma::fill::zeros);
   arma::vec bic(p, arma::fill::zeros);
@@ -772,20 +741,7 @@ Rcpp::List single_effect_fit(
     offset = arma::vec(n, arma::fill::value(offset(0)));
   }
   
-  // Fit null model
-  List res_null = univariate_fit(
-    arma::zeros<arma::vec>(n),
-    y,
-    family,
-    offset,
-    standardize,
-    ties,
-    lambda,
-    tau,
-    null_threshold
-  );
-  
-  double null_bic = as<double>(res_null["bic"]);
+  double null_bic = 0.0;
   
   // Fit univariate models for each predictor
   for (int j = 0; j < p; j++) {
@@ -803,6 +759,7 @@ Rcpp::List single_effect_fit(
       null_threshold
     );
     
+    intercept[j] = as<double>(res["intercept"]);
     theta[j] = as<double>(res["theta"]);
     loglik[j] = as<double>(res["loglik"]);
     bic[j] = as<double>(res["bic"]);
@@ -818,31 +775,12 @@ Rcpp::List single_effect_fit(
   double sum_bf = arma::sum(bf);
   arma::vec pmp = bf / sum_bf;
   
-  // Threshold small values
-  for (int j = 0; j < p; j++) {
-    if (pmp[j] <= null_threshold) {
-      theta[j] = 0.0;
-      pmp[j] = 0.0;
-    }
-  }
-  
   // Calculate PMP-weighted expectations
+  arma::vec expect_intercept = pmp % intercept;
   arma::vec expect_theta = pmp % theta;
   double mu1 = arma::dot(pmp, theta);
   double mu2 = arma::dot(pmp, theta % theta);
   double expect_variance = mu2 - mu1*mu1;
-
-  
-  // Threshold small expected values
-  for (int j = 0; j < p; j++) {
-    if (expect_theta[j] <= null_threshold) {
-      expect_theta[j] = 0.0;
-    }
-  }
-  
-  if (expect_variance <= null_threshold) {
-    expect_variance = 0.0;
-  }
   
   // Return results as a list
   return List::create(
@@ -851,7 +789,9 @@ Rcpp::List single_effect_fit(
     Named("bic_diff") = bic_diff,
     Named("bf") = bf,
     Named("pmp") = pmp,
+    Named("intercept") = intercept,
     Named("theta") = theta,
+    Named("expect_intercept") = expect_intercept,
     Named("expect_theta") = expect_theta,
     Named("expect_variance") = expect_variance
   );
@@ -878,10 +818,8 @@ List additive_effect_fit(
   int n = X.n_rows;
   int p = X.n_cols;
 
-  // Initialize family and check if we need to estimate dispersion
   List fam;
   bool is_cox = false;
-  bool estimate_dispersion = false;
   
   if (TYPEOF(family) == STRSXP) {
     std::string fam_str = as<std::string>(family);
@@ -889,8 +827,7 @@ List additive_effect_fit(
     if (is_cox) {
       fam = List::create(
         Named("family") = "cox",
-        Named("link") = "log",
-        Named("dispersion") = 1.0
+        Named("link") = "log"
       );
     }
   } else if (TYPEOF(family) == VECSXP) {
@@ -898,29 +835,13 @@ List additive_effect_fit(
     if (fam.containsElementNamed("family")) {
       std::string fam_str = as<std::string>(fam["family"]);
       is_cox = (fam_str == "cox");
-      
-      if (!is_cox && fam.containsElementNamed("dispersion")) {
-        fam["dispersion"] = 1.0;
-      }
-      
-      // Check if dispersion should be estimated
-      if (!is_cox) {
-        std::string fam_str = as<std::string>(fam["family"]);
-        estimate_dispersion = (
-          fam_str == "gaussian" || 
-          fam_str == "Gamma" || 
-          fam_str == "inverse.gaussian" || 
-          fam_str == "quasibinomial" || 
-          fam_str == "quasipoisson"
-        );
-      }
     }
   } else {
     Rcpp::stop("family must be a family object; e.g., gaussian() or binomial()");
   }
   
   // Initialize parameters
-  double intercept = 0.0;
+  arma::mat intercept(p, L, arma::fill::zeros);
   arma::mat theta(p, L, arma::fill::zeros);
   
   // Initialize result matrices
@@ -931,6 +852,8 @@ List additive_effect_fit(
   arma::mat pmp(p, L, arma::fill::zeros);
   arma::vec expect_variance(L, arma::fill::zeros);
   
+  arma::mat ONES(n, p, arma::fill::ones);
+
   // Log-likelihood tracking
   arma::vec expect_loglik(max_iter, arma::fill::zeros);
   
@@ -939,13 +862,13 @@ List additive_effect_fit(
   for (iter = 0; iter < max_iter; iter++) {
     // Calculate current linear predictor
     arma::vec linear_predictor(n, arma::fill::zeros);
-    linear_predictor.fill(intercept);
+    linear_predictor += ONES * intercept * arma::ones<arma::vec>(L);
     linear_predictor += X * theta * arma::ones<arma::vec>(L);
     
     // Update each single effect
     for (int l = 0; l < L; l++) {
       // Update offset by removing current effect
-      arma::vec offset = linear_predictor - X * theta.col(l);
+      arma::vec offset = linear_predictor - ONES * intercept.col(l) - X * theta.col(l);
       
       // Fit single effect
       List res = single_effect_fit(
@@ -961,7 +884,6 @@ List additive_effect_fit(
       );
       
       // Extract results
-      arma::vec res_theta = as<arma::vec>(res["theta"]);
       arma::vec res_loglik = as<arma::vec>(res["loglik"]);
       arma::vec res_bic = as<arma::vec>(res["bic"]);
       arma::vec res_bic_diff = as<arma::vec>(res["bic_diff"]);
@@ -969,14 +891,11 @@ List additive_effect_fit(
       arma::vec res_pmp = as<arma::vec>(res["pmp"]);
       
       // Apply thresholding to expect_theta
+      arma::vec res_expect_intercept = as<arma::vec>(res["expect_intercept"]);
       arma::vec res_expect_theta = as<arma::vec>(res["expect_theta"]);
-      for (int j = 0; j < p; j++) {
-        if (res_expect_theta(j) <= null_threshold) {
-          res_expect_theta(j) = 0.0;
-        }
-      }
       
       // Update parameters
+      intercept.col(l) = res_expect_intercept;
       theta.col(l) = res_expect_theta;
       loglik.col(l) = res_loglik;
       bic.col(l) = res_bic;
@@ -986,48 +905,7 @@ List additive_effect_fit(
       expect_variance(l) = as<double>(res["expect_variance"]);
       
       // Update linear predictor for next effect
-      linear_predictor = offset + X * theta.col(l);
-    }
-    
-    // Update intercept (GLM only)
-    if (!is_cox) {
-      arma::vec ones(n, arma::fill::ones);
-      arma::vec current_offset = X * (theta * arma::ones<arma::vec>(L));
-      
-      // Convert y to vector for GLM
-      arma::vec y_vec = TYPEOF(y) == VECSXP ? 
-          as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
-          as<arma::vec>(as<NumericVector>(y));
-      
-      intercept = univariate_irls_glm(
-        ones,
-        y_vec,
-        fam,
-        current_offset,
-        0.0,  // No penalty on intercept
-        tau,
-        100,
-        1e-8
-      );
-    }
-    
-    // Update dispersion if needed
-    if (estimate_dispersion) {
-      arma::vec full_pred = arma::ones(n) * intercept + X * (theta * arma::ones<arma::vec>(L));
-      
-      // Convert y to vector for GLM
-      arma::vec y_vec = TYPEOF(y) == VECSXP ? 
-          as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
-          as<arma::vec>(as<NumericVector>(y));
-      
-      double new_dispersion = update_dispersion(
-        y_vec,
-        fam,
-        full_pred,
-        "pearson"
-      );
-      
-      fam["dispersion"] = new_dispersion;
+      linear_predictor = offset + ONES * intercept.col(l) + X * theta.col(l);
     }
     
     // Compute expected log-likelihood
@@ -1052,10 +930,6 @@ List additive_effect_fit(
     last = iter;
   }
   
-  // Identify kept effects
-  LogicalVector kept_logical = iskept(pmp, "chi2"); 
-  std::vector<bool> kept(kept_logical.begin(), kept_logical.end());
-
   // Calculate elapsed time
   clock_t end_time = clock();
   double elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
@@ -1067,14 +941,13 @@ List additive_effect_fit(
     Named("expect_loglik") = expect_loglik.subvec(0, last),
     Named("final_loglik") = expect_loglik(last),
     Named("intercept") = intercept,
-    Named("dispersion") = as<double>(fam["dispersion"]),
+    Named("dispersion") = 1.0,
     Named("theta") = theta,
     Named("pmp") = pmp,
     Named("bic") = bic,
     Named("bic_diff") = bic_diff,
     Named("bf") = bf,
     Named("expect_variance") = expect_variance,
-    Named("kept") = kept,
     Named("elapsed_time") = elapsed_time
   );
 }

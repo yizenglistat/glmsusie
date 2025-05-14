@@ -26,13 +26,10 @@ or a Cox family list with \code{family = "cox"}.}
 \item{tau}{Numeric truncation parameter; if \code{NULL} or ≤ 0, defaults to 0.5.}
 
 \item{null_threshold}{Numeric threshold below which the final \code{theta} is set to zero (default: 1e-6).}
-
-\item{max_iter}{Integer: maximum number of IRLS iterations (default: 25).}
-
-\item{tol}{Numeric convergence tolerance on \code{theta} updates (default: 1e-8).}
 }
 \value{
 A list with elements:
+\item{intercept}{Estimated intercept (after undoing standardization).}
 \item{theta}{Estimated coefficient (after undoing standardization).}
 \item{loglik}{Unpenalized log-likelihood at the estimated \code{theta}.}
 \item{bic}{Bayesian Information Criterion: \eqn{-2*loglik + 2\log(n)}.}

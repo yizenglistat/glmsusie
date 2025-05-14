@@ -45,7 +45,6 @@ A list with components:
 \item{bic_diff}{p × L matrix of BIC differences from null.}
 \item{bf}{p × L matrix of Bayes factors.}
 \item{expect_variance}{Length-L vector of PMP-weighted variances.}
-\item{kept}{Logical vector of length L; \code{TRUE} for effects retained.}
 \item{elapsed_time}{Numeric; total computation time in seconds.}
 }
 \description{

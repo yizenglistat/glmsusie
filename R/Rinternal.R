@@ -1,80 +1,56 @@
-#' Determine Non‑Uniform Columns via Distance Measures
-#'
-#' @description
-#' Identifies which columns of a probability matrix deviate from the uniform distribution
-#' by computing a chosen distance metric and splitting the distances into two clusters.
-#'
-#' @details
-#' Given a probability matrix \code{prob_mat} of dimension \eqn{n \times m} whose columns sum to 1,
-#' this function computes, for each column \eqn{j}, a distance \eqn{d_j} between
-#' \code{prob_mat[, j]} and the uniform distribution
-#' \eqn{u = (1/n, \dots, 1/n)}.  Supported metrics are total variation,
-#' Jensen–Shannon divergence, Hellinger distance, L2 distance, Chi‑squared,
-#' Kullback–Leibler divergence, Kolmogorov–Smirnov statistic, and
-#' 1st‑Wasserstein distance.  The distances \eqn{\{d_1,\dots,d_m\}}
-#' are then clustered via \eqn{k=2} k‑means and the cluster with the larger
-#' mean is marked “non‑uniform.”  If clustering fails, a maximum‑gap threshold
-#' on the sorted distances is used instead.
-#'
-#' @param prob_mat Numeric \eqn{n \times m} matrix of probabilities (each column sums to 1).
-#' @param method   Character; one of \code{"tv"}, \code{"js"}, \code{"hellinger"},
-#'                 \code{"l2"}, \code{"chi2"}, \code{"kl"},
-#'                 \code{"kolmogorov"}, or \code{"wasserstein"}.
-#'
-#' @return Logical vector of length \eqn{m}, where \code{TRUE} indicates
-#'         a column is deemed non‑uniform.
-#'
-#' @examples
-#' # A 5×3 probability matrix
-#' P <- matrix(c(
-#'   0.2, 0.33, 0.10,
-#'   0.2, 0.33, 0.20,
-#'   0.2, 0.33, 0.30,
-#'   0.2, 0.01, 0.30,
-#'   0.2, 0.00, 0.10
-#' ), nrow = 5, byrow = TRUE)
-#' iskept(P, method = "js")
-#'
+# Internal functions for glmcs package
+
 #' @useDynLib glmcs, .registration = TRUE
 #' @importFrom Rcpp evalCpp
-#' @name iskept
-#' @export
 NULL
 
-#' Estimate Dispersion for GLM Family
+#' Compute Log-Likelihood for Univariate GLM
 #'
-#' @description
-#' Computes the dispersion parameter for a Generalized Linear Model (GLM) using either the Pearson residual method or deviance-based approach.
+#' @description 
+#' Computes the log-likelihood for a univariate generalized linear model (GLM)
+#' with a single covariate, intercept, and optional offset. Supports any family from
+#' \code{stats::family()} (e.g.\ Gaussian, Binomial, Poisson).
 #'
 #' @details
-#' This function supports any \code{family} object from \code{stats::family()}, such as \code{gaussian()}, \code{poisson()}, \code{Gamma()}, etc.
-#' The linear predictor is given by \code{offset}, and the inverse link function is applied to compute the mean response \code{mu}.
+#' The function forms the linear predictor
+#' \code{η = intercept + offset + θ * x}, then uses the family's
+#' \code{linkinv} and \code{dev.resids} functions to compute deviance
+#' residuals \code{d_i}.  The log-likelihood is
+#' \deqn{\ell = -\,\sum_i d_i / 2,} profiling out dispersion for families
+#' that estimate it (Gaussian, Gamma, inverse.gaussian) and leaving it fixed
+#' for others (Binomial, Poisson).
 #'
-#' If \code{approach = "pearson"}, it computes:
-#' \deqn{ \phi = \frac{1}{n - p} \sum_i \left( \frac{y_i - \mu_i}{\sqrt{\text{var}(\mu_i)}} \right)^2 }
+#' @param x         Numeric vector of length \code{n}: the single covariate.
+#' @param y         Numeric vector of length \code{n}: response values (for
+#'                  Binomial, can be 0/1 or a two-column matrix of counts).
+#' @param family    An R \code{family} object (from \code{stats::family()},
+#'                  default \code{gaussian()}).
+#' @param theta     Numeric scalar: coefficient at which to evaluate the
+#'                  log-likelihood.
+#' @param offset    Numeric vector of length \code{n}, or scalar, default 0:
+#'                  optional offset in the linear predictor.
+#' @param intercept Numeric scalar: intercept term in the linear predictor, default 0.
 #'
-#' If \code{approach = "deviance"}, it computes:
-#' \deqn{ \phi = \frac{1}{n - p} \sum_i \text{dev}_i }
-#'
-#' where \code{dev_i} are the deviance residuals.
-#'
-#' @param y Numeric response vector of length \code{n}.
-#' @param family A GLM family object (e.g., \code{gaussian()}, \code{poisson()}, \code{Gamma()}).
-#' @param offset Numeric vector or scalar representing the linear predictor \code{eta}; defaults to 0.
-#' @param approach Character string: either \code{"pearson"} or \code{"deviance"}.
-#'
-#' @return A numeric scalar representing the estimated dispersion.
+#' @return
+#' Numeric scalar: the (profiled) log-likelihood at \code{theta} and \code{intercept}.
 #'
 #' @examples
 #' \dontrun{
-#' y <- rgamma(100, shape = 2, rate = 2)
-#' offset <- rep(log(mean(y)), 100)
-#' update_dispersion(y, Gamma(), offset = offset, approach = "pearson")
-#' }
+#' x <- rnorm(100)
+#' y <- 1.5 + 2 * x + rnorm(100)
+#' univariate_loglik_glm(x, y, family = gaussian(), theta = 2, intercept = 1.5)
 #'
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
-#' @name update_dispersion
+#' x <- runif(200, -2, 2)
+#' p <- plogis(0.5 + 1.5 * x)
+#' y_bin <- rbinom(200, 1, p)
+#' univariate_loglik_glm(x, y_bin, family = binomial(), theta = 1.5, intercept = 0.5)
+#'
+#' x_p <- rpois(150, lambda = 2)
+#' mu <- exp(-1 + 0.3 * x_p)
+#' y_p <- rpois(150, mu)
+#' univariate_loglik_glm(x_p, y_p, family = poisson(), theta = 0.3, intercept = -1)
+#' }
+#' @name univariate_loglik_glm
 #' @export
 NULL
 
@@ -105,8 +81,6 @@ NULL
 #' y <- matrix(c(4,1, 1,1, 3,0, 2,1), ncol = 2, byrow = TRUE)
 #' univariate_loglik_cox(x, y, offset = 0, theta = 0.5, ties = "efron")
 #' }
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
 #' @name univariate_loglik_cox
 #' @export
 NULL
@@ -124,6 +98,8 @@ NULL
 #'   \code{poisson()}) or a Cox family list with element \code{family="cox"}.
 #' @param theta Numeric scalar: coefficient at which to evaluate the log-likelihood.
 #' @param offset Numeric scalar or vector of length n: offset in the linear predictor.
+#' @param intercept Numeric scalar: intercept term in the linear predictor (for GLM only).
+#'   Default is 0.
 #' @param ties Character string: tie-handling method for Cox partial likelihood;
 #'   one of \code{"efron"} or \code{"breslow"}.
 #'
@@ -134,8 +110,8 @@ NULL
 #' \dontrun{
 #' # Gaussian example
 #' x <- rnorm(100)
-#' y <- 2 * x + rnorm(100)
-#' univariate_loglik(x, y, family = gaussian(), theta = 2, offset = 0)
+#' y <- 1.5 + 2 * x + rnorm(100)
+#' univariate_loglik(x, y, family = gaussian(), theta = 2, intercept = 1.5)
 #'
 #' # Binomial example
 #' x <- rnorm(200)
@@ -143,9 +119,9 @@ NULL
 #' p <- plogis(eta)
 #' y <- rbinom(200, 1, p)
 #' univariate_loglik(x, y, family = binomial(link = "logit"),
-#'                   theta = 1.5, offset = 0)
+#'                   theta = 1.5, intercept = -1)
 #'
-#' # Cox example
+#' # Cox example (note: intercept not used in Cox models)
 #' x <- rnorm(50)
 #' times <- rexp(50)
 #' status <- rbinom(50, 1, 0.5)
@@ -153,8 +129,6 @@ NULL
 #' univariate_loglik(x, ymat, family = list(family = "cox"),
 #'                   theta = 0.5, offset = 0, ties = "efron")
 #' }
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
 #' @name univariate_loglik
 #' @export
 NULL
@@ -192,49 +166,66 @@ NULL
 #' y <- matrix(c(4,1, 1,1, 3,0, 2,1), ncol = 2, byrow = TRUE)
 #' univariate_irls_cox(x, y, offset = 0, ties = "efron", max_iter = 50, tol = 1e-6)
 #' }
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
 #' @name univariate_irls_cox
 #' @export
 NULL
 
-
-#' Compute Truncated‐L1 IRLS Estimate for Univariate GLM
+#' Compute Generalized Linear Model Estimate for Univariate Predictor with Intercept
 #'
 #' @description
-#' Fits a single‐covariate GLM using IRLS with a truncated‐L1 penalty.
-#' Solves:
-#' \deqn{\min_\theta\;-\ell(\theta) \;+\;\lambda\,\min\bigl(1,|\theta|/\tau\bigr)}
-#' via iteratively reweighted least squares, with a closed‐form capped‐L1 update each step.
+#' Fits a GLM with intercept and single predictor using iteratively reweighted least squares (IRLS).
+#' Implements the model:
+#' \deqn{g(E[y]) = \beta_0 + \beta_1 x + \text{offset}}
+#' where \eqn{g} is the link function determined by the selected family.
 #'
 #' @param x Numeric vector of covariates (length n).
 #' @param y Numeric response vector (length n).
 #' @param family A stats::family object (e.g. \code{gaussian()},
 #'   \code{binomial()}, \code{poisson()}).
 #' @param offset Numeric scalar or vector (length n) giving the linear predictor offset.
-#' @param lambda Numeric penalty weight; if ≤0 defaults to \eqn{\sqrt{2\log(n)/n}}.
-#' @param tau Numeric truncation parameter; if ≤0 uses grid \{1/n,…,5/n\} for n≤500 and 1/n otherwise.
 #' @param max_iter Integer. Maximum number of IRLS iterations.
-#' @param tol Numeric convergence tolerance for θ.
+#' @param tol Numeric convergence tolerance for parameters.
 #'
-#' @return Numeric scalar: the estimated coefficient \eqn{\hat\theta}.
+#' @return A list with components:
+#'   \item{intercept}{Numeric scalar: the estimated intercept \eqn{\hat\beta_0}.}
+#'   \item{theta}{Numeric scalar: the estimated coefficient \eqn{\hat\beta_1}.}
+#'
+#' @details
+#' This function implements the standard IRLS algorithm for GLMs, optimized for the
+#' univariate predictor case with intercept. It provides identical results to R's
+#' \code{glm(y ~ x, family=family)} but is more computationally efficient for
+#' the single-predictor case.
+#'
+#' Numerical stability measures are implemented for handling extreme values, including
+#' special cases for Poisson regression and fallback methods for matrix solution if
+#' the standard solve fails.
 #'
 #' @examples
 #' \dontrun{
 #' set.seed(42)
 #' n <- 100
 #' x <- rnorm(n)
+#' 
 #' # Gaussian example
-#' y <- 2*x + rnorm(n)
-#' univariate_irls_glm(x, y, gaussian(), offset=0,
-#'                     lambda=0, tau=0, max_iter=25, tol=1e-8)
+#' y_gaussian <- 2 + 0.5*x + rnorm(n)
+#' result <- univariate_irls_glm(x, y_gaussian, gaussian(), offset=numeric(0))
+#' print(result)
+#' 
+#' # Poisson example
+#' eta <- 1 + 0.5*x
+#' y_poisson <- rpois(n, exp(eta))
+#' result <- univariate_irls_glm(x, y_poisson, poisson(), offset=numeric(0))
+#' print(result)
+#' 
+#' # Binomial example
+#' prob <- 1/(1 + exp(-(0.5 + 0.8*x)))
+#' y_binomial <- rbinom(n, 1, prob)
+#' result <- univariate_irls_glm(x, y_binomial, binomial(), offset=numeric(0))
+#' print(result)
 #' }
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
 #' @name univariate_irls_glm
 #' @export
 NULL
-
 
 #' Compute Univariate Fit with Optional Truncated‐L1 Penalty
 #'
@@ -255,10 +246,9 @@ NULL
 #' @param lambda Numeric penalty weight; if \code{NULL} or ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}}.
 #' @param tau Numeric truncation parameter; if \code{NULL} or ≤ 0, defaults to 0.5.
 #' @param null_threshold Numeric threshold below which the final \code{theta} is set to zero (default: 1e-6).
-#' @param max_iter Integer: maximum number of IRLS iterations (default: 25).
-#' @param tol Numeric convergence tolerance on \code{theta} updates (default: 1e-8).
 #'
 #' @return A list with elements:
+#'   \item{intercept}{Estimated intercept (after undoing standardization).}
 #'   \item{theta}{Estimated coefficient (after undoing standardization).}
 #'   \item{loglik}{Unpenalized log-likelihood at the estimated \code{theta}.}
 #'   \item{bic}{Bayesian Information Criterion: \eqn{-2*loglik + 2\log(n)}.}
@@ -278,8 +268,6 @@ NULL
 #' y_cox  <- cbind(time=times, status=status)
 #' res2 <- univariate_fit(x, y_cox, family = list(family="cox"))
 #' }
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
 #' @name univariate_fit
 #' @export
 NULL
@@ -304,9 +292,16 @@ NULL
 #' @param null_threshold Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).
 #'
 #' @return A list of length p, where each element is itself a list with components:
-#'   \item{theta}{Estimated coefficient for that predictor.}
 #'   \item{loglik}{Unpenalized log‐likelihood at the fitted coefficient.}
 #'   \item{bic}{Bayesian Information Criterion: \eqn{-2*logLik + 2\log(n)}.}
+#'   \item{bic_diff}{BIC difference from null model.}
+#'   \item{bf}{Bayes factor.}
+#'   \item{pmp}{Posterior model probability.}
+#'   \item{intercept}{Estimated intercept for that predictor.}
+#'   \item{theta}{Estimated coefficient for that predictor.}
+#'   \item{expect_intercept}{Expected value of intercept under model averaging.}
+#'   \item{expect_theta}{Expected value of coefficient under model averaging.}
+#'   \item{expect_variance}{Expected variance under model averaging.}
 #'
 #' @examples
 #' \dontrun{
@@ -323,8 +318,6 @@ NULL
 #' y_cox <- cbind(time=times, status=status)
 #' res_cox <- single_effect_fit(X, y_cox, family = list(family="cox"))
 #' }
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
 #' @name single_effect_fit
 #' @export
 NULL
@@ -366,7 +359,6 @@ NULL
 #'   \item{bic_diff}{p × L matrix of BIC differences from null.}
 #'   \item{bf}{p × L matrix of Bayes factors.}
 #'   \item{expect_variance}{Length-L vector of PMP-weighted variances.}
-#'   \item{kept}{Logical vector of length L; \code{TRUE} for effects retained.}
 #'   \item{elapsed_time}{Numeric; total computation time in seconds.}
 #'
 #' @examples
@@ -384,8 +376,6 @@ NULL
 #'                                family = list(family = "cox"),
 #'                                ties = "breslow")
 #' }
-#' @useDynLib glmcs, .registration = TRUE
-#' @importFrom Rcpp evalCpp
 #' @name additive_effect_fit
 #' @export
 NULL

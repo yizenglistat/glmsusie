@@ -179,7 +179,7 @@ glmcs <- function(X, y, L = 10L,
     if (is.matrix(y)) y <- drop(y)
   }
   
-  if(L>=ncol(X)) L <- ncol(X)
+  if(L>ncol(X)) L <- ncol(X)
 
   # Match ties method for Cox regression
   ties <- match.arg(ties)
@@ -198,7 +198,9 @@ glmcs <- function(X, y, L = 10L,
     tau = tau,
     max_iter = max_iter
   )
-  
+
+  kept <- iskept(out$pmp)
+
   # Collect everything we'll need later
   result <- list(
     call = cl,
@@ -206,14 +208,14 @@ glmcs <- function(X, y, L = 10L,
     y = y,
     family = family,
     theta = out$theta,
-    intercept = out$intercept,
+    intercept = sum(out$intercept[, kept]),
     pmp = out$pmp,
     dispersion = out$dispersion,
     loglik = out$loglik,
     bic = out$bic,
     bic_diff = out$bic_diff,
     bf = out$bf,
-    kept = out$kept,
+    kept = kept,
     niter = out$niter,
     max_iter = max_iter,
     elapsed = out$elapsed_time
@@ -246,11 +248,16 @@ glmcs <- function(X, y, L = 10L,
   }
   
   # Calculate marginal inclusion probabilities
-  result$marginal <- 1 - apply(
-    X = 1 - result$pmp[, result$kept, drop = FALSE], 
-    MARGIN = 1, 
-    FUN = prod
-  )
+  if(sum(kept) == 0){
+    p <- ncol(X)
+    result$marginal <- rep(1/p, p)
+  }else{ 
+    result$marginal <- 1 - apply(
+      X = 1 - result$pmp[, kept, drop=FALSE], 
+      MARGIN = 1, 
+      FUN = prod
+    )
+  }
   names(result$marginal) <- col_names
   
   # Assign class and return
