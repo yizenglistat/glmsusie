@@ -54,6 +54,55 @@ NULL
 #' @export
 NULL
 
+#' Fit a Univariate GLM Without Intercept Using IRLS
+#'
+#' @description 
+#' Fits a generalized linear model (GLM) using a single covariate and no intercept term
+#' via the iteratively reweighted least squares (IRLS) algorithm.
+#'
+#' @details
+#' The linear predictor is defined as: 
+#' \deqn{\eta = \theta \cdot x + \mathrm{offset}}{
+#' η = θ * x + offset
+#' }
+#' where \eqn{g(\mu) = \eta} is the canonical link function from the specified GLM family.
+#'
+#' The function uses R's \code{family} object (e.g., \code{binomial()}, \code{poisson()}, \code{gaussian()})
+#' to evaluate the inverse link, variance, and derivative functions at each iteration.
+#'
+#' Numerical safeguards are included:
+#' \itemize{
+#'   \item The linear predictor \code{eta} is clamped for Poisson models to prevent overflow.
+#'   \item Variance and derivative evaluations are floored to avoid division by zero.
+#'   \item Extremely large weights are capped.
+#' }
+#'
+#' @param x Numeric vector of length \code{n}: predictor values.
+#' @param y Numeric vector of length \code{n}: response values.
+#' @param family An R \code{family} object, such as \code{binomial()}, \code{poisson()}, or \code{gaussian()}.
+#' @param offset Numeric vector of length 1 or \code{n}, default \code{0}. Optional offset in the linear predictor.
+#' @param max_iter Integer. Maximum number of IRLS iterations (default = 25).
+#' @param tol Numeric. Convergence tolerance (default = 1e-8).
+#'
+#' @return 
+#' Numeric scalar: estimated slope \eqn{\theta}.
+#'
+#' @examples
+#' \dontrun{
+#' x <- rnorm(100)
+#' y <- rbinom(100, 1, plogis(2 * x))
+#' univariate_irls_glm_no_intercept(x, y, family = binomial())
+#'
+#' x <- rnorm(100)
+#' y <- 1 + 3 * x + rnorm(100)
+#' univariate_irls_glm_no_intercept(x, y, family = gaussian())
+#' }
+#' 
+#' @seealso [glm()], [stats::family()]
+#' @name univariate_irls_glm_no_intercept
+#' @export
+NULL
+
 #' Compute Log-Likelihood for Univariate Cox Model
 #'
 #' @description 
@@ -245,7 +294,6 @@ NULL
 #' @param ties Character: ties method for Cox partial likelihood ("efron" or "breslow", default: "efron").
 #' @param lambda Numeric penalty weight; if \code{NULL} or ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}}.
 #' @param tau Numeric truncation parameter; if \code{NULL} or ≤ 0, defaults to 0.5.
-#' @param null_threshold Numeric threshold below which the final \code{theta} is set to zero (default: 1e-6).
 #'
 #' @return A list with elements:
 #'   \item{intercept}{Estimated intercept (after undoing standardization).}
@@ -289,7 +337,7 @@ NULL
 #' @param ties Character: ties method for Cox partial likelihood ("efron" or "breslow", default: "efron").
 #' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
 #' @param tau Numeric truncation parameter; if ≤ 0, defaults to 1.0 (default: 1.0).
-#' @param null_threshold Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).
+#' @param alpha level of significance
 #'
 #' @return A list of length p, where each element is itself a list with components:
 #'   \item{loglik}{Unpenalized log‐likelihood at the fitted coefficient.}
@@ -299,6 +347,8 @@ NULL
 #'   \item{pmp}{Posterior model probability.}
 #'   \item{intercept}{Estimated intercept for that predictor.}
 #'   \item{theta}{Estimated coefficient for that predictor.}
+#'   \item{pval_intercept}{P-value for estimated intercept for that predictor.}
+#'   \item{pval_theta}{P-value for estimated coefficient for that predictor.}
 #'   \item{expect_intercept}{Expected value of intercept under model averaging.}
 #'   \item{expect_theta}{Expected value of coefficient under model averaging.}
 #'   \item{expect_variance}{Expected variance under model averaging.}
@@ -342,7 +392,7 @@ NULL
 #' @param ties Character: ties method for Cox partial likelihood ("efron" or "breslow", default: "efron").
 #' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
 #' @param tau Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).
-#' @param null_threshold Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).
+#' @param decompose Logical: if TRUE, decompose the theta in fitting (default: TRUE).
 #' @param tol Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).
 #' @param max_iter Integer; maximum number of coordinate-ascent iterations (default: 100).
 #'
@@ -354,6 +404,8 @@ NULL
 #'   \item{intercept}{Estimated intercept term.}
 #'   \item{dispersion}{Estimated dispersion parameter (for Gaussian/Gamma).}
 #'   \item{theta}{p × L matrix of fitted single-effect coefficients.}
+#'   \item{pval_intercept}{p × L matrix of p-values for fitted single-effect intercepts}
+#'   \item{pval_theta}{p × L matrix of p-values for fitted single-effect coefficients.}
 #'   \item{pmp}{p × L matrix of posterior model probabilities.}
 #'   \item{bic}{p × L matrix of BIC values.}
 #'   \item{bic_diff}{p × L matrix of BIC differences from null.}
@@ -377,5 +429,33 @@ NULL
 #'                                ties = "breslow")
 #' }
 #' @name additive_effect_fit
+#' @export
+NULL
+
+#' Decompose Row Sums of a Theta Matrix into Single-Effect Components
+#'
+#' @description
+#' Given a \eqn{p \times L} matrix \code{theta}, this function redistributes
+#' the row sums into a new matrix of the same shape where each row's total
+#' effect is placed into a single column (using round-robin assignment).
+#'
+#' This operation is useful for decomposing a combined effect vector into
+#' sparse single-effect columns (e.g., in spike-and-slab regression or
+#' additive effect models).
+#'
+#' @param theta A numeric matrix of shape \code{p × L}.
+#' @param L Integer. Number of columns in the output matrix.
+#'
+#' @return A numeric matrix of shape \code{p × L}, where each row sum matches
+#' the corresponding row sum of \code{theta}, and each row has only one nonzero entry.
+#'
+#' @examples
+#' \dontrun{
+#' theta <- matrix(rnorm(12), nrow = 6, ncol = 2)
+#' theta_new <- decompose_theta(theta, L = 2)
+#' all.equal(rowSums(theta), rowSums(theta_new))  # Should be TRUE
+#' }
+#'
+#' @name decompose_theta
 #' @export
 NULL

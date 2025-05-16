@@ -81,7 +81,7 @@ coef.glmcs <- function(object, intercept = FALSE, ...) {
     theta <- rep(0, nrow(object$theta))
     names(theta) <- rownames(object$theta)
   } else {
-    theta <- rowSums(object$theta[, object$kept, drop = FALSE])
+    theta <- rowSums(object$theta)
   }
   
   # Include intercept if requested and available

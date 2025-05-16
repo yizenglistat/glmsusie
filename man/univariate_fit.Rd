@@ -24,8 +24,6 @@ or a Cox family list with \code{family = "cox"}.}
 \item{lambda}{Numeric penalty weight; if \code{NULL} or ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}}.}
 
 \item{tau}{Numeric truncation parameter; if \code{NULL} or ≤ 0, defaults to 0.5.}
-
-\item{null_threshold}{Numeric threshold below which the final \code{theta} is set to zero (default: 1e-6).}
 }
 \value{
 A list with elements:

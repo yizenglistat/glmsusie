@@ -11,6 +11,23 @@ using namespace Rcpp;
 // helper for sign
 inline double sgn(double z) { return (z>0) - (z<0); }
 
+
+/**
+ * @brief Decompose row sums of a theta matrix into a p x L matrix
+ *
+ * Given a p × L matrix `theta`, this function computes the row sums
+ * and redistributes them into a new p × L matrix such that each row sum
+ * is preserved, but concentrated in a single column (round-robin by row index).
+ *
+ * This is useful for reconstructing a single-effect decomposition where
+ * each row's total effect is spread sparsely over L components.
+ *
+ * @param theta Input matrix of shape p × L
+ * @param L     Number of columns (effects) in the output
+ * @return      A p × L matrix with same row sums as `theta` and only one non-zero per row
+ */
+arma::mat decompose_theta(const arma::mat& theta, int L);
+
 /**
  * Calculate univariate Cox regression log-likelihood
  * 
@@ -95,6 +112,31 @@ double univariate_irls_cox(
     double tol
 );
 
+/**
+ * @brief Fit a univariate GLM (no intercept)
+ * 
+ * This function fits a generalized linear model (GLM) with a single predictor `x` and no intercept.
+ * It is optimized for speed and numerical stability. The model form is:
+ * 
+ *     g(E[y]) = offset + theta * x
+ * 
+ * where g is the link function (e.g., logit, log, identity) determined by the specified GLM family.
+ * 
+ * @param x         Predictor vector (length n)
+ * @param y         Response vector (length n)
+ * @param family    R family object (e.g., binomial(), gaussian())
+ * @param offset    Optional offset vector (length 1 or n). Use numeric(0) to omit.
+ * @param max_iter  Maximum number of IRLS iterations
+ * @param tol       Convergence tolerance
+ * 
+ * @return          Estimated slope (theta) as a double
+ */
+double univariate_irls_glm_no_intercept(const arma::vec& x,
+                                        const arma::vec& y,
+                                        SEXP             family,
+                                        arma::vec        offset,
+                                        int              max_iter,
+                                        double           tol);
 
 /**
  * @brief Fit a univariate generalized linear model
@@ -157,7 +199,6 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
  * @param ties           Cox ties method: "efron" or "breslow" (default: "efron").
  * @param lambda         Penalty weight; NULL defaults to sqrt(2*log(n)/n).
  * @param tau            Truncation param; NULL defaults to 0.5.
- * @param null_threshold Threshold below which theta is set to zero (default: 1e-6).
  *
  * @return List with elements:
  *   - theta:   Estimated intercept.
@@ -173,8 +214,7 @@ Rcpp::List univariate_fit(
     bool                     standardize,
     std::string              ties,
     double                   lambda,
-    double                   tau,
-    double                   null_threshold
+    double                   tau
 );
 
 
@@ -194,9 +234,9 @@ Rcpp::List univariate_fit(
  * @param ties Method for handling ties in Cox models
  * @param lambda Penalty strength parameter (NULL for default)
  * @param tau Truncation parameter (NULL for default)
- * @param null_threshold Threshold for setting coefficients to zero
+ * @param alpha level of significance
  * 
- * @return List with log-likelihood, BIC, Bayes factors, PMP and coefficient estimates
+ * @return List with log-likelihood, BIC, Bayes factors, PMP and coefficient estimates, pvals
  */
 List single_effect_fit(
     const arma::mat& X,
@@ -207,7 +247,7 @@ List single_effect_fit(
     std::string ties,
     double lambda,
     double tau,
-    double null_threshold
+    double alpha
 );
 
 /**
@@ -227,7 +267,7 @@ List single_effect_fit(
  * @param ties Method for handling ties in Cox models
  * @param lambda Penalty strength parameter
  * @param tau Truncation parameter
- * @param null_threshold Threshold for setting values to zero
+ * @param decompose Whether to decompose the theta
  * @param tol Convergence tolerance
  * @param max_iter Maximum number of iterations
  * 
@@ -242,7 +282,7 @@ List additive_effect_fit(
     std::string ties,
     double lambda,
     double tau,
-    double null_threshold,
+    bool decompose,
     double tol,
     int max_iter
 );

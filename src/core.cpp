@@ -8,6 +8,25 @@ using namespace arma;
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // [[Rcpp::export]]
+arma::mat decompose_theta(const arma::mat& theta, int L) {
+  int p = theta.n_rows;
+
+  // Step 1: compute row sums
+  arma::vec row_sums = arma::sum(theta, 1);  // p × 1
+
+  // Step 2: initialize new theta matrix
+  arma::mat theta_new(p, L, arma::fill::zeros);
+
+  // Step 3: redistribute row sums into L columns
+  for (int i = 0; i < p; ++i) {
+    int col = i % L;  // assign each row sum to one column (round-robin or diagonal-style)
+    theta_new(i, col) = row_sums(i);
+  }
+
+  return theta_new;
+}
+
+// [[Rcpp::export]]
 double univariate_loglik_cox(
     const arma::vec& x,
     const arma::mat& y,
@@ -476,6 +495,96 @@ double univariate_irls_cox(arma::vec x,
   return theta;
 }
 
+// [[Rcpp::export]]
+double univariate_irls_glm_no_intercept(const arma::vec&   x,
+                                        const arma::vec&   y,
+                                        SEXP               family,
+                                        arma::vec          offset,
+                                        int                max_iter   = 25,
+                                        double             tol        = 1e-8) {
+  int n = x.n_elem;
+  if ((int)y.n_elem != n)   stop("x and y must have same length");
+  if (offset.n_elem == 0)   offset = arma::zeros<arma::vec>(n);
+  if (offset.n_elem == 1 && n > 1) offset = arma::vec(n).fill(offset(0));
+  if ((int)offset.n_elem != n) stop("offset must be length 1 or n");
+  if (TYPEOF(family) != VECSXP) stop("family must be a stats::family object");
+
+  // Extract family functions
+  List fam = as<List>(family);
+  Function linkinv = fam["linkinv"];
+  Function varfun = fam["variance"];
+  Function mu_eta = fam["mu.eta"];
+  double dispersion = as<double>(fam["dispersion"]);
+  CharacterVector family_name = fam["family"];
+  bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
+
+  // Initialize slope parameter
+  double theta = 0.0;
+
+  // Initialize linear predictor
+  arma::vec eta = offset;
+  if (is_poisson) eta = arma::clamp(eta, -20.0, 20.0);
+
+  NumericVector mu_r = linkinv(wrap(eta));
+  arma::vec mu = as<arma::vec>(mu_r);
+
+  if (is_poisson) {
+    for (int i = 0; i < n; i++) if (mu[i] <= 0) mu[i] = 1e-8;
+  }
+
+  for (int iter = 0; iter < max_iter; ++iter) {
+    NumericVector var_r = varfun(wrap(mu));
+    NumericVector gprime = mu_eta(wrap(eta));
+
+    for (int i = 0; i < n; i++) {
+      if (R_IsNaN(var_r[i]) || var_r[i] <= 0) var_r[i] = 1e-8;
+      if (R_IsNaN(gprime[i]) || gprime[i] <= 0) gprime[i] = 1e-8;
+    }
+
+    arma::vec var_mu = as<arma::vec>(var_r);
+    arma::vec gprime_vec = as<arma::vec>(gprime);
+    arma::vec w = arma::square(gprime_vec) / (var_mu * dispersion);
+
+    for (int i = 0; i < n; i++) {
+      if (!arma::is_finite(w[i]) || w[i] <= 0) w[i] = 1e-8;
+      else if (w[i] > 1e8) w[i] = 1e8;
+    }
+
+    arma::vec z(n);
+    for (int i = 0; i < n; i++) {
+      double diff = y[i] - mu[i];
+      z[i] = eta[i] + diff / gprime_vec[i];
+      if (!arma::is_finite(z[i])) z[i] = eta[i];
+    }
+
+    arma::vec z0 = z - offset;
+
+    arma::vec xw = x % sqrt(w);
+    arma::vec zw = z0 % sqrt(w);
+
+    double XtWX = dot(xw, xw);
+    double XtWz = dot(xw, zw);
+
+    double theta_new = XtWz / XtWX;
+
+    if (std::abs(theta_new - theta) < tol) {
+      theta = theta_new;
+      break;
+    }
+
+    theta = theta_new;
+    eta = offset + theta * x;
+    if (is_poisson) eta = arma::clamp(eta, -20.0, 20.0);
+
+    mu_r = linkinv(wrap(eta));
+    mu = as<arma::vec>(mu_r);
+    if (is_poisson) {
+      for (int i = 0; i < n; i++) if (mu[i] <= 0) mu[i] = 1e-8;
+    }
+  }
+
+  return theta;
+}
 
 // [[Rcpp::export]]
 Rcpp::List univariate_irls_glm(const arma::vec&   x,
@@ -643,8 +752,7 @@ List univariate_fit(
     bool standardize = true,
     std::string ties = "efron",
     double lambda = 0.0,
-    double tau = 0.5,
-    double null_threshold = 1e-6)
+    double tau = 0.5)
 {
   // Get dimensions and extract family type
   int n = x.n_elem;
@@ -723,7 +831,7 @@ Rcpp::List single_effect_fit(
     std::string        ties = "efron",
     double             lambda = 0.0,
     double             tau = 0.5,
-    double             null_threshold = 1e-6
+    double             alpha = 0.05
 ) {
   // Get dimensions
   int n = X.n_rows;
@@ -735,7 +843,9 @@ Rcpp::List single_effect_fit(
   arma::vec loglik(p, arma::fill::zeros);
   arma::vec bic(p, arma::fill::zeros);
   arma::vec bic_diff(p, arma::fill::zeros);
-  
+  arma::vec pval_intercept(p, arma::fill::zeros);
+  arma::vec pval_theta(p, arma::fill::zeros);
+
   // Expand offset if needed
   if (offset.n_elem == 1 && n > 1) {
     offset = arma::vec(n, arma::fill::value(offset(0)));
@@ -755,8 +865,7 @@ Rcpp::List single_effect_fit(
       standardize,
       ties,
       lambda,
-      tau,
-      null_threshold
+      tau
     );
     
     intercept[j] = as<double>(res["intercept"]);
@@ -764,6 +873,7 @@ Rcpp::List single_effect_fit(
     loglik[j] = as<double>(res["loglik"]);
     bic[j] = as<double>(res["bic"]);
     bic_diff[j] = bic[j] - null_bic;
+
   }
   
   // Shift BIC differences so minimum is 0
@@ -782,6 +892,27 @@ Rcpp::List single_effect_fit(
   double mu2 = arma::dot(pmp, theta % theta);
   double expect_variance = mu2 - mu1*mu1;
   
+  for (int j = 0; j < p; j++) {
+    arma::vec x_j = X.col(j);
+    // Compute full model log-likelihood
+    double ll1 = univariate_loglik(x_j, y, family, expect_theta[j], offset, expect_intercept[j]);
+
+    // === Intercept Test ===
+    // Null model: intercept = 0, theta fixed
+    double ll0_intercept = univariate_loglik(x_j, y, family, expect_theta[j], offset, 0.0);
+    double lrt_intercept = 2.0 * (ll1 - ll0_intercept);
+    pval_intercept[j] = R::pchisq(lrt_intercept, 1.0, false, false);
+    //if (pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
+
+    // === Slope Test ===
+    // Null model: theta = 0, intercept fixed
+    double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, expect_intercept[j]);
+    double lrt_theta = 2.0 * (ll1 - ll0_theta);
+    pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
+    //if (pval_theta[j] > alpha) expect_theta[j] = 0.0;
+
+  }
+
   // Return results as a list
   return List::create(
     Named("loglik") = loglik,
@@ -791,6 +922,8 @@ Rcpp::List single_effect_fit(
     Named("pmp") = pmp,
     Named("intercept") = intercept,
     Named("theta") = theta,
+    Named("pval_intercept") = pval_intercept,
+    Named("pval_theta") = pval_theta,
     Named("expect_intercept") = expect_intercept,
     Named("expect_theta") = expect_theta,
     Named("expect_variance") = expect_variance
@@ -807,7 +940,7 @@ List additive_effect_fit(
     std::string ties = "efron",
     double lambda = 0.0,
     double tau = 0.5,
-    double null_threshold = 1e-6,
+    double decompose = true,
     double tol = 5e-2,
     int max_iter = 100)
 {
@@ -843,6 +976,10 @@ List additive_effect_fit(
   // Initialize parameters
   arma::mat intercept(p, L, arma::fill::zeros);
   arma::mat theta(p, L, arma::fill::zeros);
+
+  // P-values
+  arma::mat pval_intercept(p, L, arma::fill::zeros);
+  arma::mat pval_theta(p, L, arma::fill::zeros);
   
   // Initialize result matrices
   arma::mat loglik(p, L, arma::fill::zeros);
@@ -860,6 +997,8 @@ List additive_effect_fit(
   // Main iterations
   int iter;
   for (iter = 0; iter < max_iter; iter++) {
+    if(decompose) theta = decompose_theta(theta, L);// theta = arma::diagmat(arma::sum(theta, 1));
+
     // Calculate current linear predictor
     arma::vec linear_predictor(n, arma::fill::zeros);
     linear_predictor += ONES * intercept * arma::ones<arma::vec>(L);
@@ -879,8 +1018,7 @@ List additive_effect_fit(
         standardize,
         ties,
         lambda,
-        tau,
-        null_threshold
+        tau
       );
       
       // Extract results
@@ -890,6 +1028,9 @@ List additive_effect_fit(
       arma::vec res_bf = as<arma::vec>(res["bf"]);
       arma::vec res_pmp = as<arma::vec>(res["pmp"]);
       
+      arma::vec res_pval_intercept = as<arma::vec>(res["pval_intercept"]);
+      arma::vec res_pval_theta = as<arma::vec>(res["pval_theta"]);
+
       // Apply thresholding to expect_theta
       arma::vec res_expect_intercept = as<arma::vec>(res["expect_intercept"]);
       arma::vec res_expect_theta = as<arma::vec>(res["expect_theta"]);
@@ -897,6 +1038,8 @@ List additive_effect_fit(
       // Update parameters
       intercept.col(l) = res_expect_intercept;
       theta.col(l) = res_expect_theta;
+      pval_intercept.col(l) = res_pval_intercept;
+      pval_theta.col(l) = res_pval_theta;
       loglik.col(l) = res_loglik;
       bic.col(l) = res_bic;
       bic_diff.col(l) = res_bic_diff;
@@ -907,7 +1050,7 @@ List additive_effect_fit(
       // Update linear predictor for next effect
       linear_predictor = offset + ONES * intercept.col(l) + X * theta.col(l);
     }
-    
+
     // Compute expected log-likelihood
     double ell = 0.0;
     for (int l = 0; l < L; l++) {
@@ -943,6 +1086,8 @@ List additive_effect_fit(
     Named("intercept") = intercept,
     Named("dispersion") = 1.0,
     Named("theta") = theta,
+    Named("pval_intercept") = pval_intercept,
+    Named("pval_theta") = pval_theta,
     Named("pmp") = pmp,
     Named("bic") = bic,
     Named("bic_diff") = bic_diff,

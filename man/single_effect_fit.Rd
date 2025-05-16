@@ -25,7 +25,7 @@
 
 \item{tau}{Numeric truncation parameter; if ≤ 0, defaults to 1.0 (default: 1.0).}
 
-\item{null_threshold}{Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).}
+\item{alpha}{level of significance}
 }
 \value{
 A list of length p, where each element is itself a list with components:
@@ -36,6 +36,8 @@ A list of length p, where each element is itself a list with components:
 \item{pmp}{Posterior model probability.}
 \item{intercept}{Estimated intercept for that predictor.}
 \item{theta}{Estimated coefficient for that predictor.}
+\item{pval_intercept}{P-value for estimated intercept for that predictor.}
+\item{pval_theta}{P-value for estimated coefficient for that predictor.}
 \item{expect_intercept}{Expected value of intercept under model averaging.}
 \item{expect_theta}{Expected value of coefficient under model averaging.}
 \item{expect_variance}{Expected variance under model averaging.}

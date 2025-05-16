@@ -42,8 +42,7 @@
 #'        required for variables to be grouped in the same confidence set (default: 0.5).
 #' @param standardize Logical indicating whether to center and scale predictors 
 #'        before fitting (default: TRUE).
-#' @param null_threshold Numeric specifying the threshold below which coefficients 
-#'        are set to zero (default: 1e-5).
+#' @param decompose Logical indicating whether to decompose theta in fitting (default: TRUE).
 #' @param tol Numeric specifying convergence tolerance for the expected log-likelihood
 #'        between iterations (default: 5e-2).
 #' @param lambda Numeric penalty weight for the truncated-L1 penalty (default: 0.0).
@@ -122,7 +121,7 @@ glmcs <- function(X, y, L = 10L,
                   coverage = 0.95,
                   cor_threshold = 0.5,
                   standardize = TRUE,
-                  null_threshold = 1e-5,
+                  decompose = TRUE,
                   tol = 5e-2,
                   lambda = 0.0,
                   tau = 1e-5,
@@ -193,7 +192,7 @@ glmcs <- function(X, y, L = 10L,
     L = L, 
     family = family, 
     standardize = standardize, 
-    null_threshold = null_threshold, 
+    decompose = decompose, 
     tol = tol, 
     ties = ties, 
     lambda = lambda,
@@ -210,13 +209,15 @@ glmcs <- function(X, y, L = 10L,
     y = y,
     family = family,
     theta = out$theta,
-    intercept = sum(out$intercept[, kept]),
+    intercept = sum(out$intercept),
     pmp = out$pmp,
     dispersion = out$dispersion,
     loglik = out$loglik,
     bic = out$bic,
     bic_diff = out$bic_diff,
     bf = out$bf,
+    pval_intercept = out$pval_intercept,
+    pval = out$pval_theta,
     kept = kept,
     niter = out$niter,
     max_iter = max_iter,
@@ -228,6 +229,9 @@ glmcs <- function(X, y, L = 10L,
   rownames(result$pmp) <- col_names
   colnames(result$theta) <- paste0("Effect", 1:ncol(result$theta))
   colnames(result$pmp) <- paste0("Effect", 1:ncol(result$pmp))
+  colnames(result$pval_intercept) <- paste0("Effect", 1:ncol(result$pval_intercept))
+  colnames(result$pval) <- paste0("Effect", 1:ncol(result$pval))
+
   
   # Calculate confidence sets
   if (!is.null(result$pmp) && !is.null(result$kept)) {
@@ -248,6 +252,9 @@ glmcs <- function(X, y, L = 10L,
     result$cs <- cs
     result$coverage <- coverage
   }
+
+  # Calculate marginal pvalues
+  
   
   # Calculate marginal inclusion probabilities
   if(sum(kept) == 0){

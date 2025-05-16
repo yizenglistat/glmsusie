@@ -25,7 +25,7 @@
 
 \item{tau}{Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).}
 
-\item{null_threshold}{Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).}
+\item{decompose}{Logical: if TRUE, decompose the theta in fitting (default: TRUE).}
 
 \item{tol}{Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).}
 
@@ -40,6 +40,8 @@ A list with components:
 \item{intercept}{Estimated intercept term.}
 \item{dispersion}{Estimated dispersion parameter (for Gaussian/Gamma).}
 \item{theta}{p × L matrix of fitted single-effect coefficients.}
+\item{pval_intercept}{p × L matrix of p-values for fitted single-effect intercepts}
+\item{pval_theta}{p × L matrix of p-values for fitted single-effect coefficients.}
 \item{pmp}{p × L matrix of posterior model probabilities.}
 \item{bic}{p × L matrix of BIC values.}
 \item{bic_diff}{p × L matrix of BIC differences from null.}

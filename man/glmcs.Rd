@@ -12,7 +12,7 @@ glmcs(
   coverage = 0.95,
   cor_threshold = 0.5,
   standardize = TRUE,
-  null_threshold = 1e-05,
+  decompose = TRUE,
   tol = 0.05,
   lambda = 0,
   tau = 1e-05,
@@ -47,8 +47,7 @@ required for variables to be grouped in the same confidence set (default: 0.5).}
 \item{standardize}{Logical indicating whether to center and scale predictors
 before fitting (default: TRUE).}
 
-\item{null_threshold}{Numeric specifying the threshold below which coefficients
-are set to zero (default: 1e-5).}
+\item{decompose}{Logical indicating whether to decompose theta in fitting (default: TRUE).}
 
 \item{tol}{Numeric specifying convergence tolerance for the expected log-likelihood
 between iterations (default: 5e-2).}
