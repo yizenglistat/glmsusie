@@ -1,61 +1,149 @@
-#’ Select “Kept” Columns by Cumulative-Probability Threshold or Uniform Deviation
-#’
-#’ @description
-#’ From a \code{p × L} matrix of probability vectors, identifies which columns
-#’ exhibit a “peak” before a cumulative probability threshold \code{thr} is reached.
-#’ If no column meets this criterion, selects the single column farthest from
-#’ the uniform distribution.
-#’
-#’ @details
-#’ 1. For each column, entries are sorted in descending order and their cumulative
-#’    sum is computed. If this sum exceeds \code{thr} before including all \code{p}
-#’    entries, that column is marked \code{TRUE} (“kept”).  
-#’ 2. If **no** column is marked \code{TRUE}, computes each column’s squared
-#’    Euclidean distance to the uniform vector \code{u = (1/p, …, 1/p)} and marks
-#’    only the column with the largest distance as \code{TRUE}.  
-#’ 3. Returns a logical vector of length \code{L}; names are preserved from
-#’    \code{colnames(X)} if present.
-#’
-#’ @param X   Numeric matrix with \code{p} rows and \code{L} columns, where each
-#’            column sums to 1 (a probability vector).
-#’ @param thr Numeric scalar in \[0,1\]; the cumulative-sum cutoff to identify
-#’            “peaky” columns. Default is \code{0.99}.
-#’
-#’ @return Logical vector of length \code{L}:  
-#’         \code{TRUE} indicates a column is selected (“kept”);  
-#’         \code{FALSE} otherwise.
-#’
-#’ @examples
-#’ set.seed(42)
-#’ p <- 5; L <- 4
-#’ X <- cbind(
-#’   c(0.8, 0.1, 0.05, 0.03, 0.02),
-#’   runif(p)/sum(runif(p)),
-#’   c(0.7, 0.1, 0.1, 0.05, 0.05),
-#’   rep(1/p, p)
-#’ )
-#’ iskept(X, thr = 0.95)
-#’ #>  TRUE FALSE  TRUE FALSE
-#’
-#’ @export
+#' Combine p-values using Fisher's Method
+#'
+#' @description
+#' Aggregates a vector of p-values using Fisher's method, which tests the union null
+#' hypothesis that all component tests are null. This method is powerful when multiple
+#' weak signals are present across independent or weakly correlated tests.
+#'
+#' @param pvals A numeric vector of p-values (typically for the same predictor across models or effects).
+#'
+#' @return A scalar: the Fisher-combined p-value.
+#'
+#' @details
+#' The test statistic is \eqn{T = -2 \sum \log(p_i)}, which follows a
+#' chi-squared distribution with \eqn{2k} degrees of freedom under the null,
+#' where \eqn{k} is the number of p-values.
+#'
+#' @importFrom stats pchisq
+#' 
+#' @examples
+#' \dontrun{
+#' p <- c(0.01, 0.2, 0.04)
+#' combine_fisher(p)
+#' }
+#' @name combine_fisher
+#' @export
+combine_fisher <- function(pvals) {
+  stat <- -2 * sum(log(pmax(pvals, 1e-300)))
+  stats::pchisq(stat, df = 2 * length(pvals), lower.tail = FALSE)
+}
+
+#' Combine p-values using Simes' Method
+#'
+#' @description
+#' Aggregates a vector of p-values using Simes' method, which controls the family-wise error rate
+#' under the union null hypothesis. This is particularly useful when testing whether at least one
+#' of several related tests shows a significant effect.
+#'
+#' @param pvals A numeric vector of p-values (e.g., from L single-effect models for one predictor).
+#'
+#' @return A scalar: the Simes-combined p-value.
+#'
+#' @details
+#' The Simes p-value is computed as:
+#' \deqn{\min_{i=1}^L \frac{L \cdot p_{(i)}}{i}},
+#' where \eqn{p_{(i)}} are the ordered p-values.
+#'
+#' @examples
+#' \dontrun{
+#' p <- c(0.01, 0.2, 0.04)
+#' combine_simes(p)
+#' }
+#' @name combine_simes
+#' @export
+combine_simes <- function(pvals) {
+  L <- length(pvals)
+  pvals_sorted <- sort(pvals)
+  min(L * pvals_sorted / seq_len(L))
+}
+
+#' Select Columns with Concentrated Probability Mass or Maximum Non-Uniformity
+#'
+#' @description
+#' Identifies columns in a probability matrix that have their mass concentrated in
+#' few entries (reaching a cumulative threshold quickly when sorted). If no columns
+#' meet this concentration criterion, selects the single column that deviates most
+#' from uniformity.
+#'
+#' @details
+#' This function implements a two-step column selection process:
+#' 
+#' \bold{Step 1: Concentration-based selection}
+#' For each column in matrix \code{X}:
+#' \itemize{
+#'   \item Values are sorted in descending order
+#'   \item The cumulative sum is computed
+#'   \item If the cumulative sum exceeds threshold \code{thr} before using all entries,
+#'     the column is considered "concentrated" and marked \code{TRUE}
+#'   \item This identifies columns where a small subset of entries contain most of the probability mass
+#' }
+#' 
+#' \bold{Step 2: Uniformity-based fallback}
+#' If no column meets the concentration criterion:
+#' \itemize{
+#'   \item Computes the squared Euclidean distance from each column to the uniform vector \code{(1/p, ..., 1/p)}
+#'   \item Selects only the column with the maximum distance from uniformity
+#'   \item This guarantees at least one column is always selected
+#' }
+#'
+#' @param X A numeric matrix with dimensions \code{p × L}, where:
+#'          \itemize{
+#'            \item Each column represents a probability vector
+#'            \item Each column should sum to 1 (or approximately 1 due to floating-point precision)
+#'            \item Columns with negative values or sums significantly different from 1 may produce unexpected results
+#'          }
+#'          
+#' @param thr A numeric scalar in \[0,1\] specifying the cumulative probability threshold.
+#'            \itemize{
+#'              \item Higher values (e.g., 0.99) require more extreme concentration
+#'              \item Lower values (e.g., 0.8) are more lenient
+#'              \item Default: 0.99
+#'            }
+#'
+#' @return A logical vector of length \code{L} where:
+#' \itemize{
+#'   \item \code{TRUE} indicates a column is selected ("kept")
+#'   \item \code{FALSE} indicates a column is not selected
+#'   \item Column names from \code{X} are preserved in the result
+#'   \item At least one element will always be \code{TRUE}
+#' }
+#'
+#' @note
+#' \itemize{
+#'   \item The function works best when input columns are valid probability vectors (non-negative, sum to 1)
+#'   \item For edge cases where multiple columns tie for maximum distance from uniformity, only one is selected
+#'   \item Computational complexity scales linearly with the number of columns
+#' }
+#' @name iskept
+#' @export
 iskept <- function(X, thr = 0.99) {
   p <- nrow(X)
-  # 1) mark TRUE if cumulative sum of largest probs > thr before using all p entries
+  
+  # 1) Identify columns where cumulative sum of sorted values exceeds threshold
+  #    before using all p entries (indicating concentrated probability mass)
   keep <- apply(X, 2, function(col) {
-    which(cumsum(sort(col, decreasing = TRUE)) > thr)[1] < p
+    sorted_probs <- sort(col, decreasing = TRUE)
+    cum_probs <- cumsum(sorted_probs)
+    # Check if threshold is reached before using all entries
+    first_idx_over_thr <- which(cum_probs > thr)[1]
+    !is.na(first_idx_over_thr) && first_idx_over_thr < p
   })
   
-  # 2) fallback: if none kept, pick column farthest from uniform
+  # 2) Fallback: if no columns meet concentration criterion,
+  #    select the column with maximum deviation from uniformity
   if (!any(keep)) {
-    u  <- rep(1/p, p)
-    d2 <- colSums((X - u)^2)
-    keep[which.max(d2)] <- TRUE
+    u <- rep(1/p, p)                 # Uniform distribution
+    d2 <- colSums((X - u)^2)         # Squared Euclidean distances
+    max_idx <- which.max(d2)         # Column with maximum deviation
+    keep[max_idx] <- TRUE            # Mark it as kept
   }
   
-  # 3) preserve column names
-  if (!is.null(colnames(X))) names(keep) <- colnames(X)
+  # 3) Preserve column names if present
+  if (!is.null(colnames(X))) {
+    names(keep) <- colnames(X)
+  }
   
-  keep
+  return(keep)
 }
 
 #' Extract Model Coefficients from a glmcs Object
@@ -235,7 +323,7 @@ summary.glmcs <- function(object, ...) {
   theta <- coef(object)
   
   # Calculate inclusion probabilities
-  marginal_probs <- object$marginal
+  marginal_probs <- object$pip
   
   # Prepare coefficient table
   coef_table <- data.frame(
@@ -245,7 +333,7 @@ summary.glmcs <- function(object, ...) {
   )
   
   # Sort by absolute coefficient value
-  coef_table <- coef_table[order(abs(coef_table$marginal), decreasing = TRUE), ]
+  coef_table <- coef_table[order(coef_table$PIP, decreasing = TRUE), ]
   
   # Information about convergence
   converged <- object$niter < object$max_iter
@@ -458,7 +546,7 @@ plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"),
   
   # Get coefficients and probabilities
   theta <- coef(x)
-  probs <- x$marginal
+  probs <- x$pip
   
   # Create data frame for plotting
   plot_data <- data.frame(

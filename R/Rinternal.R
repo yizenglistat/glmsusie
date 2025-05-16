@@ -393,6 +393,7 @@ NULL
 #' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
 #' @param tau Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).
 #' @param decompose Logical: if TRUE, decompose the theta in fitting (default: TRUE).
+#' @param alpha level of significance
 #' @param tol Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).
 #' @param max_iter Integer; maximum number of coordinate-ascent iterations (default: 100).
 #'

@@ -153,10 +153,6 @@ glmcs <- function(X, y, L = 10L,
   if (!is.logical(standardize)) {
     stop("standardize must be TRUE or FALSE")
   }
-  
-  # if (is.null(family$dispersion)) {
-  #   family$dispersion <- 1.0
-  # }
 
   # Store column names if available
   col_names <- colnames(X)
@@ -193,6 +189,7 @@ glmcs <- function(X, y, L = 10L,
     tol = tol, 
     ties = ties, 
     lambda = lambda,
+    alpha = 1 - coverage,
     tau = tau,
     max_iter = max_iter
   )
@@ -213,7 +210,7 @@ glmcs <- function(X, y, L = 10L,
     bic_diff = out$bic_diff,
     bf = out$bf,
     pval_intercept = out$pval_intercept,
-    pval = out$pval_theta,
+    pval_theta = out$pval_theta,
     kept = kept,
     niter = out$niter,
     max_iter = max_iter,
@@ -226,7 +223,7 @@ glmcs <- function(X, y, L = 10L,
   colnames(result$theta) <- paste0("Effect", 1:ncol(result$theta))
   colnames(result$pmp) <- paste0("Effect", 1:ncol(result$pmp))
   colnames(result$pval_intercept) <- paste0("Effect", 1:ncol(result$pval_intercept))
-  colnames(result$pval) <- paste0("Effect", 1:ncol(result$pval))
+  colnames(result$pval_theta) <- paste0("Effect", 1:ncol(result$pval_theta))
 
   
   # Calculate confidence sets
@@ -250,20 +247,40 @@ glmcs <- function(X, y, L = 10L,
   }
 
   # Calculate marginal pvalues
-  
-  
-  # Calculate marginal inclusion probabilities
+  combine_simes <- function(pvals) {
+    L <- length(pvals)
+    pvals_sorted <- sort(pvals)
+    min(L * pvals_sorted / seq_len(L))
+  }
+
+  combine_fisher <- function(pvals) {
+    stat <- -2 * sum(log(pmax(pvals, 1e-300)))
+    pchisq(stat, df = 2 * length(pvals), lower.tail = FALSE)
+  }
+
   if(sum(kept) == 0){
     p <- ncol(X)
-    result$marginal <- rep(1/p, p)
+    result$pval_simes <- rep(1, p)
+    result$pval_fisher <- rep(1, p)
+  }else{
+    result$pval_simes <- apply(result$pval_theta[, kept, drop=FALSE], 1, combine_simes)
+    result$pval_fisher <- apply(result$pval_theta[, kept, drop=FALSE], 1, combine_fisher)
+  }
+  names(result$pval_simes) <- col_names
+  names(result$pval_fisher) <- col_names
+  
+  # Calculate posterior inclusion probabilities
+  if(sum(kept) == 0){
+    p <- ncol(X)
+    result$pip <- rep(1/p, p)
   }else{ 
-    result$marginal <- 1 - apply(
+    result$pip <- 1 - apply(
       X = 1 - result$pmp[, kept, drop=FALSE], 
       MARGIN = 1, 
       FUN = prod
     )
   }
-  names(result$marginal) <- col_names
+  names(result$pip) <- col_names
   
   # Assign class and return
   class(result) <- "glmcs"

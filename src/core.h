@@ -234,7 +234,7 @@ Rcpp::List univariate_fit(
  * @param ties Method for handling ties in Cox models
  * @param lambda Penalty strength parameter (NULL for default)
  * @param tau Truncation parameter (NULL for default)
- * @param alpha level of significance
+ * @param alpha Level of significance
  * 
  * @return List with log-likelihood, BIC, Bayes factors, PMP and coefficient estimates, pvals
  */
@@ -268,6 +268,7 @@ List single_effect_fit(
  * @param lambda Penalty strength parameter
  * @param tau Truncation parameter
  * @param decompose Whether to decompose the theta
+ * @param alpha Level of significance
  * @param tol Convergence tolerance
  * @param max_iter Maximum number of iterations
  * 
@@ -283,6 +284,7 @@ List additive_effect_fit(
     double lambda,
     double tau,
     bool decompose,
+    double alpha,
     double tol,
     int max_iter
 );

@@ -159,8 +159,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // additive_effect_fit
-List additive_effect_fit(const arma::mat& X, SEXP y, int L, SEXP family, bool standardize, std::string ties, double lambda, double tau, double decompose, double tol, int max_iter);
-RcppExport SEXP _glmcs_additive_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP LSEXP, SEXP familySEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP decomposeSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
+List additive_effect_fit(const arma::mat& X, SEXP y, int L, SEXP family, bool standardize, std::string ties, double lambda, double tau, double decompose, double alpha, double tol, int max_iter);
+RcppExport SEXP _glmcs_additive_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP LSEXP, SEXP familySEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP decomposeSEXP, SEXP alphaSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -173,9 +173,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< double >::type decompose(decomposeSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    rcpp_result_gen = Rcpp::wrap(additive_effect_fit(X, y, L, family, standardize, ties, lambda, tau, decompose, tol, max_iter));
+    rcpp_result_gen = Rcpp::wrap(additive_effect_fit(X, y, L, family, standardize, ties, lambda, tau, decompose, alpha, tol, max_iter));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -190,7 +191,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_univariate_irls_glm", (DL_FUNC) &_glmcs_univariate_irls_glm, 6},
     {"_glmcs_univariate_fit", (DL_FUNC) &_glmcs_univariate_fit, 8},
     {"_glmcs_single_effect_fit", (DL_FUNC) &_glmcs_single_effect_fit, 9},
-    {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 11},
+    {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 12},
     {NULL, NULL, 0}
 };
 

@@ -37,7 +37,7 @@ single_effect_fit <- function(X, y, family, offset, standardize = TRUE, ties = "
     .Call(`_glmcs_single_effect_fit`, X, y, family, offset, standardize, ties, lambda, tau, alpha)
 }
 
-additive_effect_fit <- function(X, y, L, family, standardize = TRUE, ties = "efron", lambda = 0.0, tau = 0.5, decompose = TRUE, tol = 5e-2, max_iter = 100L) {
-    .Call(`_glmcs_additive_effect_fit`, X, y, L, family, standardize, ties, lambda, tau, decompose, tol, max_iter)
+additive_effect_fit <- function(X, y, L, family, standardize = TRUE, ties = "efron", lambda = 0.0, tau = 0.5, decompose = TRUE, alpha = 0.05, tol = 5e-2, max_iter = 100L) {
+    .Call(`_glmcs_additive_effect_fit`, X, y, L, family, standardize, ties, lambda, tau, decompose, alpha, tol, max_iter)
 }
 

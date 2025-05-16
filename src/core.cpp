@@ -970,6 +970,7 @@ List additive_effect_fit(
     double lambda = 0.0,
     double tau = 0.5,
     double decompose = true,
+    double alpha = 0.05,
     double tol = 5e-2,
     int max_iter = 100)
 {
@@ -1047,7 +1048,8 @@ List additive_effect_fit(
         standardize,
         ties,
         lambda,
-        tau
+        tau,
+        alpha
       );
       
       // Extract results

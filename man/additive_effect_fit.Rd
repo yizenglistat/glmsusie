@@ -27,6 +27,8 @@
 
 \item{decompose}{Logical: if TRUE, decompose the theta in fitting (default: TRUE).}
 
+\item{alpha}{level of significance}
+
 \item{tol}{Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).}
 
 \item{max_iter}{Integer; maximum number of coordinate-ascent iterations (default: 100).}
