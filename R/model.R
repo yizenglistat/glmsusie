@@ -64,7 +64,6 @@
 #'   \item{theta}{p × L matrix of estimated coefficients for each single effect}
 #'   \item{intercept}{Estimated intercept (NULL for Cox regression)}
 #'   \item{pmp}{p × L matrix of posterior model probabilities}
-#'   \item{dispersion}{Estimated dispersion parameter}
 #'   \item{loglik}{p × L matrix of log-likelihoods}
 #'   \item{bic}{p × L matrix of BIC values}
 #'   \item{bic_diff}{p × L matrix of BIC differences from null model}
@@ -131,8 +130,6 @@ glmcs <- function(X, y, L = 10L,
   
   # Capture the call
   cl <- match.call()
-  
-  family$dispersion <- 1.0
 
   # Set random seed if provided
   if (!is.null(seed)) set.seed(seed)
@@ -180,7 +177,7 @@ glmcs <- function(X, y, L = 10L,
     if (is.matrix(y)) y <- drop(y)
   }
   
-  if(L>ncol(X)) L <- ncol(X)
+  if(L > ncol(X)) L <- ncol(X)
 
   # Match ties method for Cox regression
   ties <- match.arg(ties)
@@ -211,7 +208,6 @@ glmcs <- function(X, y, L = 10L,
     theta = out$theta,
     intercept = sum(out$intercept),
     pmp = out$pmp,
-    dispersion = out$dispersion,
     loglik = out$loglik,
     bic = out$bic,
     bic_diff = out$bic_diff,

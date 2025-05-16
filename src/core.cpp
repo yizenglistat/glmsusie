@@ -508,81 +508,92 @@ double univariate_irls_glm_no_intercept(const arma::vec&   x,
   if (offset.n_elem == 1 && n > 1) offset = arma::vec(n).fill(offset(0));
   if ((int)offset.n_elem != n) stop("offset must be length 1 or n");
   if (TYPEOF(family) != VECSXP) stop("family must be a stats::family object");
-
+  
   // Extract family functions
   List fam = as<List>(family);
   Function linkinv = fam["linkinv"];
   Function varfun = fam["variance"];
   Function mu_eta = fam["mu.eta"];
-  double dispersion = as<double>(fam["dispersion"]);
+  
+  // Handle dispersion - checking if NULL first
+  double dispersion = 1.0;  // Default to 1.0 (appropriate for binomial/Poisson)
+  if (!Rf_isNull(fam["dispersion"])) {
+    dispersion = as<double>(fam["dispersion"]);
+  }
+  
   CharacterVector family_name = fam["family"];
   bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
-
+  bool is_binomial = (as<std::string>(family_name[0]) == "binomial");
+  
   // Initialize slope parameter
   double theta = 0.0;
-
+  
   // Initialize linear predictor
   arma::vec eta = offset;
   if (is_poisson) eta = arma::clamp(eta, -20.0, 20.0);
-
+  
   NumericVector mu_r = linkinv(wrap(eta));
   arma::vec mu = as<arma::vec>(mu_r);
-
+  
   if (is_poisson) {
     for (int i = 0; i < n; i++) if (mu[i] <= 0) mu[i] = 1e-8;
   }
-
+  
   for (int iter = 0; iter < max_iter; ++iter) {
     NumericVector var_r = varfun(wrap(mu));
     NumericVector gprime = mu_eta(wrap(eta));
-
+    
     for (int i = 0; i < n; i++) {
       if (R_IsNaN(var_r[i]) || var_r[i] <= 0) var_r[i] = 1e-8;
       if (R_IsNaN(gprime[i]) || gprime[i] <= 0) gprime[i] = 1e-8;
     }
-
+    
     arma::vec var_mu = as<arma::vec>(var_r);
     arma::vec gprime_vec = as<arma::vec>(gprime);
+    
     arma::vec w = arma::square(gprime_vec) / (var_mu * dispersion);
-
+    
     for (int i = 0; i < n; i++) {
       if (!arma::is_finite(w[i]) || w[i] <= 0) w[i] = 1e-8;
       else if (w[i] > 1e8) w[i] = 1e8;
     }
-
+    
     arma::vec z(n);
     for (int i = 0; i < n; i++) {
       double diff = y[i] - mu[i];
       z[i] = eta[i] + diff / gprime_vec[i];
       if (!arma::is_finite(z[i])) z[i] = eta[i];
     }
-
+    
     arma::vec z0 = z - offset;
-
     arma::vec xw = x % sqrt(w);
     arma::vec zw = z0 % sqrt(w);
-
+    
+    // Handle potential numerical issues with XtWX
     double XtWX = dot(xw, xw);
+    if (XtWX < 1e-8) XtWX = 1e-8;  // Prevent division by very small numbers
+    
     double XtWz = dot(xw, zw);
-
     double theta_new = XtWz / XtWX;
-
+    
     if (std::abs(theta_new - theta) < tol) {
       theta = theta_new;
       break;
     }
-
+    
     theta = theta_new;
+    
     eta = offset + theta * x;
     if (is_poisson) eta = arma::clamp(eta, -20.0, 20.0);
-
+    
     mu_r = linkinv(wrap(eta));
     mu = as<arma::vec>(mu_r);
+    
     if (is_poisson) {
       for (int i = 0; i < n; i++) if (mu[i] <= 0) mu[i] = 1e-8;
     }
   }
-
+  
   return theta;
 }
 
@@ -605,9 +616,16 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
   Function linkinv = fam["linkinv"];
   Function varfun = fam["variance"];
   Function mu_eta = fam["mu.eta"];
-  double dispersion = as<double>(fam["dispersion"]);
+  
+  // Handle dispersion - checking if NULL first
+  double dispersion = 1.0;  // Default to 1.0 (appropriate for binomial/Poisson)
+  if (!Rf_isNull(fam["dispersion"])) {
+    dispersion = as<double>(fam["dispersion"]);
+  }
+  
   CharacterVector family_name = fam["family"];
   bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
+  bool is_binomial = (as<std::string>(family_name[0]) == "binomial");
   
   // Initialize parameters
   double intercept = 0.0, intercept_new = 0.0;
@@ -733,6 +751,9 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
       }
     }
   }
+  
+  // Calculate final deviance if desired
+  // (could be added here)
   
   // Return both parameters in a List
   Rcpp::List result = Rcpp::List::create(
@@ -1084,7 +1105,6 @@ List additive_effect_fit(
     Named("expect_loglik") = expect_loglik.subvec(0, last),
     Named("final_loglik") = expect_loglik(last),
     Named("intercept") = intercept,
-    Named("dispersion") = 1.0,
     Named("theta") = theta,
     Named("pval_intercept") = pval_intercept,
     Named("pval_theta") = pval_theta,

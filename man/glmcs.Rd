@@ -76,7 +76,6 @@ A list with class "glmcs" containing:
 \item{theta}{p × L matrix of estimated coefficients for each single effect}
 \item{intercept}{Estimated intercept (NULL for Cox regression)}
 \item{pmp}{p × L matrix of posterior model probabilities}
-\item{dispersion}{Estimated dispersion parameter}
 \item{loglik}{p × L matrix of log-likelihoods}
 \item{bic}{p × L matrix of BIC values}
 \item{bic_diff}{p × L matrix of BIC differences from null model}
