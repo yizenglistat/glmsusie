@@ -523,7 +523,6 @@ double univariate_irls_glm_no_intercept(const arma::vec&   x,
   
   CharacterVector family_name = fam["family"];
   bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
-  bool is_binomial = (as<std::string>(family_name[0]) == "binomial");
   
   // Initialize slope parameter
   double theta = 0.0;
@@ -625,7 +624,6 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
   
   CharacterVector family_name = fam["family"];
   bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
-  bool is_binomial = (as<std::string>(family_name[0]) == "binomial");
   
   // Initialize parameters
   double intercept = 0.0, intercept_new = 0.0;
