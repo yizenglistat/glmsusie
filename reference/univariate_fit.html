@@ -84,23 +84,14 @@ or a Cox family list with <code>family = "cox"</code>.</p></dd>
 <dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
 <dd><p>Numeric truncation parameter; if <code>NULL</code> or ≤ 0, defaults to 0.5.</p></dd>
 
-
-<dt id="arg-null-threshold">null_threshold<a class="anchor" aria-label="anchor" href="#arg-null-threshold"></a></dt>
-<dd><p>Numeric threshold below which the final <code>theta</code> is set to zero (default: 1e-6).</p></dd>
-
-
-<dt id="arg-max-iter">max_iter<a class="anchor" aria-label="anchor" href="#arg-max-iter"></a></dt>
-<dd><p>Integer: maximum number of IRLS iterations (default: 25).</p></dd>
-
-
-<dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
-<dd><p>Numeric convergence tolerance on <code>theta</code> updates (default: 1e-8).</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with elements:</p>
-<dl><dt>theta</dt>
+<dl><dt>intercept</dt>
+<dd><p>Estimated intercept (after undoing standardization).</p></dd>
+
+<dt>theta</dt>
 <dd><p>Estimated coefficient (after undoing standardization).</p></dd>
 
 <dt>loglik</dt>

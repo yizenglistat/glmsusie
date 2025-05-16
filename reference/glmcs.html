@@ -58,7 +58,7 @@ selection based on posterior model probabilities.</p>
 <span>  coverage <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  cor_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  standardize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  null_threshold <span class="op">=</span> <span class="fl">1e-05</span>,</span>
+<span>  decompose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fl">1e-05</span>,</span>
@@ -109,9 +109,8 @@ required for variables to be grouped in the same confidence set (default: 0.5).<
 before fitting (default: TRUE).</p></dd>
 
 
-<dt id="arg-null-threshold">null_threshold<a class="anchor" aria-label="anchor" href="#arg-null-threshold"></a></dt>
-<dd><p>Numeric specifying the threshold below which coefficients
-are set to zero (default: 1e-5).</p></dd>
+<dt id="arg-decompose">decompose<a class="anchor" aria-label="anchor" href="#arg-decompose"></a></dt>
+<dd><p>Logical indicating whether to decompose theta in fitting (default: TRUE).</p></dd>
 
 
 <dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
@@ -165,9 +164,6 @@ in Cox regression: "efron" (default) or "breslow".</p></dd>
 
 <dt>pmp</dt>
 <dd><p>p × L matrix of posterior model probabilities</p></dd>
-
-<dt>dispersion</dt>
-<dd><p>Estimated dispersion parameter</p></dd>
 
 <dt>loglik</dt>
 <dd><p>p × L matrix of log-likelihoods</p></dd>

@@ -82,21 +82,48 @@ GLM (via IRLS + truncated‐L1) or Cox partial likelihood (via penalized IRLS).<
 <dd><p>Numeric truncation parameter; if ≤ 0, defaults to 1.0 (default: 1.0).</p></dd>
 
 
-<dt id="arg-null-threshold">null_threshold<a class="anchor" aria-label="anchor" href="#arg-null-threshold"></a></dt>
-<dd><p>Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).</p></dd>
+<dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
+<dd><p>level of significance</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list of length p, where each element is itself a list with components:</p>
-<dl><dt>theta</dt>
-<dd><p>Estimated coefficient for that predictor.</p></dd>
-
-<dt>loglik</dt>
+<dl><dt>loglik</dt>
 <dd><p>Unpenalized log‐likelihood at the fitted coefficient.</p></dd>
 
 <dt>bic</dt>
 <dd><p>Bayesian Information Criterion: \(-2*logLik + 2\log(n)\).</p></dd>
+
+<dt>bic_diff</dt>
+<dd><p>BIC difference from null model.</p></dd>
+
+<dt>bf</dt>
+<dd><p>Bayes factor.</p></dd>
+
+<dt>pmp</dt>
+<dd><p>Posterior model probability.</p></dd>
+
+<dt>intercept</dt>
+<dd><p>Estimated intercept for that predictor.</p></dd>
+
+<dt>theta</dt>
+<dd><p>Estimated coefficient for that predictor.</p></dd>
+
+<dt>pval_intercept</dt>
+<dd><p>P-value for estimated intercept for that predictor.</p></dd>
+
+<dt>pval_theta</dt>
+<dd><p>P-value for estimated coefficient for that predictor.</p></dd>
+
+<dt>expect_intercept</dt>
+<dd><p>Expected value of intercept under model averaging.</p></dd>
+
+<dt>expect_theta</dt>
+<dd><p>Expected value of coefficient under model averaging.</p></dd>
+
+<dt>expect_variance</dt>
+<dd><p>Expected variance under model averaging.</p></dd>
 
 </dl></div>
 

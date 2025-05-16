@@ -91,8 +91,12 @@ convergence or <code>max_iter</code> is reached.</p>
 <dd><p>Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).</p></dd>
 
 
-<dt id="arg-null-threshold">null_threshold<a class="anchor" aria-label="anchor" href="#arg-null-threshold"></a></dt>
-<dd><p>Numeric threshold below which an estimated coefficient is set to zero (default: 1e-6).</p></dd>
+<dt id="arg-decompose">decompose<a class="anchor" aria-label="anchor" href="#arg-decompose"></a></dt>
+<dd><p>Logical: if TRUE, decompose the theta in fitting (default: TRUE).</p></dd>
+
+
+<dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
+<dd><p>level of significance</p></dd>
 
 
 <dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
@@ -127,6 +131,12 @@ convergence or <code>max_iter</code> is reached.</p>
 <dt>theta</dt>
 <dd><p>p × L matrix of fitted single-effect coefficients.</p></dd>
 
+<dt>pval_intercept</dt>
+<dd><p>p × L matrix of p-values for fitted single-effect intercepts</p></dd>
+
+<dt>pval_theta</dt>
+<dd><p>p × L matrix of p-values for fitted single-effect coefficients.</p></dd>
+
 <dt>pmp</dt>
 <dd><p>p × L matrix of posterior model probabilities.</p></dd>
 
@@ -141,9 +151,6 @@ convergence or <code>max_iter</code> is reached.</p>
 
 <dt>expect_variance</dt>
 <dd><p>Length-L vector of PMP-weighted variances.</p></dd>
-
-<dt>kept</dt>
-<dd><p>Logical vector of length L; <code>TRUE</code> for effects retained.</p></dd>
 
 <dt>elapsed_time</dt>
 <dd><p>Numeric; total computation time in seconds.</p></dd>

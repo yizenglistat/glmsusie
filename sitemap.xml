@@ -13,8 +13,11 @@
 <url><loc>https://yizenglistat.github.io/glmcs/reference/BIC.glmcs.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/additive_effect_fit.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/coef.glmcs.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmcs/reference/combine_fisher.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmcs/reference/combine_simes.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/confidence_set.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/cox.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmcs/reference/decompose_theta.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/deviance.glmcs.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/dispersion.glmcs.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/fitted.glmcs.html</loc></url>
@@ -38,8 +41,9 @@
 <url><loc>https://yizenglistat.github.io/glmcs/reference/univariate_fit.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/univariate_irls_cox.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/univariate_irls_glm.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmcs/reference/univariate_irls_glm_no_intercept.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/univariate_loglik.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmcs/reference/univariate_loglik_cox.html</loc></url>
-<url><loc>https://yizenglistat.github.io/glmcs/reference/update_dispersion.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmcs/reference/univariate_loglik_glm.html</loc></url>
 </urlset>
 

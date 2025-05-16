@@ -57,7 +57,7 @@
       <h1>Cox Regression Examples</h1>
                         <h4 data-toc-skip class="author">Yizeng Li</h4>
             
-            <h4 data-toc-skip class="date">2025-05-10</h4>
+            <h4 data-toc-skip class="date">2025-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/yizenglistat/glmcs/blob/main/vignettes/cox.Rmd" class="external-link"><code>vignettes/cox.Rmd</code></a></small>
       <div class="d-none name"><code>cox.Rmd</code></div>
@@ -128,31 +128,28 @@ risk of overfitting.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Family: gaussian </span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Coefficients: (sorted by magnitude)</span></span>
-<span><span class="co">##      Estimate PIP</span></span>
-<span><span class="co">## X300   1.0363   1</span></span>
-<span><span class="co">## X200   1.0082   1</span></span>
-<span><span class="co">## X100   0.9661   1</span></span>
-<span><span class="co">## X400   0.9505   1</span></span>
-<span><span class="co">## X1     0.0000   0</span></span>
-<span><span class="co">## X2     0.0000   0</span></span>
-<span><span class="co">## X3     0.0000   0</span></span>
-<span><span class="co">## X4     0.0000   0</span></span>
-<span><span class="co">## X5     0.0000   0</span></span>
-<span><span class="co">## X6     0.0000   0</span></span>
+<span><span class="co">## Coefficients: (sorted by PIP)</span></span>
+<span><span class="co">##          Estimate    PIP</span></span>
+<span><span class="co">## X300  1.034716581 1.0000</span></span>
+<span><span class="co">## X400  0.949571898 1.0000</span></span>
+<span><span class="co">## X200  0.913397549 0.9743</span></span>
+<span><span class="co">## X100  0.867293847 0.9453</span></span>
+<span><span class="co">## X255 -0.019513841 0.1959</span></span>
+<span><span class="co">## X186 -0.017385226 0.1797</span></span>
+<span><span class="co">## X839  0.011407915 0.1262</span></span>
+<span><span class="co">## X208 -0.010318564 0.1138</span></span>
+<span><span class="co">## X771  0.007012544 0.0802</span></span>
+<span><span class="co">## X668 -0.005952282 0.0716</span></span>
 <span><span class="co">## ... (990 more coefficients not shown)</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 95% Confidence Sets:</span></span>
 <span><span class="co">##       Set Coverage</span></span>
-<span><span class="co">## cs1 {300}        1</span></span>
-<span><span class="co">## cs2 {200}        1</span></span>
-<span><span class="co">## cs3 {400}        1</span></span>
-<span><span class="co">## cs4 {100}        1</span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">## Dispersion parameter: 0.9343 </span></span>
+<span><span class="co">## cs1 {200}   0.9742</span></span>
+<span><span class="co">## cs2 {400}   1.0000</span></span>
+<span><span class="co">## cs3 {300}   0.9518</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 3 iterations.</span></span>
-<span><span class="co">## Computation time: 6.47 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 15.14 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -202,7 +199,7 @@ least one is likely to be active, with <span class="math inline">95\%</span> con
 <span><span class="op">)</span></span>
 <span><span class="co">##   Method      RMSE</span></span>
 <span><span class="co">## 1  susie 0.9728844</span></span>
-<span><span class="co">## 2  glmcs 0.9728829</span></span></code></pre></div>
+<span><span class="co">## 2  glmcs 0.9671509</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
