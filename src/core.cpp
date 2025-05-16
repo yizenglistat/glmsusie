@@ -517,8 +517,13 @@ double univariate_irls_glm_no_intercept(const arma::vec&   x,
   
   // Handle dispersion - checking if NULL first
   double dispersion = 1.0;  // Default to 1.0 (appropriate for binomial/Poisson)
-  if (!Rf_isNull(fam["dispersion"])) {
-    dispersion = as<double>(fam["dispersion"]);
+
+  // Check if "dispersion" exists in the family object
+  if (fam.containsElementNamed("dispersion")) {
+    // Additional check if it's not NULL
+    if (!Rf_isNull(fam["dispersion"])) {
+      dispersion = as<double>(fam["dispersion"]);
+    }
   }
   
   CharacterVector family_name = fam["family"];
@@ -618,8 +623,13 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
   
   // Handle dispersion - checking if NULL first
   double dispersion = 1.0;  // Default to 1.0 (appropriate for binomial/Poisson)
-  if (!Rf_isNull(fam["dispersion"])) {
-    dispersion = as<double>(fam["dispersion"]);
+
+  // Check if "dispersion" exists in the family object
+  if (fam.containsElementNamed("dispersion")) {
+    // Additional check if it's not NULL
+    if (!Rf_isNull(fam["dispersion"])) {
+      dispersion = as<double>(fam["dispersion"]);
+    }
   }
   
   CharacterVector family_name = fam["family"];
