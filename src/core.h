@@ -231,6 +231,7 @@ Rcpp::List univariate_fit(
  * @param family Family object or "cox"
  * @param offset Offset vector
  * @param standardize Whether to standardize the covariates
+ * @param shrinkage Whether to shrinkage parameters using pvals
  * @param ties Method for handling ties in Cox models
  * @param lambda Penalty strength parameter (NULL for default)
  * @param tau Truncation parameter (NULL for default)
@@ -244,6 +245,7 @@ List single_effect_fit(
     SEXP family,
     arma::vec offset,
     bool standardize,
+    bool shrinkage,
     std::string ties,
     double lambda,
     double tau,
@@ -268,6 +270,7 @@ List single_effect_fit(
  * @param lambda Penalty strength parameter
  * @param tau Truncation parameter
  * @param decompose Whether to decompose the theta
+ * @param shrinkage Whether to shrinkage parameters using pvals
  * @param alpha Level of significance
  * @param tol Convergence tolerance
  * @param max_iter Maximum number of iterations
@@ -284,6 +287,7 @@ List additive_effect_fit(
     double lambda,
     double tau,
     bool decompose,
+    bool shrinkage,
     double alpha,
     double tol,
     int max_iter

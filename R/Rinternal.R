@@ -334,6 +334,7 @@ NULL
 #'   \code{poisson()}) or a Cox family list with \code{family = "cox"}.
 #' @param offset Numeric scalar or vector (length n) giving the linear predictor offset (default: 0).
 #' @param standardize Logical: if TRUE, center and scale each predictor column before fitting (default: TRUE).
+#' @param shrinkage Logical: if TRUE, shrinkage parameters in fitting (default: TRUE).
 #' @param ties Character: ties method for Cox partial likelihood ("efron" or "breslow", default: "efron").
 #' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
 #' @param tau Numeric truncation parameter; if ≤ 0, defaults to 1.0 (default: 1.0).
@@ -393,6 +394,7 @@ NULL
 #' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
 #' @param tau Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).
 #' @param decompose Logical: if TRUE, decompose the theta in fitting (default: TRUE).
+#' @param shrinkage Logical: if TRUE, shrinkage parameters in fitting (default: TRUE).
 #' @param alpha level of significance
 #' @param tol Numeric; convergence tolerance on the change in expected log-likelihood (default: 5e-2).
 #' @param max_iter Integer; maximum number of coordinate-ascent iterations (default: 100).

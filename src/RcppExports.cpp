@@ -140,8 +140,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // single_effect_fit
-Rcpp::List single_effect_fit(const arma::mat& X, SEXP y, SEXP family, arma::vec offset, bool standardize, std::string ties, double lambda, double tau, double alpha);
-RcppExport SEXP _glmcs_single_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP alphaSEXP) {
+Rcpp::List single_effect_fit(const arma::mat& X, SEXP y, SEXP family, arma::vec offset, bool standardize, bool shrinkage, std::string ties, double lambda, double tau, double alpha);
+RcppExport SEXP _glmcs_single_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP shrinkageSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP alphaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -150,17 +150,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
     Rcpp::traits::input_parameter< arma::vec >::type offset(offsetSEXP);
     Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type shrinkage(shrinkageSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    rcpp_result_gen = Rcpp::wrap(single_effect_fit(X, y, family, offset, standardize, ties, lambda, tau, alpha));
+    rcpp_result_gen = Rcpp::wrap(single_effect_fit(X, y, family, offset, standardize, shrinkage, ties, lambda, tau, alpha));
     return rcpp_result_gen;
 END_RCPP
 }
 // additive_effect_fit
-List additive_effect_fit(const arma::mat& X, SEXP y, int L, SEXP family, bool standardize, std::string ties, double lambda, double tau, double decompose, double alpha, double tol, int max_iter);
-RcppExport SEXP _glmcs_additive_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP LSEXP, SEXP familySEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP decomposeSEXP, SEXP alphaSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
+List additive_effect_fit(const arma::mat& X, SEXP y, int L, SEXP family, bool standardize, std::string ties, double lambda, double tau, bool decompose, bool shrinkage, double alpha, double tol, int max_iter);
+RcppExport SEXP _glmcs_additive_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP LSEXP, SEXP familySEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP decomposeSEXP, SEXP shrinkageSEXP, SEXP alphaSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -172,11 +173,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< double >::type decompose(decomposeSEXP);
+    Rcpp::traits::input_parameter< bool >::type decompose(decomposeSEXP);
+    Rcpp::traits::input_parameter< bool >::type shrinkage(shrinkageSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    rcpp_result_gen = Rcpp::wrap(additive_effect_fit(X, y, L, family, standardize, ties, lambda, tau, decompose, alpha, tol, max_iter));
+    rcpp_result_gen = Rcpp::wrap(additive_effect_fit(X, y, L, family, standardize, ties, lambda, tau, decompose, shrinkage, alpha, tol, max_iter));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -190,8 +192,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_univariate_irls_glm_no_intercept", (DL_FUNC) &_glmcs_univariate_irls_glm_no_intercept, 6},
     {"_glmcs_univariate_irls_glm", (DL_FUNC) &_glmcs_univariate_irls_glm, 6},
     {"_glmcs_univariate_fit", (DL_FUNC) &_glmcs_univariate_fit, 8},
-    {"_glmcs_single_effect_fit", (DL_FUNC) &_glmcs_single_effect_fit, 9},
-    {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 12},
+    {"_glmcs_single_effect_fit", (DL_FUNC) &_glmcs_single_effect_fit, 10},
+    {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 13},
     {NULL, NULL, 0}
 };
 

@@ -43,6 +43,7 @@
 #' @param standardize Logical indicating whether to center and scale predictors 
 #'        before fitting (default: TRUE).
 #' @param decompose Logical indicating whether to decompose theta in fitting (default: TRUE).
+#' @param shrinkage Logical indicating whether to shrinkage parameters using pvals (default: TRUE).
 #' @param tol Numeric specifying convergence tolerance for the expected log-likelihood
 #'        between iterations (default: 5e-2).
 #' @param lambda Numeric penalty weight for the truncated-L1 penalty (default: 0.0).
@@ -121,6 +122,7 @@ glmcs <- function(X, y, L = 10L,
                   cor_threshold = 0.5,
                   standardize = TRUE,
                   decompose = TRUE,
+                  shrinkage = TRUE,
                   tol = 5e-2,
                   lambda = 0.0,
                   tau = 1e-5,
@@ -186,6 +188,7 @@ glmcs <- function(X, y, L = 10L,
     family = family, 
     standardize = standardize, 
     decompose = decompose, 
+    shrinkage = shrinkage,
     tol = tol, 
     ties = ties, 
     lambda = lambda,

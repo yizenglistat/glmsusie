@@ -857,6 +857,7 @@ Rcpp::List single_effect_fit(
     SEXP               family,
     arma::vec          offset,
     bool               standardize = true,
+    bool               shrinkage = true,
     std::string        ties = "efron",
     double             lambda = 0.0,
     double             tau = 0.5,
@@ -931,14 +932,14 @@ Rcpp::List single_effect_fit(
     double ll0_intercept = univariate_loglik(x_j, y, family, expect_theta[j], offset, 0.0);
     double lrt_intercept = 2.0 * (ll1 - ll0_intercept);
     pval_intercept[j] = R::pchisq(lrt_intercept, 1.0, false, false);
-    if (pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
+    if (shrinkage && pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
 
     // === Slope Test ===
     // Null model: theta = 0, intercept fixed
     double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, expect_intercept[j]);
     double lrt_theta = 2.0 * (ll1 - ll0_theta);
     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
-    if (pval_theta[j] > alpha) expect_theta[j] = 0.0;
+    if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
 
   }
 
@@ -969,7 +970,8 @@ List additive_effect_fit(
     std::string ties = "efron",
     double lambda = 0.0,
     double tau = 0.5,
-    double decompose = true,
+    bool decompose = true,
+    bool shrinkage = true,
     double alpha = 0.05,
     double tol = 5e-2,
     int max_iter = 100)
@@ -1027,7 +1029,7 @@ List additive_effect_fit(
   // Main iterations
   int iter;
   for (iter = 0; iter < max_iter; iter++) {
-    if(iter == 1) theta = decompose_theta(theta, L);// theta = arma::diagmat(arma::sum(theta, 1));
+    if(decompose) theta = decompose_theta(theta, L);// theta = arma::diagmat(arma::sum(theta, 1));
 
     // Calculate current linear predictor
     arma::vec linear_predictor(n, arma::fill::zeros);
@@ -1046,6 +1048,7 @@ List additive_effect_fit(
         fam,
         offset,
         standardize,
+        shrinkage,
         ties,
         lambda,
         tau,
