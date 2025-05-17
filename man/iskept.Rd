@@ -2,60 +2,34 @@
 % Please edit documentation in R/method.R
 \name{iskept}
 \alias{iskept}
-\title{Select Columns with Concentrated Probability Mass or Maximum Non-Uniformity}
+\title{Select Columns with Significant Concentration or Non-Uniformity}
 \usage{
-iskept(X, eps = 1e-09)
+iskept(pval, alpha = 0.05)
 }
 \arguments{
-\item{X}{A numeric matrix with dimensions \code{p × L}, where:
-\itemize{
-\item Each column represents a probability vector
-\item Each column should sum to 1 (or approximately 1 due to floating-point precision)
-\item Columns with negative values or sums significantly different from 1 may produce unexpected results
-}}
+\item{pval}{A numeric matrix of p-values (dimension: \code{p × L}), where each column corresponds to a single effect.}
 
-\item{eps}{Level of precision}
+\item{alpha}{Significance threshold for p-value aggregation (default = 0.05).}
 }
 \value{
-A logical vector of length \code{L} where:
+A logical vector of length \code{L} indicating selected columns:
 \itemize{
-\item \code{TRUE} indicates a column is selected ("kept")
-\item \code{FALSE} indicates a column is not selected
-\item Column names from \code{X} are preserved in the result
-\item At least one element will always be \code{TRUE}
+\item \code{TRUE} if a column is retained (i.e., passes threshold or selected as fallback)
+\item \code{FALSE} otherwise
 }
+Column names are preserved if available. At least one column will always be selected.
 }
 \description{
-Identifies columns in a probability matrix that have their mass concentrated in
-few entries (reaching a cumulative threshold quickly when sorted). If no columns
-meet this concentration criterion, selects the single column that deviates most
-from uniformity.
+This function identifies columns in a probability matrix that are either:
+(1) statistically significant using a column-wise p-value aggregation method (e.g., Simes),
+or (2) deviate most from uniformity if none are significant.
 }
 \details{
-This function implements a two-step column selection process:
-
-\bold{Step 1: Concentration-based selection}
-For each column in matrix \code{X}:
-\itemize{
-\item Values are sorted in descending order
-\item The cumulative sum is computed
-\item If the cumulative sum exceeds threshold \code{thr} before using all entries,
-the column is considered "concentrated" and marked \code{TRUE}
-\item This identifies columns where a small subset of entries contain most of the probability mass
-}
-
-\bold{Step 2: Uniformity-based fallback}
-If no column meets the concentration criterion:
-\itemize{
-\item Computes the squared Euclidean distance from each column to the uniform vector \code{(1/p, ..., 1/p)}
-\item Selects only the column with the maximum distance from uniformity
-\item This guarantees at least one column is always selected
-}
+Columns are assessed using a p-value combination method (e.g., \code{combine_simes}).
+If no column has an aggregated p-value below \code{alpha}, the fallback is to select
+the column that is most non-uniform (farthest from the uniform distribution).
 }
 \note{
-\itemize{
-\item The function works best when input columns are valid probability vectors (non-negative, sum to 1)
-\item For edge cases where multiple columns tie for maximum distance from uniformity, only one is selected
-\item Computational complexity scales linearly with the number of columns
-}
+Assumes each column in \code{pval} contains valid p-values.
+Uses \code{combine_simes()} to aggregate p-values per column.
 }

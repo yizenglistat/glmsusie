@@ -57,87 +57,49 @@ combine_simes <- function(pvals) {
   min(L * pvals_sorted / seq_len(L))
 }
 
-#' Select Columns with Concentrated Probability Mass or Maximum Non-Uniformity
+#' Select Columns with Significant Concentration or Non-Uniformity
 #'
 #' @description
-#' Identifies columns in a probability matrix that have their mass concentrated in
-#' few entries (reaching a cumulative threshold quickly when sorted). If no columns
-#' meet this concentration criterion, selects the single column that deviates most
-#' from uniformity.
+#' This function identifies columns in a probability matrix that are either:
+#' (1) statistically significant using a column-wise p-value aggregation method (e.g., Simes),
+#' or (2) deviate most from uniformity if none are significant.
 #'
 #' @details
-#' This function implements a two-step column selection process:
-#' 
-#' \bold{Step 1: Concentration-based selection}
-#' For each column in matrix \code{X}:
-#' \itemize{
-#'   \item Values are sorted in descending order
-#'   \item The cumulative sum is computed
-#'   \item If the cumulative sum exceeds threshold \code{thr} before using all entries,
-#'     the column is considered "concentrated" and marked \code{TRUE}
-#'   \item This identifies columns where a small subset of entries contain most of the probability mass
-#' }
-#' 
-#' \bold{Step 2: Uniformity-based fallback}
-#' If no column meets the concentration criterion:
-#' \itemize{
-#'   \item Computes the squared Euclidean distance from each column to the uniform vector \code{(1/p, ..., 1/p)}
-#'   \item Selects only the column with the maximum distance from uniformity
-#'   \item This guarantees at least one column is always selected
-#' }
+#' Columns are assessed using a p-value combination method (e.g., \code{combine_simes}).
+#' If no column has an aggregated p-value below \code{alpha}, the fallback is to select
+#' the column that is most non-uniform (farthest from the uniform distribution).
 #'
-#' @param X A numeric matrix with dimensions \code{p × L}, where:
-#'          \itemize{
-#'            \item Each column represents a probability vector
-#'            \item Each column should sum to 1 (or approximately 1 due to floating-point precision)
-#'            \item Columns with negative values or sums significantly different from 1 may produce unexpected results
-#'          }
-#'          
-#' @param eps Level of precision
+#' @param pval A numeric matrix of p-values (dimension: \code{p × L}), where each column corresponds to a single effect.
+#' @param alpha Significance threshold for p-value aggregation (default = 0.05).
 #'
-#' @return A logical vector of length \code{L} where:
+#' @return A logical vector of length \code{L} indicating selected columns:
 #' \itemize{
-#'   \item \code{TRUE} indicates a column is selected ("kept")
-#'   \item \code{FALSE} indicates a column is not selected
-#'   \item Column names from \code{X} are preserved in the result
-#'   \item At least one element will always be \code{TRUE}
+#'   \item \code{TRUE} if a column is retained (i.e., passes threshold or selected as fallback)
+#'   \item \code{FALSE} otherwise
 #' }
+#' Column names are preserved if available. At least one column will always be selected.
 #'
 #' @note
-#' \itemize{
-#'   \item The function works best when input columns are valid probability vectors (non-negative, sum to 1)
-#'   \item For edge cases where multiple columns tie for maximum distance from uniformity, only one is selected
-#'   \item Computational complexity scales linearly with the number of columns
-#' }
+#' Assumes each column in \code{pval} contains valid p-values.
+#' Uses \code{combine_simes()} to aggregate p-values per column.
 #' @name iskept
 #' @export
-iskept <- function(X, eps = 1e-9) {
-  p <- nrow(X)
-  
-  # 1) Identify columns where cumulative sum of sorted values exceeds threshold
-  #    before using all p entries (indicating concentrated probability mass)
-  keep <- apply(X, 2, function(col) {
-    sorted_probs <- sort(col, decreasing = TRUE)
-    cum_probs <- cumsum(sorted_probs)
-    # Check if threshold is reached before using all entries
-    first_idx_over_thr <- which(cum_probs > 1-eps)[1]
-    !is.na(first_idx_over_thr) && first_idx_over_thr < p
-  })
-  
-  # 2) Fallback: if no columns meet concentration criterion,
-  #    select the column with maximum deviation from uniformity
+iskept <- function(pval, alpha = 0.05) {
+  # Step 1: Aggregate p-values column-wise
+  pvals <- apply(pval, 2, combine_simes)
+  keep <- pvals < alpha
+
+  # Step 2: Fallback - if no column is significant, keep the most non-uniform one
   if (!any(keep)) {
-    u <- rep(1/p, p)                 # Uniform distribution
-    d2 <- colSums((X - u)^2)         # Squared Euclidean distances
-    max_idx <- which.max(d2)         # Column with maximum deviation
-    keep[max_idx] <- TRUE            # Mark it as kept
+    dists <- apply(pval, 2, function(p) sum((p - mean(p))^2))
+    keep[which.max(dists)] <- TRUE
   }
-  
-  # 3) Preserve column names if present
-  if (!is.null(colnames(X))) {
-    names(keep) <- colnames(X)
+
+  # Preserve column names if present
+  if (!is.null(colnames(pval))) {
+    names(keep) <- colnames(pval)
   }
-  
+
   return(keep)
 }
 

@@ -194,7 +194,7 @@ glmcs <- function(X, y, L = 10L,
     max_iter = max_iter
   )
 
-  kept <- iskept(out$pmp)
+  kept <- iskept(out$pval_theta)
 
   # Collect everything we'll need later
   result <- list(
