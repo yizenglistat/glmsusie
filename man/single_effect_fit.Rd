@@ -19,6 +19,8 @@
 
 \item{standardize}{Logical: if TRUE, center and scale each predictor column before fitting (default: TRUE).}
 
+\item{shrinkage}{Logical: if TRUE, shrinkage parameters in fitting (default: TRUE).}
+
 \item{ties}{Character: ties method for Cox partial likelihood ("efron" or "breslow", default: "efron").}
 
 \item{lambda}{Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).}

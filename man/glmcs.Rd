@@ -13,6 +13,7 @@ glmcs(
   cor_threshold = 0.5,
   standardize = TRUE,
   decompose = TRUE,
+  shrinkage = TRUE,
   tol = 0.05,
   lambda = 0,
   tau = 1e-05,
@@ -48,6 +49,8 @@ required for variables to be grouped in the same confidence set (default: 0.5).}
 before fitting (default: TRUE).}
 
 \item{decompose}{Logical indicating whether to decompose theta in fitting (default: TRUE).}
+
+\item{shrinkage}{Logical indicating whether to shrinkage parameters using pvals (default: TRUE).}
 
 \item{tol}{Numeric specifying convergence tolerance for the expected log-likelihood
 between iterations (default: 5e-2).}
