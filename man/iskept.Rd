@@ -4,7 +4,7 @@
 \alias{iskept}
 \title{Select Columns with Concentrated Probability Mass or Maximum Non-Uniformity}
 \usage{
-iskept(X, thr = 0.99)
+iskept(X, eps = 1e-09)
 }
 \arguments{
 \item{X}{A numeric matrix with dimensions \code{p × L}, where:
@@ -14,12 +14,7 @@ iskept(X, thr = 0.99)
 \item Columns with negative values or sums significantly different from 1 may produce unexpected results
 }}
 
-\item{thr}{A numeric scalar in [0,1] specifying the cumulative probability threshold.
-\itemize{
-\item Higher values (e.g., 0.99) require more extreme concentration
-\item Lower values (e.g., 0.8) are more lenient
-\item Default: 0.99
-}}
+\item{eps}{Level of precision}
 }
 \value{
 A logical vector of length \code{L} where:

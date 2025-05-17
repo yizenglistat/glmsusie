@@ -93,12 +93,7 @@ combine_simes <- function(pvals) {
 #'            \item Columns with negative values or sums significantly different from 1 may produce unexpected results
 #'          }
 #'          
-#' @param thr A numeric scalar in \[0,1\] specifying the cumulative probability threshold.
-#'            \itemize{
-#'              \item Higher values (e.g., 0.99) require more extreme concentration
-#'              \item Lower values (e.g., 0.8) are more lenient
-#'              \item Default: 0.99
-#'            }
+#' @param eps Level of precision
 #'
 #' @return A logical vector of length \code{L} where:
 #' \itemize{
@@ -116,7 +111,7 @@ combine_simes <- function(pvals) {
 #' }
 #' @name iskept
 #' @export
-iskept <- function(X, thr = 0.99) {
+iskept <- function(X, eps = 1e-9) {
   p <- nrow(X)
   
   # 1) Identify columns where cumulative sum of sorted values exceeds threshold
@@ -125,7 +120,7 @@ iskept <- function(X, thr = 0.99) {
     sorted_probs <- sort(col, decreasing = TRUE)
     cum_probs <- cumsum(sorted_probs)
     # Check if threshold is reached before using all entries
-    first_idx_over_thr <- which(cum_probs > thr)[1]
+    first_idx_over_thr <- which(cum_probs > 1-eps)[1]
     !is.na(first_idx_over_thr) && first_idx_over_thr < p
   })
   

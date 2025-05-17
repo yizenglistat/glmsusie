@@ -931,14 +931,14 @@ Rcpp::List single_effect_fit(
     double ll0_intercept = univariate_loglik(x_j, y, family, expect_theta[j], offset, 0.0);
     double lrt_intercept = 2.0 * (ll1 - ll0_intercept);
     pval_intercept[j] = R::pchisq(lrt_intercept, 1.0, false, false);
-    //if (pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
+    if (pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
 
     // === Slope Test ===
     // Null model: theta = 0, intercept fixed
     double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, expect_intercept[j]);
     double lrt_theta = 2.0 * (ll1 - ll0_theta);
     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
-    //if (pval_theta[j] > alpha) expect_theta[j] = 0.0;
+    if (pval_theta[j] > alpha) expect_theta[j] = 0.0;
 
   }
 
