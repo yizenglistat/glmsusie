@@ -50,7 +50,7 @@ from uniformity.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">iskept</span><span class="op">(</span><span class="va">X</span>, thr <span class="op">=</span> <span class="fl">0.99</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">iskept</span><span class="op">(</span><span class="va">X</span>, eps <span class="op">=</span> <span class="fl">1e-09</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -64,11 +64,8 @@ from uniformity.</p>
 </ul></dd>
 
 
-<dt id="arg-thr">thr<a class="anchor" aria-label="anchor" href="#arg-thr"></a></dt>
-<dd><p>A numeric scalar in [0,1] specifying the cumulative probability threshold.</p><ul><li><p>Higher values (e.g., 0.99) require more extreme concentration</p></li>
-<li><p>Lower values (e.g., 0.8) are more lenient</p></li>
-<li><p>Default: 0.99</p></li>
-</ul></dd>
+<dt id="arg-eps">eps<a class="anchor" aria-label="anchor" href="#arg-eps"></a></dt>
+<dd><p>Level of precision</p></dd>
 
 </dl></div>
     <div class="section level2">
