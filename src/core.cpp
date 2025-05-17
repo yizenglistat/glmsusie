@@ -760,9 +760,6 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
     }
   }
   
-  // Calculate final deviance if desired
-  // (could be added here)
-  
   // Return both parameters in a List
   Rcpp::List result = Rcpp::List::create(
     Rcpp::Named("intercept") = intercept,
