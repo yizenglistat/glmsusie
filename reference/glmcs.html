@@ -59,6 +59,7 @@ selection based on posterior model probabilities.</p>
 <span>  cor_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  standardize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  decompose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  shrinkage <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fl">1e-05</span>,</span>
@@ -111,6 +112,10 @@ before fitting (default: TRUE).</p></dd>
 
 <dt id="arg-decompose">decompose<a class="anchor" aria-label="anchor" href="#arg-decompose"></a></dt>
 <dd><p>Logical indicating whether to decompose theta in fitting (default: TRUE).</p></dd>
+
+
+<dt id="arg-shrinkage">shrinkage<a class="anchor" aria-label="anchor" href="#arg-shrinkage"></a></dt>
+<dd><p>Logical indicating whether to shrinkage parameters using pvals (default: TRUE).</p></dd>
 
 
 <dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
