@@ -1026,7 +1026,7 @@ List additive_effect_fit(
   // Main iterations
   int iter;
   for (iter = 0; iter < max_iter; iter++) {
-    if(decompose) theta = decompose_theta(theta, L);// theta = arma::diagmat(arma::sum(theta, 1));
+    if(iter > 2 && decompose) theta = decompose_theta(theta, L);// theta = arma::diagmat(arma::sum(theta, 1));
 
     // Calculate current linear predictor
     arma::vec linear_predictor(n, arma::fill::zeros);
