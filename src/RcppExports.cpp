@@ -182,6 +182,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// call_coxph
+List call_coxph(NumericMatrix X, NumericVector time, NumericVector status);
+RcppExport SEXP _glmcs_call_coxph(SEXP XSEXP, SEXP timeSEXP, SEXP statusSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    rcpp_result_gen = Rcpp::wrap(call_coxph(X, time, status));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_decompose_theta", (DL_FUNC) &_glmcs_decompose_theta, 2},
@@ -194,6 +207,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_univariate_fit", (DL_FUNC) &_glmcs_univariate_fit, 8},
     {"_glmcs_single_effect_fit", (DL_FUNC) &_glmcs_single_effect_fit, 10},
     {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 13},
+    {"_glmcs_call_coxph", (DL_FUNC) &_glmcs_call_coxph, 3},
     {NULL, NULL, 0}
 };
 

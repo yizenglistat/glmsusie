@@ -16,9 +16,9 @@
 
 \item{ties}{Character string specifying the method to handle ties: \code{"breslow"} (default) or \code{"efron"}.}
 
-\item{lambda}{Numeric penalty weight; if ≤0 defaults to \eqn{\sqrt{2\log(n)/n}}.}
+\item{lambda}{Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).}
 
-\item{tau}{Numeric truncation parameter; if ≤0 uses grid \{1/n,…,5/n\} for n≤500 and 1/n otherwise.}
+\item{tau}{Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).}
 
 \item{max_iter}{Integer: maximum number of IRLS iterations. Default is 25.}
 

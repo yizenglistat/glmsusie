@@ -202,8 +202,8 @@ NULL
 #'   - \code{y[,2]} is the event indicator (1 = event, 0 = censored)
 #' @param offset Numeric scalar or vector of length \code{n}. Optional offset for the linear predictor.
 #' @param ties Character string specifying the method to handle ties: \code{"breslow"} (default) or \code{"efron"}.
-#' @param lambda Numeric penalty weight; if ≤0 defaults to \eqn{\sqrt{2\log(n)/n}}.
-#' @param tau Numeric truncation parameter; if ≤0 uses grid \{1/n,…,5/n\} for n≤500 and 1/n otherwise.
+#' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
+#' @param tau Numeric truncation parameter; if ≤ 0, defaults to 0.5 (default: 0.5).
 #' @param max_iter Integer: maximum number of IRLS iterations. Default is 25.
 #' @param tol Numeric: convergence tolerance on parameter change. Default is 1e-8.
 #'
