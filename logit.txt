@@ -1,0 +1,94 @@
+========== L = 10, Phase = phase1full ==========
+CS1: 2
+
+========== L = 10, Phase = phase1part ==========
+CS1: 2
+
+========== L = 10, Phase = phase2part ==========
+CS1: 2
+CS2: 73
+
+========== L = 10, Phase = phase2full ==========
+CS1: 2
+CS2: 14 30 37 39 40 48 49 52
+CS3: 73
+CS4: 70
+
+========== L = 25, Phase = phase1full ==========
+CS1: 2
+
+========== L = 25, Phase = phase1part ==========
+CS1: 2
+
+========== L = 25, Phase = phase2part ==========
+CS1: 2
+CS2: 73
+
+========== L = 25, Phase = phase2full ==========
+CS1: 2
+CS2: 14 26 30 37 39 40 48 49 52
+CS3: 73
+CS4: 70
+
+========== L = 50, Phase = phase1full ==========
+CS1: 2
+
+========== L = 50, Phase = phase1part ==========
+CS1: 2
+
+========== L = 50, Phase = phase2part ==========
+CS1: 2
+CS2: 73
+
+========== L = 50, Phase = phase2full ==========
+CS1: 2
+CS2: 14 22 26 30 37 39 40 48 49 52 180
+CS3: 73
+CS4: 70
+
+========== L = 100, Phase = phase1full ==========
+CS1: 2
+
+========== L = 100, Phase = phase1part ==========
+CS1: 2
+
+========== L = 100, Phase = phase2part ==========
+CS1: 2
+CS2: 73
+
+========== L = 100, Phase = phase2full ==========
+CS1: 2
+CS2: 3 14 18 22 26 30 37 39 40 48 49 52 180
+CS3: 73
+CS4: 70
+
+========== L = 200, Phase = phase1full ==========
+CS1: 2
+
+========== L = 200, Phase = phase1part ==========
+CS1: 2
+
+========== L = 200, Phase = phase2part ==========
+CS1: 2
+CS2: 73
+
+========== L = 200, Phase = phase2full ==========
+CS1: 2
+CS2: 73
+CS3: 70
+
+========== L = 250, Phase = phase1full ==========
+CS1: 2
+
+========== L = 250, Phase = phase1part ==========
+CS1: 2
+
+========== L = 250, Phase = phase2part ==========
+CS1: 2
+CS2: 73
+
+========== L = 250, Phase = phase2full ==========
+CS1: 2
+CS2: 73
+CS3: 70
+

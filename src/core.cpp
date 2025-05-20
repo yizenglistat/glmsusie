@@ -930,14 +930,13 @@ Rcpp::List single_effect_fit(
     double lrt_intercept = 2.0 * (ll1 - ll0_intercept);
     pval_intercept[j] = R::pchisq(lrt_intercept, 1.0, false, false);
     if (shrinkage && pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
-
+    
     // === Slope Test ===
     // Null model: theta = 0, intercept fixed
     double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, expect_intercept[j]);
     double lrt_theta = 2.0 * (ll1 - ll0_theta);
     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
     if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
-
   }
 
   // Return results as a list
@@ -1026,7 +1025,7 @@ List additive_effect_fit(
   // Main iterations
   int iter;
   for (iter = 0; iter < max_iter; iter++) {
-    if(iter > 2 && decompose) theta = decompose_theta(theta, L);// theta = arma::diagmat(arma::sum(theta, 1));
+    if(iter > 1 && decompose) theta = decompose_theta(theta, L);// theta = arma::diagmat(arma::sum(theta, 1));
 
     // Calculate current linear predictor
     arma::vec linear_predictor(n, arma::fill::zeros);

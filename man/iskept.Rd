@@ -2,34 +2,44 @@
 % Please edit documentation in R/method.R
 \name{iskept}
 \alias{iskept}
-\title{Select Columns with Significant Concentration or Non-Uniformity}
+\title{Select Columns with Significant and Non-Diffuse Credible Sets}
 \usage{
-iskept(pval, alpha = 0.05)
+iskept(pmp, pval, alpha = 0.05)
 }
 \arguments{
-\item{pval}{A numeric matrix of p-values (dimension: \code{p × L}), where each column corresponds to a single effect.}
+\item{pmp}{A numeric matrix of posterior inclusion probabilities (PIPs), dimension \code{p × L}.}
 
-\item{alpha}{Significance threshold for p-value aggregation (default = 0.05).}
+\item{pval}{A numeric matrix of p-values, dimension \code{p × L}, where each column corresponds to a single effect.}
+
+\item{alpha}{Significance threshold for both p-value aggregation and credible set construction (default = 0.05).}
 }
 \value{
 A logical vector of length \code{L} indicating selected columns:
 \itemize{
-\item \code{TRUE} if a column is retained (i.e., passes threshold or selected as fallback)
-\item \code{FALSE} otherwise
+\item \code{TRUE} if a column is retained (significant and non-diffuse),
+\item \code{FALSE} otherwise.
 }
-Column names are preserved if available. At least one column will always be selected.
+Column names are preserved if present. At least one column is always selected.
 }
 \description{
-This function identifies columns in a probability matrix that are either:
-(1) statistically significant using a column-wise p-value aggregation method (e.g., Simes),
-or (2) deviate most from uniformity if none are significant.
+This function identifies columns in a probability matrix that are:
+(1) statistically significant based on a column-wise p-value aggregation method (e.g., Simes),
+and (2) concentrated, in the sense that the credible set formed from their PIPs does not
+include all variables. If no column is significant, a fallback selects the column whose
+p-values are most non-uniform.
 }
 \details{
-Columns are assessed using a p-value combination method (e.g., \code{combine_simes}).
-If no column has an aggregated p-value below \code{alpha}, the fallback is to select
-the column that is most non-uniform (farthest from the uniform distribution).
+Columns are first assessed using \code{combine_simes} to combine p-values across rows.
+Among the significant columns (p-value < \code{alpha}), each is further evaluated by forming
+a credible set from its posterior inclusion probabilities (PIPs). The credible set consists
+of variables ranked by PIP and included until the cumulative sum reaches at least \code{1 - alpha}.
+
+If the credible set includes \strong{all variables}, the column is excluded as too diffuse.
+This prevents keeping effects that do not concentrate signal on a subset of variables.
+
+If no columns remain after filtering, the function selects the column with the most
+non-uniform p-value distribution (based on variance from mean).
 }
 \note{
-Assumes each column in \code{pval} contains valid p-values.
-Uses \code{combine_simes()} to aggregate p-values per column.
+Assumes each column of \code{pval} and \code{pmp} corresponds to the same single-effect model.
 }
