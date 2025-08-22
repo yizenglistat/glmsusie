@@ -41,7 +41,3 @@ additive_effect_fit <- function(X, y, L, family, standardize = TRUE, ties = "efr
     .Call(`_glmcs_additive_effect_fit`, X, y, L, family, standardize, ties, lambda, tau, decompose, shrinkage, alpha, tol, max_iter)
 }
 
-call_coxph <- function(X, time, status) {
-    .Call(`_glmcs_call_coxph`, X, time, status)
-}
-

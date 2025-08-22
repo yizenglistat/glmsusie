@@ -68,6 +68,7 @@
 #'   \item{loglik}{p × L matrix of log-likelihoods}
 #'   \item{bic}{p × L matrix of BIC values}
 #'   \item{bic_diff}{p × L matrix of BIC differences from null model}
+#'   \item{evidence}{p × L matrix of evidence}
 #'   \item{bf}{p × L matrix of Bayes factors}
 #'   \item{marginal}{Vector of marginal inclusion probabilities for each predictor}
 #'   \item{kept}{Logical vector indicating which effects were retained}
@@ -211,6 +212,7 @@ glmcs <- function(X, y, L = 10L,
     loglik = out$loglik,
     bic = out$bic,
     bic_diff = out$bic_diff,
+    evidence = out$evidence,
     bf = out$bf,
     pval_intercept = out$pval_intercept,
     pval_theta = out$pval_theta,
