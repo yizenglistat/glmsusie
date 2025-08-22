@@ -940,7 +940,7 @@ Rcpp::List single_effect_fit(
     if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
 
     // === Evidence ===
-    evidence[j] = (ll1 - ll0_theta) - 0.5 * std::log(n);
+    evidence[j] = 2*(ll1 - ll0_theta) - std::log(n);
   }
 
   // Return results as a list
