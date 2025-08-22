@@ -870,9 +870,9 @@ Rcpp::List single_effect_fit(
   arma::vec loglik(p, arma::fill::zeros);
   arma::vec bic(p, arma::fill::zeros);
   arma::vec bic_diff(p, arma::fill::zeros);
-  arma::vec evidence(p, arma::fill::zeros);
   arma::vec pval_intercept(p, arma::fill::zeros);
   arma::vec pval_theta(p, arma::fill::zeros);
+  arma::vec evidence(p, arma::fill::zeros);
 
   // Expand offset if needed
   if (offset.n_elem == 1 && n > 1) {
@@ -901,7 +901,7 @@ Rcpp::List single_effect_fit(
     loglik[j] = as<double>(res["loglik"]);
     bic[j] = as<double>(res["bic"]);
     bic_diff[j] = bic[j] - null_bic;
-    evidence[j] = -0.5*bic_diff[j];
+
   }
   
   // Shift BIC differences so minimum is 0
@@ -938,6 +938,9 @@ Rcpp::List single_effect_fit(
     double lrt_theta = 2.0 * (ll1 - ll0_theta);
     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
     if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
+
+    // === Evidence ===
+    evidence[j] = (ll1 - ll0_theta) - 0.5 * std::log(n);
   }
 
   // Return results as a list
@@ -946,12 +949,12 @@ Rcpp::List single_effect_fit(
     Named("bic") = bic,
     Named("bic_diff") = bic_diff,
     Named("bf") = bf,
-    Named("evidence") = evidence,
     Named("pmp") = pmp,
     Named("intercept") = intercept,
     Named("theta") = theta,
     Named("pval_intercept") = pval_intercept,
     Named("pval_theta") = pval_theta,
+    Named("evidence") = evidence,
     Named("expect_intercept") = expect_intercept,
     Named("expect_theta") = expect_theta,
     Named("expect_variance") = expect_variance
@@ -1010,12 +1013,14 @@ List additive_effect_fit(
   // P-values
   arma::mat pval_intercept(p, L, arma::fill::zeros);
   arma::mat pval_theta(p, L, arma::fill::zeros);
+
+  // Evidence
+  arma::mat evidence(p, L, arma::fill::zeros);
   
   // Initialize result matrices
   arma::mat loglik(p, L, arma::fill::zeros);
   arma::mat bic(p, L, arma::fill::zeros);
   arma::mat bic_diff(p, L, arma::fill::zeros);
-  arma::mat evidence(p, L, arma::fill::zeros);
   arma::mat bf(p, L, arma::fill::zeros);
   arma::mat pmp(p, L, arma::fill::zeros);
   arma::vec expect_variance(L, arma::fill::zeros);
@@ -1058,12 +1063,13 @@ List additive_effect_fit(
       arma::vec res_loglik = as<arma::vec>(res["loglik"]);
       arma::vec res_bic = as<arma::vec>(res["bic"]);
       arma::vec res_bic_diff = as<arma::vec>(res["bic_diff"]);
-      arma::vec res_evidence = as<arma::vec>(res["evidence"]);
       arma::vec res_bf = as<arma::vec>(res["bf"]);
       arma::vec res_pmp = as<arma::vec>(res["pmp"]);
       
       arma::vec res_pval_intercept = as<arma::vec>(res["pval_intercept"]);
       arma::vec res_pval_theta = as<arma::vec>(res["pval_theta"]);
+
+      arma::vec res_evidence = as<arma::vec>(res["evidence"]);
 
       // Apply thresholding to expect_theta
       arma::vec res_expect_intercept = as<arma::vec>(res["expect_intercept"]);
@@ -1074,10 +1080,10 @@ List additive_effect_fit(
       theta.col(l) = res_expect_theta;
       pval_intercept.col(l) = res_pval_intercept;
       pval_theta.col(l) = res_pval_theta;
+      evidence.col(l) = res_evidence;
       loglik.col(l) = res_loglik;
       bic.col(l) = res_bic;
       bic_diff.col(l) = res_bic_diff;
-      evidence.col(l) = res_evidence;
       bf.col(l) = res_bf;
       pmp.col(l) = res_pmp;
       expect_variance(l) = as<double>(res["expect_variance"]);
@@ -1122,10 +1128,10 @@ List additive_effect_fit(
     Named("theta") = theta,
     Named("pval_intercept") = pval_intercept,
     Named("pval_theta") = pval_theta,
+    Named("evidence") = evidence,
     Named("pmp") = pmp,
     Named("bic") = bic,
     Named("bic_diff") = bic_diff,
-    Named("evidence") = evidence,
     Named("bf") = bf,
     Named("expect_variance") = expect_variance,
     Named("elapsed_time") = elapsed_time
