@@ -82,6 +82,7 @@ A list with class "glmcs" containing:
 \item{loglik}{p × L matrix of log-likelihoods}
 \item{bic}{p × L matrix of BIC values}
 \item{bic_diff}{p × L matrix of BIC differences from null model}
+\item{evidence}{p × L matrix of evidence}
 \item{bf}{p × L matrix of Bayes factors}
 \item{marginal}{Vector of marginal inclusion probabilities for each predictor}
 \item{kept}{Logical vector indicating which effects were retained}

@@ -901,7 +901,7 @@ Rcpp::List single_effect_fit(
     loglik[j] = as<double>(res["loglik"]);
     bic[j] = as<double>(res["bic"]);
     bic_diff[j] = bic[j] - null_bic;
-    evidence[j] = -0.5*bic_diff[j]
+    evidence[j] = -0.5*bic_diff[j];
   }
   
   // Shift BIC differences so minimum is 0
