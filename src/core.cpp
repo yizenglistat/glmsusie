@@ -24,6 +24,7 @@ arma::mat decompose_theta(const arma::mat& theta, int L) {
   }
 
   return theta_new;
+
 }
 
 // [[Rcpp::export]]
@@ -836,13 +837,17 @@ List univariate_fit(
   double intercept = intercept_std - theta * x_mean;
 
   double loglik = univariate_loglik(x, y, family, theta, offset, intercept, ties);
+  double loglik0 = univariate_loglik(x, y, family, 0.0, offset, intercept, ties);
+  double lrt = 2.0 * (loglik - loglik0);
+  double pval = (lrt > 0) ? R::pchisq(lrt, 1.0, false, true) : 1.0;
   double bic = -2.0 * loglik + std::log(n) * (theta != 0.0 ? 1.0 : 0.0);
-  
+
   return List::create(
     Named("intercept") = intercept,
     Named("theta") = theta,
     Named("loglik") = loglik,
-    Named("bic") = bic
+    Named("bic") = bic,
+    Named("pval") = pval
   );
 }
 
@@ -923,18 +928,18 @@ Rcpp::List single_effect_fit(
   for (int j = 0; j < p; j++) {
     arma::vec x_j = X.col(j);
     // Compute full model log-likelihood
-    double ll1 = univariate_loglik(x_j, y, family, expect_theta[j], offset, expect_intercept[j]);
+    double ll1 = univariate_loglik(x_j, y, family, theta[j], offset, intercept[j]);
 
     // === Intercept Test ===
     // Null model: intercept = 0, theta fixed
-    double ll0_intercept = univariate_loglik(x_j, y, family, expect_theta[j], offset, 0.0);
+    double ll0_intercept = univariate_loglik(x_j, y, family, theta[j], offset, 0.0);
     double lrt_intercept = 2.0 * (ll1 - ll0_intercept);
     pval_intercept[j] = R::pchisq(lrt_intercept, 1.0, false, false);
     if (shrinkage && pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
     
     // === Slope Test ===
     // Null model: theta = 0, intercept fixed
-    double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, expect_intercept[j]);
+    double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, intercept[j]);
     double lrt_theta = 2.0 * (ll1 - ll0_theta);
     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
     if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
