@@ -4,6 +4,107 @@
 #' @importFrom Rcpp evalCpp
 NULL
 
+#' Univariate GLM Fit via R's \code{glm()}
+#'
+#' @description
+#' Fits a single-predictor generalized linear model (GLM) against the null
+#' (intercept-only) model using \code{stats::glm()}, returning coefficient
+#' estimates, standard errors, Wald test p-values, likelihood ratio test
+#' statistics, and BIC-based model comparison quantities.
+#'
+#' @details
+#' This function wraps R's \code{glm()} for univariate fits, with an optional
+#' offset term. For each predictor, it fits:
+#' \deqn{y \sim 1 + x + \mathrm{offset}}
+#' and compares it to the null model
+#' \deqn{y \sim 1 + \mathrm{offset}.}
+#'
+#' Extracts the slope coefficient, standard error, and Wald test p-value
+#' (from \code{summary(glm)}), as well as the log-likelihoods, BIC values,
+#' likelihood ratio test (LRT), and the BIC-based approximation to the
+#' Bayes factor:
+#' \deqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1.}
+#'
+#' @param x Numeric vector of length \code{n}: covariate values.
+#' @param y Numeric vector of length \code{n}: response values.
+#' @param family A GLM family object (e.g.\ \code{binomial()}, \code{gaussian()},
+#'   \code{poisson()}).
+#' @param offset Optional numeric vector of length \code{n}, or scalar: offset
+#'   term in the linear predictor. If scalar, it is expanded.
+#'
+#' @return A list with elements:
+#' \itemize{
+#'   \item \code{intercept}: Estimated intercept.
+#'   \item \code{beta}: Estimated slope coefficient for \code{x}.
+#'   \item \code{se}: Standard error of \code{beta}.
+#'   \item \code{wald_p}: Wald test p-value for \code{beta}.
+#'   \item \code{logLik1}: Log-likelihood of single-variable model.
+#'   \item \code{logLik0}: Log-likelihood of null (intercept-only) model.
+#'   \item \code{BIC1}: BIC of single-variable model.
+#'   \item \code{BIC0}: BIC of null model.
+#'   \item \code{LRT}: Likelihood ratio statistic \eqn{2(\ell_1 - \ell_0)}.
+#'   \item \code{LRT_p}: Likelihood ratio test p-value (chi-square with df=1).
+#'   \item \code{deltaBIC}: Difference \eqn{\mathrm{BIC}_1 - \mathrm{BIC}_0}
+#'         (negative favors the variable model).
+#'   \item \code{twoLogBF}: Approximate \eqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1}.
+#' }
+#'
+#' @name univariate_glm
+#' @export
+NULL
+
+#' Univariate Cox Proportional Hazards Fit via \code{survival::coxph()}
+#'
+#' @description
+#' Fits a single-predictor Cox proportional hazards model against the null
+#' (no covariates) using \code{survival::coxph()}, returning the coefficient
+#' estimate, standard error, Wald test, likelihood ratio test statistics,
+#' and BIC-based model comparison quantities.
+#'
+#' @details
+#' This function wraps \code{survival::coxph()} for univariate fits, with an
+#' optional offset term and choice of ties handling. For each predictor, it fits:
+#' \deqn{\mathrm{Surv}(time, status) \sim x + \mathrm{offset}}
+#' and compares it to the null model
+#' \deqn{\mathrm{Surv}(time, status) \sim 1 + \mathrm{offset}.}
+#'
+#' Extracts the slope coefficient, standard error, and Wald test p-value
+#' (from \code{summary.coxph()}), as well as the partial log-likelihoods,
+#' BIC values, likelihood ratio test (LRT), and the BIC-based approximation
+#' to the Bayes factor:
+#' \deqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1.}
+#'
+#' @param y Response data: either an \code{n × 2} numeric matrix with columns
+#'   (time, status), or a list of two numeric vectors: (time, status).
+#' @param x Numeric vector of length \code{n}: covariate values.
+#' @param offset Optional numeric vector of length \code{n}, or scalar: offset
+#'   term in the linear predictor. If scalar, it is expanded.
+#' @param ties Character string: method for handling tied event times,
+#'   either \code{"efron"} (default) or \code{"breslow"}.
+#'
+#' @return A list with elements:
+#' \itemize{
+#'   \item \code{beta}: Estimated regression coefficient for \code{x}.
+#'   \item \code{se}: Standard error of \code{beta}.
+#'   \item \code{wald_z}: Wald test statistic.
+#'   \item \code{wald_p}: Wald test p-value.
+#'   \item \code{logLik1}: Partial log-likelihood of single-variable model.
+#'   \item \code{logLik0}: Partial log-likelihood of null model.
+#'   \item \code{LRT}: Likelihood ratio statistic \eqn{2(\ell_1 - \ell_0)}.
+#'   \item \code{LRT_p}: Likelihood ratio test p-value (chi-square with df=1).
+#'   \item \code{BIC1}: BIC of single-variable model (based on partial likelihood).
+#'   \item \code{BIC0}: BIC of null model (based on partial likelihood).
+#'   \item \code{deltaBIC}: Difference \eqn{\mathrm{BIC}_1 - \mathrm{BIC}_0}
+#'         (negative favors variable model).
+#'   \item \code{twoLogBF}: Approximate \eqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1}.
+#'   \item \code{ties}: Ties handling method used.
+#'   \item \code{has_offset}: Logical indicating if an offset was provided.
+#' }
+#'
+#' @name univariate_cox
+#' @export
+NULL
+
 #' Compute Log-Likelihood for Univariate GLM
 #'
 #' @description 

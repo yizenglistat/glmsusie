@@ -217,6 +217,78 @@ Rcpp::List univariate_fit(
     double                   tau
 );
 
+/**
+ * Univariate GLM fit using R's glm() interface, with optional offset.
+ *
+ * Fits a single-predictor generalized linear model (GLM) against the null model
+ * and reports coefficients, standard errors, likelihood ratio test, and BIC-based
+ * model comparison quantities. Internally calls R's stats::glm(), logLik(), BIC(),
+ * and summary() functions.
+ *
+ * @param x        Covariate vector (length n).
+ * @param y        Response vector (length n).
+ * @param family   R family object (e.g., binomial(), gaussian(), poisson()).
+ * @param offset   Optional offset vector (length 1 or n). If length 1, expanded.
+ *
+ * @return List with elements:
+ *   - intercept: Intercept estimate from glm().
+ *   - beta:      Slope coefficient estimate for x.
+ *   - se:        Standard error of beta (from summary(glm)).
+ *   - wald_p:    Wald test p-value for beta.
+ *   - logLik1:   Log-likelihood of single-variable model.
+ *   - logLik0:   Log-likelihood of null (intercept-only) model.
+ *   - BIC1:      BIC of single-variable model.
+ *   - BIC0:      BIC of null model.
+ *   - LRT:       Likelihood ratio statistic (2*(ll1 - ll0)).
+ *   - LRT_p:     Likelihood ratio test p-value (chi-square, df=1).
+ *   - deltaBIC:  Difference BIC1 - BIC0 (negative favors variable model).
+ *   - twoLogBF:  Approximate 2*log Bayes factor ≈ BIC0 - BIC1.
+ */
+Rcpp::List univariate_glm(
+    const Rcpp::NumericVector& x,
+    const Rcpp::NumericVector& y,
+    SEXP family,
+    Rcpp::Nullable<Rcpp::NumericVector> offset
+);
+
+/**
+ * Univariate Cox proportional hazards fit using R's survival::coxph(),
+ * with optional offset and choice of ties handling.
+ *
+ * Fits a single-predictor Cox model against the null (no covariates) and
+ * reports coefficient, standard error, Wald test, likelihood ratio test,
+ * and BIC-based model comparison quantities. Internally calls
+ * survival::coxph(), survival::summary.coxph(), and uses the partial
+ * log-likelihood for information criteria.
+ *
+ * @param y        Response data, either an n×2 matrix (time, status) or a
+ *                 list of two numeric vectors: (time, status).
+ * @param x        Covariate vector (length n).
+ * @param offset   Optional offset vector (length 1 or n). If length 1, expanded.
+ * @param ties     Method for handling tied event times: "efron" (default) or "breslow".
+ *
+ * @return List with elements:
+ *   - beta:      Estimated regression coefficient for x.
+ *   - se:        Standard error of beta (from summary.coxph).
+ *   - wald_z:    Wald test statistic.
+ *   - wald_p:    Wald test p-value.
+ *   - logLik0:   Null-model partial log-likelihood.
+ *   - logLik1:   Single-variable model partial log-likelihood.
+ *   - LRT:       Likelihood ratio statistic (2*(ll1 - ll0)).
+ *   - LRT_p:     Likelihood ratio test p-value (chi-square, df=1).
+ *   - BIC1:      BIC of single-variable model (partial likelihood).
+ *   - BIC0:      BIC of null model (partial likelihood).
+ *   - deltaBIC:  Difference BIC1 - BIC0 (negative favors variable model).
+ *   - twoLogBF:  Approximate 2*log Bayes factor ≈ BIC0 - BIC1.
+ *   - ties:      Ties handling method used.
+ *   - has_offset: Logical indicating if an offset was provided.
+ */
+Rcpp::List univariate_cox(
+    SEXP y,
+    const Rcpp::NumericVector& x,
+    Rcpp::Nullable<Rcpp::NumericVector> offset,
+    std::string ties
+);
 
 /**
  * @brief Fit single-effect regression across all predictors
