@@ -33,11 +33,11 @@ univariate_fit <- function(x, y, family, offset, standardize = TRUE, ties = "efr
     .Call(`_glmcs_univariate_fit`, x, y, family, offset, standardize, ties, lambda, tau)
 }
 
-univariate_glm <- function(x, y, family, offset = NULL) {
+univariate_glm <- function(x, y, family, offset) {
     .Call(`_glmcs_univariate_glm`, x, y, family, offset)
 }
 
-univariate_cox <- function(y, x, offset, ties = "efron") {
+univariate_cox <- function(y, x, offset = NULL, ties = "efron") {
     .Call(`_glmcs_univariate_cox`, y, x, offset, ties)
 }
 

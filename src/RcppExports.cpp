@@ -140,13 +140,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // univariate_glm
-List univariate_glm(const NumericVector& x, const NumericVector& y, SEXP family, Nullable<NumericVector> offset);
+List univariate_glm(const arma::vec& x, const arma::vec& y, SEXP family, Nullable<NumericVector> offset);
 RcppExport SEXP _glmcs_univariate_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
     Rcpp::traits::input_parameter< Nullable<NumericVector> >::type offset(offsetSEXP);
     rcpp_result_gen = Rcpp::wrap(univariate_glm(x, y, family, offset));
@@ -154,13 +154,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // univariate_cox
-Rcpp::List univariate_cox(SEXP y, const Rcpp::NumericVector& x, Rcpp::Nullable<Rcpp::NumericVector> offset, std::string ties);
+Rcpp::List univariate_cox(SEXP y, const arma::vec& x, Rcpp::Nullable<Rcpp::NumericVector> offset, std::string ties);
 RcppExport SEXP _glmcs_univariate_cox(SEXP ySEXP, SEXP xSEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type offset(offsetSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
     rcpp_result_gen = Rcpp::wrap(univariate_cox(y, x, offset, ties));

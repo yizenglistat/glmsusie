@@ -559,7 +559,7 @@ double univariate_irls_glm_no_intercept(const arma::vec&   x,
     arma::vec w = arma::square(gprime_vec) / (var_mu * dispersion);
     
     for (int i = 0; i < n; i++) {
-      if (!arma::is_finite(w[i]) || w[i] <= 0) w[i] = 1e-8;
+      if (!std::is_finite(w[i]) || w[i] <= 0) w[i] = 1e-8;
       else if (w[i] > 1e8) w[i] = 1e8;
     }
     
@@ -567,7 +567,7 @@ double univariate_irls_glm_no_intercept(const arma::vec&   x,
     for (int i = 0; i < n; i++) {
       double diff = y[i] - mu[i];
       z[i] = eta[i] + diff / gprime_vec[i];
-      if (!arma::is_finite(z[i])) z[i] = eta[i];
+      if (!std::is_finite(z[i])) z[i] = eta[i];
     }
     
     arma::vec z0 = z - offset;
@@ -678,7 +678,7 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
     
     // Handle weights that are too large or NaN
     for (int i = 0; i < n; i++) {
-      if (!arma::is_finite(w[i]) || w[i] <= 0) w[i] = 1e-8;
+      if (!std::is_finite(w[i]) || w[i] <= 0) w[i] = 1e-8;
       else if (w[i] > 1e8) w[i] = 1e8;  // Cap large weights
     }
     
@@ -688,7 +688,7 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
       double diff = y[i] - mu[i];
       z[i] = eta[i] + diff / gprime_vec[i];
       // Handle extreme values
-      if (!arma::is_finite(z[i])) z[i] = eta[i];
+      if (!std::is_finite(z[i])) z[i] = eta[i];
     }
     
     // Weighted LS subproblem for intercept + theta*x
