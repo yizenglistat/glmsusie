@@ -129,7 +129,7 @@ corresponding LRT p-value exceeds <code>alpha</code>.</p></dd>
 <span class="r-in"><span><span class="va">y</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">out</span>  <span class="op">&lt;-</span> <span class="fu">single_effect_fit</span><span class="op">(</span><span class="va">X</span>, <span class="va">y</span>, <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span><span class="op">)</span>, offset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">pmp</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  num [1:5, 1] 1.00 4.22e-10 8.19e-08 1.06e-09 3.41e-10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  num [1:5, 1] 1.00 4.21e-10 8.28e-08 1.07e-09 3.40e-10</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
