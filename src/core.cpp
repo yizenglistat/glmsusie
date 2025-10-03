@@ -1182,6 +1182,7 @@ Rcpp::List single_effect_fit(
   // Outputs
   arma::vec intercept(p, arma::fill::zeros);
   arma::vec theta(p, arma::fill::zeros);
+  arma::vec se_theta(p, arma::fill::zeros);          // <--- NEW: per-variable SE
   arma::vec loglik(p, arma::fill::zeros);
   arma::vec bic(p, arma::fill::zeros);
   arma::vec bic_diff(p, arma::fill::zeros);
@@ -1199,25 +1200,28 @@ Rcpp::List single_effect_fit(
 
     if (is_cox) {
       Rcpp::List res = univariate_cox(y, xj, offset_nv, ties);
-      theta[j]     = Rcpp::as<double>(res["beta"]);
-      loglik[j]    = Rcpp::as<double>(res["logLik1"]);
-      bic[j]       = Rcpp::as<double>(res["BIC1"]);
+      theta[j]       = Rcpp::as<double>(res["beta"]);
+      se_theta[j]    = Rcpp::as<double>(res["se"]);        // from univariate_cox
+      loglik[j]      = Rcpp::as<double>(res["logLik1"]);
+      bic[j]         = Rcpp::as<double>(res["BIC1"]);
       if (std::isnan(BIC0_global)) BIC0_global = Rcpp::as<double>(res["BIC0"]);
-      pval_raw[j]  = Rcpp::as<double>(res["LRT_p"]);
-      pval_theta[j]= pval_raw[j];
-      evidence[j]  = Rcpp::as<double>(res["twoLogBF"]);
-      evidence_raw[j] = evidence[j];
+      pval_raw[j]    = Rcpp::as<double>(res["LRT_p"]);
+      pval_theta[j]  = pval_raw[j];
+      evidence[j]    = Rcpp::as<double>(res["twoLogBF"]);
+      evidence_raw[j]= evidence[j];
+      // intercept[j] stays 0 (Cox has no intercept)
     } else {
       Rcpp::List res = univariate_glm(xj, y_glm, family, offset_nv);
-      intercept[j] = Rcpp::as<double>(res["intercept"]);
-      theta[j]     = Rcpp::as<double>(res["beta"]);
-      loglik[j]    = Rcpp::as<double>(res["logLik1"]);
-      bic[j]       = Rcpp::as<double>(res["BIC1"]);
+      intercept[j]   = Rcpp::as<double>(res["intercept"]);
+      theta[j]       = Rcpp::as<double>(res["beta"]);
+      se_theta[j]    = Rcpp::as<double>(res["se"]);        // from univariate_glm
+      loglik[j]      = Rcpp::as<double>(res["logLik1"]);
+      bic[j]         = Rcpp::as<double>(res["BIC1"]);
       if (std::isnan(BIC0_global)) BIC0_global = Rcpp::as<double>(res["BIC0"]);
-      pval_raw[j]  = Rcpp::as<double>(res["wald_p"]);
-      pval_theta[j]= pval_raw[j];
-      evidence[j]  = Rcpp::as<double>(res["twoLogBF"]);
-      evidence_raw[j] = evidence[j];
+      pval_raw[j]    = Rcpp::as<double>(res["wald_p"]);
+      pval_theta[j]  = pval_raw[j];
+      evidence[j]    = Rcpp::as<double>(res["twoLogBF"]);
+      evidence_raw[j]= evidence[j];
     }
   }
 
@@ -1267,6 +1271,7 @@ Rcpp::List single_effect_fit(
     Rcpp::Named("pmp")              = pmp,
     Rcpp::Named("intercept")        = intercept,
     Rcpp::Named("theta")            = theta,
+    Rcpp::Named("se_theta")         = se_theta,          // <--- NEW FIELD
     Rcpp::Named("pval_raw")         = pval_raw,
     Rcpp::Named("pval_intercept")   = pval_intercept,
     Rcpp::Named("pval_theta")       = pval_theta,
