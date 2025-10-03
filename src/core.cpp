@@ -1025,7 +1025,6 @@ Rcpp::List univariate_cox(SEXP y,
   );
 }
 
-
 // [[Rcpp::export]]
 Rcpp::List single_effect_fit(
     const arma::mat&   X,
@@ -1033,38 +1032,19 @@ Rcpp::List single_effect_fit(
     SEXP               family,
     arma::vec          offset,
     bool               standardize = true,
-    bool               shrinkage   = true,
-    std::string        ties        = "efron",
-    double             lambda      = 0.0,
-    double             tau         = 0.5,
-    double             alpha       = 0.05
+    bool               shrinkage = true,
+    std::string        ties = "efron",
+    double             lambda = 0.0,
+    double             tau = 0.5,
+    double             alpha = 0.05
 ) {
+  // Get dimensions
   int n = X.n_rows;
   int p = X.n_cols;
-
-  bool is_cox =
-    (TYPEOF(family) == STRSXP)
-      ? (Rcpp::as<std::string>(family) == "cox")
-      : (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(family)["family"]) == "cox");
-
-  // Expand offset
-  if (offset.n_elem == 1 && n > 1) {
-    offset = arma::vec(n, arma::fill::value(offset(0)));
-  } else if ((int)offset.n_elem != n) {
-    Rcpp::stop("offset must be length 1 or n.");
-  }
-  Rcpp::NumericVector offset_nv = Rcpp::wrap(offset);
-
-  Rcpp::NumericVector y_glm;
-  if (!is_cox) {
-    y_glm = Rcpp::as<Rcpp::NumericVector>(y);
-    if ((int)y_glm.size() != n) Rcpp::stop("y length must match X.n_rows for GLM.");
-  }
-
-  // Outputs
+  
+  // Initialize result vectors
   arma::vec intercept(p, arma::fill::zeros);
   arma::vec theta(p, arma::fill::zeros);
-  arma::vec se_theta(p, arma::fill::zeros);          // <--- NEW: per-variable SE
   arma::vec loglik(p, arma::fill::zeros);
   arma::vec bic(p, arma::fill::zeros);
   arma::vec bic_diff(p, arma::fill::zeros);
@@ -1074,97 +1054,95 @@ Rcpp::List single_effect_fit(
   arma::vec evidence(p, arma::fill::zeros);
   arma::vec evidence_raw(p, arma::fill::zeros);
 
-  double BIC0_global = std::numeric_limits<double>::quiet_NaN();
-
-  // ---- First pass: fit each variable ----
-  for (int j = 0; j < p; ++j) {
-    Rcpp::NumericVector xj = Rcpp::wrap(X.col(j));
-
-    if (is_cox) {
-      Rcpp::List res = univariate_cox(y, xj, offset_nv, ties);
-      theta[j]       = Rcpp::as<double>(res["beta"]);
-      se_theta[j]    = Rcpp::as<double>(res["se"]);        // from univariate_cox
-      loglik[j]      = Rcpp::as<double>(res["logLik1"]);
-      bic[j]         = Rcpp::as<double>(res["BIC1"]);
-      if (std::isnan(BIC0_global)) BIC0_global = Rcpp::as<double>(res["BIC0"]);
-      pval_raw[j]    = Rcpp::as<double>(res["LRT_p"]);
-      pval_theta[j]  = pval_raw[j];
-      evidence[j]    = Rcpp::as<double>(res["twoLogBF"]);
-      evidence_raw[j]= evidence[j];
-      // intercept[j] stays 0 (Cox has no intercept)
-    } else {
-      Rcpp::List res = univariate_glm(xj, y_glm, family, offset_nv);
-      intercept[j]   = Rcpp::as<double>(res["intercept"]);
-      theta[j]       = Rcpp::as<double>(res["beta"]);
-      se_theta[j]    = Rcpp::as<double>(res["se"]);        // from univariate_glm
-      loglik[j]      = Rcpp::as<double>(res["logLik1"]);
-      bic[j]         = Rcpp::as<double>(res["BIC1"]);
-      if (std::isnan(BIC0_global)) BIC0_global = Rcpp::as<double>(res["BIC0"]);
-      pval_raw[j]    = Rcpp::as<double>(res["wald_p"]);
-      pval_theta[j]  = pval_raw[j];
-      evidence[j]    = Rcpp::as<double>(res["twoLogBF"]);
-      evidence_raw[j]= evidence[j];
-    }
+  // Expand offset if needed
+  if (offset.n_elem == 1 && n > 1) {
+    offset = arma::vec(n, arma::fill::value(offset(0)));
   }
-
-  // ΔBIC
-  if (!std::isnan(BIC0_global)) {
-    for (int j = 0; j < p; ++j) bic_diff[j] = bic[j] - BIC0_global;
+  
+  double null_bic = 0.0;
+  
+  // Fit univariate models for each predictor
+  for (int j = 0; j < p; j++) {
+    arma::vec x_j = X.col(j);
+    
+    List res = univariate_fit(
+      x_j,
+      y,
+      family,
+      offset,
+      standardize,
+      ties,
+      lambda,
+      tau
+    );
+    
+    intercept[j] = as<double>(res["intercept"]);
+    theta[j] = as<double>(res["theta"]);
+    loglik[j] = as<double>(res["loglik"]);
+    bic[j] = as<double>(res["bic"]);
+    bic_diff[j] = bic[j] - null_bic;
+    pval_raw[j] = as<double>(res["pval"]);
+    evidence_raw[j] = -0.5*bic[j];
   }
-
-  // Stable softmax for Bayes weights
-  double ev_max = evidence.max();
-  arma::vec bf  = arma::exp(0.5 * (evidence - ev_max));
+  
+  // Shift BIC differences so minimum is 0
+  double min_bic_diff = bic_diff.min();
+  bic_diff = bic_diff - min_bic_diff;
+  
+  // Calculate Bayes factors and posterior model probabilities
+  arma::vec bf = arma::exp(-0.5 * bic_diff);
   double sum_bf = arma::sum(bf);
-  arma::vec pmp = (sum_bf > 0.0) ? (bf / sum_bf) : arma::vec(p, arma::fill::value(1.0 / p));
-
-  // Expectations
+  arma::vec pmp = bf / sum_bf;
+  
+  // Calculate PMP-weighted expectations
   arma::vec expect_intercept = pmp % intercept;
-  arma::vec expect_theta     = pmp % theta;
-
+  arma::vec expect_theta = pmp % theta;
   double mu1 = arma::dot(pmp, theta);
   double mu2 = arma::dot(pmp, theta % theta);
-  double expect_variance = mu2 - mu1 * mu1;
+  double expect_variance = mu2 - mu1*mu1;
+  
+  for (int j = 0; j < p; j++) {
+    arma::vec x_j = X.col(j);
+    // Compute full model log-likelihood
+    double ll1 = univariate_loglik(x_j, y, family, expect_theta[j], offset, expect_intercept[j]);
 
-  // ---- Shrinkage loop ----
-  for (int j = 0; j < p; ++j) {
-    arma::vec xj = X.col(j);
-
-    double ll1 = univariate_loglik(xj, y, family, expect_theta[j], offset, expect_intercept[j]);
-
-    // Intercept test
-    double ll0_int = univariate_loglik(xj, y, family, expect_theta[j], offset, 0.0);
-    double lrt_int = 2.0 * (ll1 - ll0_int);
-    pval_intercept[j] = R::pchisq(lrt_int, 1.0, false, false);
+    // === Intercept Test ===
+    // Null model: intercept = 0, theta fixed
+    double ll0_intercept = univariate_loglik(x_j, y, family, expect_theta[j], offset, 0.0);
+    double lrt_intercept = 2.0 * (ll1 - ll0_intercept);
+    pval_intercept[j] = R::pchisq(lrt_intercept, 1.0, false, false);
     if (shrinkage && pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
-
-    // Theta test
-    double ll0_theta = univariate_loglik(xj, y, family, 0.0, offset, expect_intercept[j]);
+    
+    // === Slope Test ===
+    // Null model: theta = 0, intercept fixed
+    double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, expect_intercept[j]);
     double lrt_theta = 2.0 * (ll1 - ll0_theta);
     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
     if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
+
+    // === Evidence ===
+    evidence[j] = 2*(ll1 - ll0_theta) - std::log(n);
   }
 
-  return Rcpp::List::create(
-    Rcpp::Named("loglik")           = loglik,
-    Rcpp::Named("bic")              = bic,
-    Rcpp::Named("bic_diff")         = bic_diff,
-    Rcpp::Named("bf")               = bf,
-    Rcpp::Named("pmp")              = pmp,
-    Rcpp::Named("intercept")        = intercept,
-    Rcpp::Named("theta")            = theta,
-    Rcpp::Named("se_theta")         = se_theta,          // <--- NEW FIELD
-    Rcpp::Named("pval_raw")         = pval_raw,
-    Rcpp::Named("pval_intercept")   = pval_intercept,
-    Rcpp::Named("pval_theta")       = pval_theta,
-    Rcpp::Named("evidence")         = evidence,
-    Rcpp::Named("evidence_raw")     = evidence_raw,
-    Rcpp::Named("expect_intercept") = expect_intercept,
-    Rcpp::Named("expect_theta")     = expect_theta,
-    Rcpp::Named("expect_variance")  = expect_variance
+  // Return results as a list
+  return List::create(
+    Named("loglik") = loglik,
+    Named("bic") = bic,
+    Named("bic_diff") = bic_diff,
+    Named("bf") = bf,
+    Named("pmp") = pmp,
+    Named("intercept") = intercept,
+    Named("theta") = theta,
+    Named("pval_raw") = pval_raw,
+    Named("pval_intercept") = pval_intercept,
+    Named("pval_theta") = pval_theta,
+    Named("evidence") = evidence,
+    Named("evidence_raw") = evidence_raw,
+    Named("expect_intercept") = expect_intercept,
+    Named("expect_theta") = expect_theta,
+    Named("expect_variance") = expect_variance
   );
 }
-
 
 // [[Rcpp::export]]
 List additive_effect_fit(
@@ -1224,9 +1202,6 @@ List additive_effect_fit(
   arma::mat evidence(p, L, arma::fill::zeros);
   arma::mat evidence_raw(p, L, arma::fill::zeros);
   
-  // SE
-  arma::mat se_theta(p, L, arma::fill::zeros);
-
   // Initialize result matrices
   arma::mat loglik(p, L, arma::fill::zeros);
   arma::mat bic(p, L, arma::fill::zeros);
@@ -1283,8 +1258,6 @@ List additive_effect_fit(
       arma::vec res_evidence = as<arma::vec>(res["evidence"]);
       arma::vec res_evidence_raw = as<arma::vec>(res["evidence_raw"]);
 
-      arma::vec res_se_theta = as<arma::vec>(res["se_theta"]);
-
       // Apply thresholding to expect_theta
       arma::vec res_expect_intercept = as<arma::vec>(res["expect_intercept"]);
       arma::vec res_expect_theta = as<arma::vec>(res["expect_theta"]);
@@ -1297,7 +1270,6 @@ List additive_effect_fit(
       pval_raw.col(l) = res_pval_raw;
       evidence.col(l) = res_evidence;
       evidence_raw.col(l) = res_evidence_raw;
-      se_theta.col(l) = res_se_theta;
       loglik.col(l) = res_loglik;
       bic.col(l) = res_bic;
       bic_diff.col(l) = res_bic_diff;
@@ -1348,7 +1320,6 @@ List additive_effect_fit(
     Named("pval_raw") = pval_raw,
     Named("evidence") = evidence,
     Named("evidence_raw") = evidence_raw,
-    Named("se_theta") = se_theta,
     Named("pmp") = pmp,
     Named("bic") = bic,
     Named("bic_diff") = bic_diff,
