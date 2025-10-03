@@ -852,35 +852,35 @@ List univariate_fit(
 }
 
 // [[Rcpp::export]]
-List univariate_glm(const NumericVector& x,
-                    const NumericVector& y,
+List univariate_glm(const arma::vec& x,
+                    const arma::vec& y,
                     SEXP family,
-                    Nullable<NumericVector> offset = R_NilValue) {
-  int n = y.size();
-  if (x.size() != n) stop("x and y must have the same length.");
+                    Nullable<NumericVector> offset) {
+  int n = y.n_elem;
+  if ((int)x.n_elem != n) stop("x and y must have the same length.");
 
-  // Build data.frame
+  // Build data.frame (convert arma::vec -> NumericVector via wrap)
   bool has_off = offset.isNotNull();
   DataFrame df;
   if (has_off) {
     NumericVector off(offset);
     if (off.size() != n && off.size() != 1) stop("offset must be length n or 1.");
     if (off.size() == 1) off = NumericVector(n, off[0]);
-    df = DataFrame::create(_["y"]=y, _["x"]=x, _["off"]=off);
+    df = DataFrame::create(_["y"]=wrap(y), _["x"]=wrap(x), _["off"]=off);
   } else {
-    df = DataFrame::create(_["y"]=y, _["x"]=x);
+    df = DataFrame::create(_["y"]=wrap(y), _["x"]=wrap(x));
   }
 
-  // Stats namespace & concrete methods
+  // stats namespace & concrete methods
   Environment stats      = Environment::namespace_env("stats");
   Function     glm       = stats["glm"];
   Function     logLik    = stats["logLik"];
   Function     BICf      = stats["BIC"];
   Function     pchisq    = stats["pchisq"];
   Function     as_formula= stats["as.formula"];
-  Function     summaryGLM= stats["summary.glm"]; // use concrete method (not generic)
+  Function     summaryGLM= stats["summary.glm"]; // concrete method
 
-  // Formulas (use offset() only when present)
+  // Formulas
   SEXP f1 = has_off ? as_formula("y ~ x + offset(off)") : as_formula("y ~ x");
   SEXP f0 = has_off ? as_formula("y ~ 1 + offset(off)") : as_formula("y ~ 1");
 
@@ -896,7 +896,7 @@ List univariate_glm(const NumericVector& x,
 
   // Coef/SE via summary.glm
   List s1 = summaryGLM(fit1);
-  NumericMatrix coefs = s1["coefficients"];  // rows: (Intercept), x ; cols: Estimate, Std. Error, t/z, p
+  NumericMatrix coefs = s1["coefficients"];  // rows: (Intercept), x
   if (coefs.nrow() < 2) stop("summary.glm did not return expected coefficient matrix.");
   double intercept = coefs(0,0);
   double beta      = coefs(1,0);
@@ -908,8 +908,8 @@ List univariate_glm(const NumericVector& x,
   double lrt_p = (lrt > 0.0) ? as<double>(pchisq(lrt, 1.0, false, false)) : 1.0;
 
   // BIC-based deltas / BF
-  double deltaBIC = bic1 - bic0;    // negative favors the variable model
-  double twoLogBF = bic0 - bic1;    // ≈ 2*log BF_{M1 vs M0}
+  double deltaBIC = bic1 - bic0;   // negative favors variable model
+  double twoLogBF = bic0 - bic1;   // ≈ 2*log BF_{M1 vs M0}
 
   return List::create(
     _["intercept"] = intercept,
@@ -927,10 +927,11 @@ List univariate_glm(const NumericVector& x,
   );
 }
 
+
 // [[Rcpp::export]]
 Rcpp::List univariate_cox(SEXP y,
-                          const Rcpp::NumericVector& x,
-                          Rcpp::Nullable<Rcpp::NumericVector> offset,
+                          const arma::vec& x,
+                          Rcpp::Nullable<Rcpp::NumericVector> offset = R_NilValue,
                           std::string ties = "efron") {
   // ---- parse y = (time, status) ----
   NumericVector time, status;
@@ -949,7 +950,7 @@ Rcpp::List univariate_cox(SEXP y,
   }
 
   int n = time.size();
-  if (status.size() != n || x.size() != n)
+  if (status.size() != n || static_cast<int>(x.n_elem) != n)
     stop("Lengths of time, status, and x must match.");
 
   // ---- handle offset (optional; scalar expands) ----
@@ -962,9 +963,10 @@ Rcpp::List univariate_cox(SEXP y,
   }
 
   // ---- build data.frame ----
+  // (wrap(x) converts arma::vec -> NumericVector)
   DataFrame df = has_off
-    ? DataFrame::create(_["time"]=time, _["status"]=status, _["x"]=x, _["off"]=off)
-    : DataFrame::create(_["time"]=time, _["status"]=status, _["x"]=x);
+    ? DataFrame::create(_["time"]=time, _["status"]=status, _["x"]=wrap(x), _["off"]=off)
+    : DataFrame::create(_["time"]=time, _["status"]=status, _["x"]=wrap(x));
 
   // ---- namespaces & functions ----
   Environment survival = Environment::namespace_env("survival");
@@ -975,7 +977,6 @@ Rcpp::List univariate_cox(SEXP y,
   Function pchisq      = stats["pchisq"];
 
   // ---- formula: Surv(time, status) ~ x (+ offset(off)) ----
-  // Use Surv() inside the formula string; survival::coxph will resolve it.
   SEXP f1 = has_off
     ? as_formula("Surv(time, status) ~ x + offset(off)")
     : as_formula("Surv(time, status) ~ x");
@@ -986,6 +987,9 @@ Rcpp::List univariate_cox(SEXP y,
   // ---- coef / se / z / p via summary.coxph ----
   List s1 = summ_coxph(fit1);
   NumericMatrix coefmat = s1["coefficients"]; // cols: coef, exp(coef), se(coef), z, p
+  if (coefmat.nrow() < 1 || coefmat.ncol() < 5)
+    stop("summary.coxph did not return expected coefficients matrix.");
+
   double beta    = coefmat(0, 0);
   double se_beta = coefmat(0, 2);
   double wald_z  = coefmat(0, 3);
@@ -1002,26 +1006,26 @@ Rcpp::List univariate_cox(SEXP y,
   double LRT_p = (LRT > 0.0) ? as<double>(pchisq(LRT, 1.0, false, false)) : 1.0;
 
   // ---- BIC (partial log-likelihood), k1=1, k0=0 ----
-  double BIC1     = -2.0 * ll1 + std::log((double) n);
+  double BIC1     = -2.0 * ll1 + std::log(static_cast<double>(n));
   double BIC0     = -2.0 * ll0;
   double deltaBIC = BIC1 - BIC0;       // negative favors model with x
   double twoLogBF = BIC0 - BIC1;       // ≈ 2*log BF_{x vs null}
 
   return List::create(
-    _["beta"]      = beta,
-    _["se"]        = se_beta,
-    _["wald_z"]    = wald_z,
-    _["wald_p"]    = wald_p,
-    _["logLik0"]   = ll0,
-    _["logLik1"]   = ll1,
-    _["LRT"]       = LRT,
-    _["LRT_p"]     = LRT_p,
-    _["BIC0"]      = BIC0,
-    _["BIC1"]      = BIC1,
-    _["deltaBIC"]  = deltaBIC,
-    _["twoLogBF"]  = twoLogBF,
-    _["ties"]      = ties,
-    _["has_offset"]= has_off
+    _["beta"]       = beta,
+    _["se"]         = se_beta,
+    _["wald_z"]     = wald_z,
+    _["wald_p"]     = wald_p,
+    _["logLik0"]    = ll0,
+    _["logLik1"]    = ll1,
+    _["LRT"]        = LRT,
+    _["LRT_p"]      = LRT_p,
+    _["BIC0"]       = BIC0,
+    _["BIC1"]       = BIC1,
+    _["deltaBIC"]   = deltaBIC,
+    _["twoLogBF"]   = twoLogBF,
+    _["ties"]       = ties,
+    _["has_offset"] = has_off
   );
 }
 
