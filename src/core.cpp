@@ -852,6 +852,82 @@ List univariate_fit(
 }
 
 // [[Rcpp::export]]
+List univariate_glm(const NumericVector& x,
+                    const NumericVector& y,
+                    SEXP family,
+                    Nullable<NumericVector> offset = R_NilValue) {
+  int n = y.size();
+  if (x.size() != n) stop("x and y must have the same length.");
+
+  // Build data.frame
+  bool has_off = offset.isNotNull();
+  DataFrame df;
+  if (has_off) {
+    NumericVector off(offset);
+    if (off.size() != n && off.size() != 1) stop("offset must be length n or 1.");
+    if (off.size() == 1) off = NumericVector(n, off[0]);
+    df = DataFrame::create(_["y"]=y, _["x"]=x, _["off"]=off);
+  } else {
+    df = DataFrame::create(_["y"]=y, _["x"]=x);
+  }
+
+  // Stats namespace & concrete methods
+  Environment stats      = Environment::namespace_env("stats");
+  Function     glm       = stats["glm"];
+  Function     logLik    = stats["logLik"];
+  Function     BICf      = stats["BIC"];
+  Function     pchisq    = stats["pchisq"];
+  Function     as_formula= stats["as.formula"];
+  Function     summaryGLM= stats["summary.glm"]; // use concrete method (not generic)
+
+  // Formulas (use offset() only when present)
+  SEXP f1 = has_off ? as_formula("y ~ x + offset(off)") : as_formula("y ~ x");
+  SEXP f0 = has_off ? as_formula("y ~ 1 + offset(off)") : as_formula("y ~ 1");
+
+  // Fits
+  List fit1 = glm(_["formula"]=f1, _["data"]=df, _["family"]=family);
+  List fit0 = glm(_["formula"]=f0, _["data"]=df, _["family"]=family);
+
+  // Likelihoods & BICs
+  double ll1  = as<double>(logLik(fit1));
+  double ll0  = as<double>(logLik(fit0));
+  double bic1 = as<double>(BICf(fit1));
+  double bic0 = as<double>(BICf(fit0));
+
+  // Coef/SE via summary.glm
+  List s1 = summaryGLM(fit1);
+  NumericMatrix coefs = s1["coefficients"];  // rows: (Intercept), x ; cols: Estimate, Std. Error, t/z, p
+  if (coefs.nrow() < 2) stop("summary.glm did not return expected coefficient matrix.");
+  double intercept = coefs(0,0);
+  double beta      = coefs(1,0);
+  double se_beta   = coefs(1,1);
+  double wald_p    = coefs(1,3);
+
+  // LRT vs null
+  double lrt   = 2.0 * (ll1 - ll0);
+  double lrt_p = (lrt > 0.0) ? as<double>(pchisq(lrt, 1.0, false, false)) : 1.0;
+
+  // BIC-based deltas / BF
+  double deltaBIC = bic1 - bic0;    // negative favors the variable model
+  double twoLogBF = bic0 - bic1;    // ≈ 2*log BF_{M1 vs M0}
+
+  return List::create(
+    _["intercept"] = intercept,
+    _["beta"]      = beta,
+    _["se"]        = se_beta,
+    _["wald_p"]    = wald_p,
+    _["logLik1"]   = ll1,
+    _["logLik0"]   = ll0,
+    _["BIC1"]      = bic1,
+    _["BIC0"]      = bic0,
+    _["LRT"]       = lrt,
+    _["LRT_p"]     = lrt_p,
+    _["deltaBIC"]  = deltaBIC,
+    _["twoLogBF"]  = twoLogBF
+  );
+}
+
+// [[Rcpp::export]]
 Rcpp::List univariate_cox(SEXP y,
                           const Rcpp::NumericVector& x,
                           Rcpp::Nullable<Rcpp::NumericVector> offset,
@@ -949,200 +1025,6 @@ Rcpp::List univariate_cox(SEXP y,
   );
 }
 
-// [[Rcpp::export]]
-List univariate_glm(const Rcpp::NumericVector& x,
-                          const Rcpp::NumericVector& y,
-                          SEXP family,
-                          Rcpp::Nullable<Rcpp::NumericVector> offset) {
-  int n = y.size();
-  if (x.size() != n) stop("x and y must have the same length.");
-
-  // Build data.frame
-  bool has_off = offset.isNotNull();
-  DataFrame df;
-  if (has_off) {
-    NumericVector off(offset);
-    if (off.size() != n && off.size() != 1) stop("offset must be length n or 1.");
-    if (off.size() == 1) off = NumericVector(n, off[0]);
-    df = DataFrame::create(_["y"]=y, _["x"]=x, _["off"]=off);
-  } else {
-    df = DataFrame::create(_["y"]=y, _["x"]=x);
-  }
-
-  // Namespaces
-  Environment stats = Environment::namespace_env("stats");
-  // Use concrete methods to avoid generic NULLs
-  Function glm        = stats["glm"];
-  Function logLik     = stats["logLik"];
-  Function BICf       = stats["BIC"];
-  Function pchisq     = stats["pchisq"];
-  Function as_formula = stats["as.formula"];
-  Function summary_glm= stats["summary.glm"];   // <-- not base::summary()
-
-  // Formulas
-  SEXP f1 = has_off ? as_formula("y ~ x + offset(off)") : as_formula("y ~ x");
-  SEXP f0 = has_off ? as_formula("y ~ 1 + offset(off)") : as_formula("y ~ 1");
-
-  // Fits
-  List fit1 = glm(_["formula"]=f1, _["data"]=df, _["family"]=family);
-  List fit0 = glm(_["formula"]=f0, _["data"]=df, _["family"]=family);
-
-  // Likelihoods & BIC
-  double ll1  = as<double>(logLik(fit1));
-  double ll0  = as<double>(logLik(fit0));
-  double bic1 = as<double>(BICf(fit1));
-  double bic0 = as<double>(BICf(fit0));
-
-  // Coef/SE via summary.glm (concrete method)
-  List s1 = summary_glm(fit1);
-  NumericMatrix coefs = s1["coefficients"];  // rows: (Intercept), x
-  double intercept = coefs(0,0);
-  double beta      = coefs(1,0);
-  double se_beta   = coefs(1,1);
-  double wald_p    = coefs(1,3);
-
-  // LRT p-value
-  double lrt = 2.0 * (ll1 - ll0);
-  double lrt_p = (lrt > 0.0) ? as<double>(pchisq(lrt, 1.0, false, false)) : 1.0;
-
-  // BIC-based
-  double deltaBIC = bic1 - bic0;
-  double twoLogBF = bic0 - bic1;  // ≈ 2*log BF_{M1 vs M0}
-
-  return List::create(
-    _["intercept"]=intercept,
-    _["beta"]=beta,
-    _["se"]=se_beta,
-    _["wald_p"]=wald_p,
-    _["logLik1"]=ll1,
-    _["logLik0"]=ll0,
-    _["BIC1"]=bic1,
-    _["BIC0"]=bic0,
-    _["LRT"]=lrt,
-    _["LRT_p"]=lrt_p,
-    _["deltaBIC"]=deltaBIC,
-    _["twoLogBF"]=twoLogBF
-  );
-}
-
-// // [[Rcpp::export]]
-// Rcpp::List single_effect_fit(
-//     const arma::mat&   X,
-//     SEXP               y,
-//     SEXP               family,
-//     arma::vec          offset,
-//     bool               standardize = true,
-//     bool               shrinkage = true,
-//     std::string        ties = "efron",
-//     double             lambda = 0.0,
-//     double             tau = 0.5,
-//     double             alpha = 0.05
-// ) {
-//   // Get dimensions
-//   int n = X.n_rows;
-//   int p = X.n_cols;
-  
-//   // Initialize result vectors
-//   arma::vec intercept(p, arma::fill::zeros);
-//   arma::vec theta(p, arma::fill::zeros);
-//   arma::vec loglik(p, arma::fill::zeros);
-//   arma::vec bic(p, arma::fill::zeros);
-//   arma::vec bic_diff(p, arma::fill::zeros);
-//   arma::vec pval_raw(p, arma::fill::zeros);
-//   arma::vec pval_intercept(p, arma::fill::zeros);
-//   arma::vec pval_theta(p, arma::fill::zeros);
-//   arma::vec evidence(p, arma::fill::zeros);
-//   arma::vec evidence_raw(p, arma::fill::zeros);
-
-//   // Expand offset if needed
-//   if (offset.n_elem == 1 && n > 1) {
-//     offset = arma::vec(n, arma::fill::value(offset(0)));
-//   }
-  
-//   double null_bic = 0.0;
-  
-//   // Fit univariate models for each predictor
-//   for (int j = 0; j < p; j++) {
-//     arma::vec x_j = X.col(j);
-    
-//     List res = univariate_fit(
-//       x_j,
-//       y,
-//       family,
-//       offset,
-//       standardize,
-//       ties,
-//       lambda,
-//       tau
-//     );
-    
-//     intercept[j] = as<double>(res["intercept"]);
-//     theta[j] = as<double>(res["theta"]);
-//     loglik[j] = as<double>(res["loglik"]);
-//     bic[j] = as<double>(res["bic"]);
-//     bic_diff[j] = bic[j] - null_bic;
-//     pval_raw[j] = as<double>(res["pval"]);
-//     evidence_raw[j] = -0.5*bic[j];
-//   }
-  
-//   // Shift BIC differences so minimum is 0
-//   double min_bic_diff = bic_diff.min();
-//   bic_diff = bic_diff - min_bic_diff;
-  
-//   // Calculate Bayes factors and posterior model probabilities
-//   arma::vec bf = arma::exp(-0.5 * bic_diff);
-//   double sum_bf = arma::sum(bf);
-//   arma::vec pmp = bf / sum_bf;
-  
-//   // Calculate PMP-weighted expectations
-//   arma::vec expect_intercept = pmp % intercept;
-//   arma::vec expect_theta = pmp % theta;
-//   double mu1 = arma::dot(pmp, theta);
-//   double mu2 = arma::dot(pmp, theta % theta);
-//   double expect_variance = mu2 - mu1*mu1;
-  
-//   for (int j = 0; j < p; j++) {
-//     arma::vec x_j = X.col(j);
-//     // Compute full model log-likelihood
-//     double ll1 = univariate_loglik(x_j, y, family, expect_theta[j], offset, expect_intercept[j]);
-
-//     // === Intercept Test ===
-//     // Null model: intercept = 0, theta fixed
-//     double ll0_intercept = univariate_loglik(x_j, y, family, expect_theta[j], offset, 0.0);
-//     double lrt_intercept = 2.0 * (ll1 - ll0_intercept);
-//     pval_intercept[j] = R::pchisq(lrt_intercept, 1.0, false, false);
-//     if (shrinkage && pval_intercept[j] > alpha) expect_intercept[j] = 0.0;
-    
-//     // === Slope Test ===
-//     // Null model: theta = 0, intercept fixed
-//     double ll0_theta = univariate_loglik(x_j, y, family, 0.0, offset, expect_intercept[j]);
-//     double lrt_theta = 2.0 * (ll1 - ll0_theta);
-//     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
-//     if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
-
-//     // === Evidence ===
-//     evidence[j] = 2*(ll1 - ll0_theta) - std::log(n);
-//   }
-
-//   // Return results as a list
-//   return List::create(
-//     Named("loglik") = loglik,
-//     Named("bic") = bic,
-//     Named("bic_diff") = bic_diff,
-//     Named("bf") = bf,
-//     Named("pmp") = pmp,
-//     Named("intercept") = intercept,
-//     Named("theta") = theta,
-//     Named("pval_raw") = pval_raw,
-//     Named("pval_intercept") = pval_intercept,
-//     Named("pval_theta") = pval_theta,
-//     Named("evidence") = evidence,
-//     Named("evidence_raw") = evidence_raw,
-//     Named("expect_intercept") = expect_intercept,
-//     Named("expect_theta") = expect_theta,
-//     Named("expect_variance") = expect_variance
-//   );
-// }
 
 // [[Rcpp::export]]
 Rcpp::List single_effect_fit(
@@ -1283,6 +1165,7 @@ Rcpp::List single_effect_fit(
   );
 }
 
+
 // [[Rcpp::export]]
 List additive_effect_fit(
     const arma::mat& X,
@@ -1341,6 +1224,9 @@ List additive_effect_fit(
   arma::mat evidence(p, L, arma::fill::zeros);
   arma::mat evidence_raw(p, L, arma::fill::zeros);
   
+  // SE
+  arma::mat se_theta(p, L, arma::fill::zeros);
+
   // Initialize result matrices
   arma::mat loglik(p, L, arma::fill::zeros);
   arma::mat bic(p, L, arma::fill::zeros);
@@ -1397,6 +1283,8 @@ List additive_effect_fit(
       arma::vec res_evidence = as<arma::vec>(res["evidence"]);
       arma::vec res_evidence_raw = as<arma::vec>(res["evidence_raw"]);
 
+      arma::vec res_se_theta = as<arma::vec>(res["se_theta"]);
+
       // Apply thresholding to expect_theta
       arma::vec res_expect_intercept = as<arma::vec>(res["expect_intercept"]);
       arma::vec res_expect_theta = as<arma::vec>(res["expect_theta"]);
@@ -1409,6 +1297,7 @@ List additive_effect_fit(
       pval_raw.col(l) = res_pval_raw;
       evidence.col(l) = res_evidence;
       evidence_raw.col(l) = res_evidence_raw;
+      se_theta.col(l) = res_se_theta;
       loglik.col(l) = res_loglik;
       bic.col(l) = res_bic;
       bic_diff.col(l) = res_bic_diff;
@@ -1459,6 +1348,7 @@ List additive_effect_fit(
     Named("pval_raw") = pval_raw,
     Named("evidence") = evidence,
     Named("evidence_raw") = evidence_raw,
+    Named("se_theta") = se_theta,
     Named("pmp") = pmp,
     Named("bic") = bic,
     Named("bic_diff") = bic_diff,

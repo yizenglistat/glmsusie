@@ -421,55 +421,60 @@ NULL
 #' @export
 NULL
 
-#' Compute Single‐Effect Fit for GLM or Cox with Optional Truncated‐L1 Penalty
+#' Single-Effect Screening (GLM / Cox)
 #'
 #' @description
-#' Applies a single‐effect model to each column of a predictor matrix using either
-#' GLM (via IRLS + truncated‐L1) or Cox partial likelihood (via penalized IRLS).
+#' For each column of \code{X}, fits a univariate model (GLM via \code{stats::glm()}
+#' or Cox PH via \code{survival::coxph()}, selected by \code{family}), computes
+#' per-variable statistics (coef, SE, p-values, BIC, evidence), converts
+#' BIC-based evidence to Bayes factors and posterior model probabilities (PMP)
+#' using a numerically stable softmax, and optionally applies shrinkage tests
+#' using likelihood-ratio tests on the expected coefficients.
 #'
-#' @param X Numeric matrix (n × p) of predictors. Each column is fit separately.
-#' @param y Response:
-#'   - For GLMs: numeric vector of length n.
-#'   - For Cox: numeric matrix with 2 columns (time, status) and n rows.
-#' @param family A stats::family object (e.g. \code{gaussian()}, \code{binomial()}, 
-#'   \code{poisson()}) or a Cox family list with \code{family = "cox"}.
-#' @param offset Numeric scalar or vector (length n) giving the linear predictor offset (default: 0).
-#' @param standardize Logical: if TRUE, center and scale each predictor column before fitting (default: TRUE).
-#' @param shrinkage Logical: if TRUE, shrinkage parameters in fitting (default: TRUE).
-#' @param ties Character: ties method for Cox partial likelihood ("efron" or "breslow", default: "efron").
-#' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
-#' @param tau Numeric truncation parameter; if ≤ 0, defaults to 1.0 (default: 1.0).
-#' @param alpha level of significance
+#' @param X An \eqn{n \times p} numeric matrix of predictors.
+#' @param y For GLM: numeric vector of length \eqn{n}. For Cox: either an
+#'   \eqn{n \times 2} matrix \code{(time, status)} or a list \code{list(time, status)}.
+#' @param family GLM family object (e.g., \code{binomial()}, \code{gaussian()},
+#'   \code{poisson()}), or the string \code{"cox"} to use Cox PH.
+#' @param offset Optional numeric vector of length \eqn{n}, or scalar; if scalar,
+#'   it is expanded to length \eqn{n}.
+#' @param standardize Logical, kept for API compatibility (inner fits use R modeling).
+#' @param shrinkage Logical; if \code{TRUE}, zero out \code{expect_*} entries when the
+#'   corresponding LRT p-value exceeds \code{alpha}.
+#' @param ties Cox ties handling: \code{"efron"} (default) or \code{"breslow"}.
+#' @param lambda,tau Numeric; kept for API compatibility (not used by glm/cox wrappers).
+#' @param alpha Numeric in (0,1); significance level for shrinkage tests (default 0.05).
 #'
-#' @return A list of length p, where each element is itself a list with components:
-#'   \item{loglik}{Unpenalized log‐likelihood at the fitted coefficient.}
-#'   \item{bic}{Bayesian Information Criterion: \eqn{-2*logLik + 2\log(n)}.}
-#'   \item{bic_diff}{BIC difference from null model.}
-#'   \item{bf}{Bayes factor.}
-#'   \item{pmp}{Posterior model probability.}
-#'   \item{intercept}{Estimated intercept for that predictor.}
-#'   \item{theta}{Estimated coefficient for that predictor.}
-#'   \item{pval_intercept}{P-value for estimated intercept for that predictor.}
-#'   \item{pval_theta}{P-value for estimated coefficient for that predictor.}
-#'   \item{expect_intercept}{Expected value of intercept under model averaging.}
-#'   \item{expect_theta}{Expected value of coefficient under model averaging.}
-#'   \item{expect_variance}{Expected variance under model averaging.}
+#' @return A list with components (all length \eqn{p} unless noted):
+#' \itemize{
+#'   \item \code{loglik}: log-likelihood for each single-variable model.
+#'   \item \code{bic}: BIC of each single-variable model.
+#'   \item \code{bic_diff}: \code{BIC1 - BIC0} (global null BIC).
+#'   \item \code{bf}: Bayes factors via stabilized \code{exp(0.5 * evidence)}.
+#'   \item \code{pmp}: posterior model probabilities (softmax over evidence).
+#'   \item \code{intercept}: intercept estimates (0 for Cox).
+#'   \item \code{theta}: slope estimates from univariate fits.
+#'   \item \code{se_theta}: standard errors of \code{theta}.
+#'   \item \code{pval_raw}: Wald (GLM) or LRT (Cox) p-values from univariate fits.
+#'   \item \code{pval_intercept}: LRT p-values for intercept (expectation test).
+#'   \item \code{pval_theta}: LRT p-values for slope (expectation test).
+#'   \item \code{evidence}: \code{twoLogBF ≈ BIC0 - BIC1} per variable.
+#'   \item \code{evidence_raw}: same as \code{evidence} (kept for compatibility).
+#'   \item \code{expect_intercept}: PMP-weighted intercept per variable (post-shrinkage).
+#'   \item \code{expect_theta}: PMP-weighted slope per variable (post-shrinkage).
+#'   \item \code{expect_variance}: scalar \code{Var_pmp(theta)}.
+#' }
 #'
 #' @examples
-#' \dontrun{
-#' set.seed(123)
-#' n <- 80; p <- 3
+#' set.seed(1)
+#' n <- 200; p <- 5
 #' X <- matrix(rnorm(n*p), n, p)
-#' # Gaussian example
-#' y_gauss <- X[,1] * 1.2 + rnorm(n)
-#' res_glm <- single_effect_fit(X, y_gauss, family = gaussian())
+#' beta <- c(1, 0, 0.5, 0, 0)
+#' eta  <- 0.2 + X %*% beta
+#' y    <- rbinom(n, 1, plogis(eta))
+#' out  <- single_effect_fit(X, y, binomial(), offset = rep(0, n))
+#' str(out$pmp)
 #'
-#' # Cox example
-#' times <- rexp(n, rate = exp(0.5 * X[,2]))
-#' status <- rbinom(n, 1, 0.7)
-#' y_cox <- cbind(time=times, status=status)
-#' res_cox <- single_effect_fit(X, y_cox, family = list(family="cox"))
-#' }
 #' @name single_effect_fit
 #' @export
 NULL

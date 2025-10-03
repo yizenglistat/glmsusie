@@ -139,6 +139,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// univariate_glm
+List univariate_glm(const NumericVector& x, const NumericVector& y, SEXP family, Nullable<NumericVector> offset);
+RcppExport SEXP _glmcs_univariate_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type offset(offsetSEXP);
+    rcpp_result_gen = Rcpp::wrap(univariate_glm(x, y, family, offset));
+    return rcpp_result_gen;
+END_RCPP
+}
 // univariate_cox
 Rcpp::List univariate_cox(SEXP y, const Rcpp::NumericVector& x, Rcpp::Nullable<Rcpp::NumericVector> offset, std::string ties);
 RcppExport SEXP _glmcs_univariate_cox(SEXP ySEXP, SEXP xSEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
@@ -150,20 +164,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type offset(offsetSEXP);
     Rcpp::traits::input_parameter< std::string >::type ties(tiesSEXP);
     rcpp_result_gen = Rcpp::wrap(univariate_cox(y, x, offset, ties));
-    return rcpp_result_gen;
-END_RCPP
-}
-// univariate_glm
-List univariate_glm(const Rcpp::NumericVector& x, const Rcpp::NumericVector& y, SEXP family, Rcpp::Nullable<Rcpp::NumericVector> offset);
-RcppExport SEXP _glmcs_univariate_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type family(familySEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type offset(offsetSEXP);
-    rcpp_result_gen = Rcpp::wrap(univariate_glm(x, y, family, offset));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -220,8 +220,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glmcs_univariate_irls_glm_no_intercept", (DL_FUNC) &_glmcs_univariate_irls_glm_no_intercept, 6},
     {"_glmcs_univariate_irls_glm", (DL_FUNC) &_glmcs_univariate_irls_glm, 6},
     {"_glmcs_univariate_fit", (DL_FUNC) &_glmcs_univariate_fit, 8},
-    {"_glmcs_univariate_cox", (DL_FUNC) &_glmcs_univariate_cox, 4},
     {"_glmcs_univariate_glm", (DL_FUNC) &_glmcs_univariate_glm, 4},
+    {"_glmcs_univariate_cox", (DL_FUNC) &_glmcs_univariate_cox, 4},
     {"_glmcs_single_effect_fit", (DL_FUNC) &_glmcs_single_effect_fit, 10},
     {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 13},
     {NULL, NULL, 0}
