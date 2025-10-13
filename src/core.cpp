@@ -770,6 +770,87 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
   return result;
 }
 
+// // [[Rcpp::export]]
+// List univariate_fit(
+//     const arma::vec& x, 
+//     SEXP y, 
+//     SEXP family,
+//     arma::vec offset,
+//     bool standardize = true,
+//     std::string ties = "efron",
+//     double lambda = 0.0,
+//     double tau = 0.5)
+// {
+//   // Get dimensions and extract family type
+//   int n = x.n_elem;
+//   bool is_cox = TYPEOF(family) == STRSXP ? as<std::string>(family) == "cox" : 
+//                  as<std::string>(as<List>(family)["family"]) == "cox";
+  
+//   // Handle offset
+//   if (offset.n_elem == 1 && n > 1) offset = arma::vec(n, arma::fill::value(offset(0)));
+  
+//   // Standardize predictor (only if non-constant)
+//   double x_mean = 0.0, x_norm = 1.0;
+//   arma::vec x_std = x;
+  
+//   if (standardize) {
+//     x_mean = arma::mean(x);
+//     x_std = x - x_mean;
+//     x_norm = arma::norm(x_std, 2);
+//     if (x_norm > 1e-10) x_std /= x_norm;
+//     else { x_std = x; x_mean = 0.0; x_norm = 1.0; }
+
+//   }
+  
+//   // Fit model using appropriate function
+//   double intercept_std = 0.0;
+//   double theta_std = 0.0;
+  
+//   if (is_cox) {
+//     // Convert y to appropriate format for Cox
+//     arma::mat y_mat = TYPEOF(y) == VECSXP ? 
+//       arma::mat(n, 2) : as<arma::mat>(y);
+    
+//     if (TYPEOF(y) == VECSXP) {
+//       NumericVector time = as<NumericVector>(as<List>(y)[0]);
+//       NumericVector status = as<NumericVector>(as<List>(y)[1]);
+//       y_mat.col(0) = as<arma::vec>(time);
+//       y_mat.col(1) = as<arma::vec>(status);
+//     }
+    
+//     theta_std = univariate_irls_cox(x_std, y_mat, offset, ties, lambda, tau);
+//   } else {
+//     // Convert y for GLM
+//     arma::vec y_vec = TYPEOF(y) == VECSXP ? 
+//       as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
+//       as<arma::vec>(as<NumericVector>(y));
+    
+//     Rcpp::List res = univariate_irls_glm(x_std, y_vec, family, offset);
+
+//     intercept_std = as<double>(res["intercept"]);
+//     theta_std     = as<double>(res["theta"]);
+
+//   }
+  
+//   // Transform coefficient, apply threshold, and compute metrics
+//   double theta = theta_std / x_norm;
+//   double intercept = intercept_std - theta * x_mean;
+
+//   double loglik = univariate_loglik(x, y, family, theta, offset, intercept, ties);
+//   double loglik0 = univariate_loglik(x, y, family, 0.0, offset, intercept, ties);
+//   double lrt = 2.0 * (loglik - loglik0);
+//   double pval = (lrt > 0) ? R::pchisq(lrt, 1.0, false, true) : 1.0;
+//   double bic = -2.0 * loglik + std::log(n) * (theta != 0.0 ? 1.0 : 0.0);
+
+//   return List::create(
+//     Named("intercept") = intercept,
+//     Named("theta") = theta,
+//     Named("loglik") = loglik,
+//     Named("bic") = bic,
+//     Named("pval") = pval
+//   );
+// }
+
 // [[Rcpp::export]]
 List univariate_fit(
     const arma::vec& x, 
@@ -781,7 +862,6 @@ List univariate_fit(
     double lambda = 0.0,
     double tau = 0.5)
 {
-  // Get dimensions and extract family type
   int n = x.n_elem;
   bool is_cox = TYPEOF(family) == STRSXP ? as<std::string>(family) == "cox" : 
                  as<std::string>(as<List>(family)["family"]) == "cox";
@@ -792,62 +872,82 @@ List univariate_fit(
   // Standardize predictor (only if non-constant)
   double x_mean = 0.0, x_norm = 1.0;
   arma::vec x_std = x;
-  
   if (standardize) {
     x_mean = arma::mean(x);
-    x_std = x - x_mean;
+    x_std  = x - x_mean;
     x_norm = arma::norm(x_std, 2);
-    if (x_norm > 1e-10) x_std /= x_norm;
-    else { x_std = x; x_mean = 0.0; x_norm = 1.0; }
-
+    if (x_norm > 1e-10) {
+      x_std /= x_norm;
+    } else {
+      x_std = x; x_mean = 0.0; x_norm = 1.0;
+    }
   }
   
-  // Fit model using appropriate function
+  // Fit
   double intercept_std = 0.0;
-  double theta_std = 0.0;
-  
+  double theta_std     = 0.0;
   if (is_cox) {
-    // Convert y to appropriate format for Cox
-    arma::mat y_mat = TYPEOF(y) == VECSXP ? 
-      arma::mat(n, 2) : as<arma::mat>(y);
-    
+    // y as matrix [time, status]
+    arma::mat y_mat = TYPEOF(y) == VECSXP ? arma::mat(n, 2) : as<arma::mat>(y);
     if (TYPEOF(y) == VECSXP) {
-      NumericVector time = as<NumericVector>(as<List>(y)[0]);
+      NumericVector time   = as<NumericVector>(as<List>(y)[0]);
       NumericVector status = as<NumericVector>(as<List>(y)[1]);
       y_mat.col(0) = as<arma::vec>(time);
       y_mat.col(1) = as<arma::vec>(status);
     }
-    
     theta_std = univariate_irls_cox(x_std, y_mat, offset, ties, lambda, tau);
   } else {
-    // Convert y for GLM
     arma::vec y_vec = TYPEOF(y) == VECSXP ? 
       as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
       as<arma::vec>(as<NumericVector>(y));
-    
     Rcpp::List res = univariate_irls_glm(x_std, y_vec, family, offset);
-
     intercept_std = as<double>(res["intercept"]);
     theta_std     = as<double>(res["theta"]);
-
   }
   
-  // Transform coefficient, apply threshold, and compute metrics
-  double theta = theta_std / x_norm;
+  // Back-transform
+  double theta     = theta_std / x_norm;
   double intercept = intercept_std - theta * x_mean;
 
-  double loglik = univariate_loglik(x, y, family, theta, offset, intercept, ties);
+  // Log-likelihoods
+  double loglik  = univariate_loglik(x, y, family, theta, offset, intercept, ties);
   double loglik0 = univariate_loglik(x, y, family, 0.0, offset, intercept, ties);
-  double lrt = 2.0 * (loglik - loglik0);
-  double pval = (lrt > 0) ? R::pchisq(lrt, 1.0, false, true) : 1.0;
-  double bic = -2.0 * loglik + std::log(n) * (theta != 0.0 ? 1.0 : 0.0);
+  double lrt     = 2.0 * (loglik - loglik0);
+  double lrt_p   = (lrt > 0) ? R::pchisq(lrt, 1.0, /*lower_tail=*/false, /*log_p=*/false) : 1.0;
+  double bic     = -2.0 * loglik + std::log((double)n) * (theta != 0.0 ? 1.0 : 0.0);
+
+  // ------- New: SE via observed info (finite-difference Hessian), Wald p-value, evidence -------
+  // central difference second derivative of loglik wrt theta at MLE
+  const double h = std::max(1e-6, 1e-4 * (1.0 + std::abs(theta)));
+  double ll_plus  = univariate_loglik(x, y, family, theta + h, offset, intercept, ties);
+  double ll_minus = univariate_loglik(x, y, family, theta - h, offset, intercept, ties);
+  double d2 = (ll_plus - 2.0*loglik + ll_minus) / (h*h);   // approx second derivative
+  double info = -d2;                                       // observed information
+
+  double std_err = NA_REAL;
+  if (std::isfinite(info) && info > 0.0) {
+    std_err = std::sqrt(1.0 / info);
+  }
+
+  double z = NA_REAL, p_wald = NA_REAL;
+  if (R_finite(std_err) && std_err > 0.0) {
+    z = theta / std_err;
+    p_wald = 2.0 * R::pnorm(std::fabs(z), 0.0, 1.0, /*lower_tail=*/false, /*log_p=*/false);
+  }
+
+  // BIC-based Bayes factor (Schwarz approximation): BF10 ≈ exp((LRT - log n)/2)
+  double evidence = std::exp(0.5 * (lrt - std::log((double)n)));
 
   return List::create(
-    Named("intercept") = intercept,
-    Named("theta") = theta,
-    Named("loglik") = loglik,
-    Named("bic") = bic,
-    Named("pval") = pval
+    Named("intercept")   = intercept,
+    Named("theta")       = theta,
+    Named("std_err")     = std_err,        // NEW
+    Named("p_wald")     = p_wald,         // NEW (Wald)
+    Named("lrt")         = lrt,
+    Named("lrt_p_value") = lrt_p,
+    Named("loglik")      = loglik,
+    Named("bic")         = bic,
+    Named("evidence")    = evidence        // NEW (BF10 via BIC)
   );
 }
 
@@ -878,6 +978,8 @@ Rcpp::List single_effect_fit(
   arma::vec pval_intercept(p, arma::fill::zeros);
   arma::vec pval_theta(p, arma::fill::zeros);
   arma::vec evidence(p, arma::fill::zeros);
+  arma::vec pval_wald(p, arma::fill::zeros);
+  arma::vec std_err(p, arma::fill::zeros);
 
   // Expand offset if needed
   if (offset.n_elem == 1 && n > 1) {
@@ -906,6 +1008,9 @@ Rcpp::List single_effect_fit(
     loglik[j] = as<double>(res["loglik"]);
     bic[j] = as<double>(res["bic"]);
     bic_diff[j] = bic[j] - null_bic;
+    evidence[j] = as<double>(res["evidence"]);
+    pval_wald[j] = as<double>(res["p_wald"]);
+    std_err[j] = as<double>(res["std_err"]);
 
   }
   
@@ -943,9 +1048,6 @@ Rcpp::List single_effect_fit(
     double lrt_theta = 2.0 * (ll1 - ll0_theta);
     pval_theta[j] = R::pchisq(lrt_theta, 1.0, false, false);
     if (shrinkage && pval_theta[j] > alpha) expect_theta[j] = 0.0;
-
-    // === Evidence ===
-    evidence[j] = 2*(ll1 - ll0_theta) - std::log(n);
   }
 
   // Return results as a list
@@ -960,6 +1062,8 @@ Rcpp::List single_effect_fit(
     Named("pval_intercept") = pval_intercept,
     Named("pval_theta") = pval_theta,
     Named("evidence") = evidence,
+    Named("pval_wald") = pval_wald,
+    Named("std_err") = std_err,
     Named("expect_intercept") = expect_intercept,
     Named("expect_theta") = expect_theta,
     Named("expect_variance") = expect_variance
@@ -1021,6 +1125,8 @@ List additive_effect_fit(
 
   // Evidence
   arma::mat evidence(p, L, arma::fill::zeros);
+  arma::mat pval_wald(p, L, arma::fill::zeros);
+  arma::mat std_err(p, L, arma::fill::zeros);
   
   // Initialize result matrices
   arma::mat loglik(p, L, arma::fill::zeros);
@@ -1075,6 +1181,8 @@ List additive_effect_fit(
       arma::vec res_pval_theta = as<arma::vec>(res["pval_theta"]);
 
       arma::vec res_evidence = as<arma::vec>(res["evidence"]);
+      arma::vec res_pval_wald = as<arma::vec>(res["pval_wald"]);
+      arma::vec res_std_err = as<arma::vec>(res["std_err"]);
 
       // Apply thresholding to expect_theta
       arma::vec res_expect_intercept = as<arma::vec>(res["expect_intercept"]);
@@ -1086,6 +1194,8 @@ List additive_effect_fit(
       pval_intercept.col(l) = res_pval_intercept;
       pval_theta.col(l) = res_pval_theta;
       evidence.col(l) = res_evidence;
+      pval_wald.col(l) = res_pval_wald;
+      std_err.col(l) = res_std_err;
       loglik.col(l) = res_loglik;
       bic.col(l) = res_bic;
       bic_diff.col(l) = res_bic_diff;
@@ -1134,6 +1244,8 @@ List additive_effect_fit(
     Named("pval_intercept") = pval_intercept,
     Named("pval_theta") = pval_theta,
     Named("evidence") = evidence,
+    Named("pval_wald") = pval_wald,
+    Named("std_err") = std_err,
     Named("pmp") = pmp,
     Named("bic") = bic,
     Named("bic_diff") = bic_diff,
