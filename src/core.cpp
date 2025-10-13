@@ -712,20 +712,13 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
     arma::mat XtWX = Xw.t() * Xw;
     arma::vec XtWz = Xw.t() * zw;
     
-    // Solve for intercept and theta
+
+    // Solve for intercept and theta (silence Armadillo's "approx solution" warning)
     arma::vec params;
-    bool solved = arma::solve(params, XtWX, XtWz);
+    bool solved = arma::solve(params, XtWX, XtWz, arma::solve_opts::no_approx);
     
     if (!solved) {
-      // Fallback to a more stable approach if standard solve fails
-      arma::mat XtWX_reg = XtWX;
-      XtWX_reg.diag() += 1e-6; // Add small regularization
-      solved = arma::solve(params, XtWX_reg, XtWz);
-      
-      if (!solved) {
-        // If still fails, use pseudoinverse
-        params = arma::pinv(XtWX) * XtWz;
-      }
+      params = arma::pinv(XtWX) * XtWz;
     }
     
     intercept_new = params(0);
