@@ -216,66 +216,40 @@ Rcpp::List univariate_fit(
     double                   lambda,
     double                   tau
 );
-/**
- * Univariate GLM fit using R's glm() interface, with optional offset.
- *
- * See core.cpp for full documentation.
- */
-Rcpp::List univariate_glm(
-    const Rcpp::NumericVector& x,
-    const Rcpp::NumericVector& y,
-    SEXP family,
-    Rcpp::Nullable<Rcpp::NumericVector> offset
-);
 
-// ---------- Univariate Cox PH (Rcpp signature; impl can use arma internally) ----------
+
 /**
- * Univariate Cox proportional hazards fit using survival::coxph(),
- * with optional offset and ties handling.
- *
- * See core.cpp for full documentation.
+ * @brief Fit single-effect regression across all predictors
+ * 
+ * For each column of the design matrix X, fits a univariate model to
+ * the response y, computes BIC differences relative to a null model,
+ * converts these into Bayes factors and posterior model probabilities (PMP),
+ * and returns both the MAP estimates and the PMP-weighted expectations.
+ * 
+ * @param X Design matrix (n × p)
+ * @param y Response variable (vector for GLMs, matrix for Cox)
+ * @param family Family object or "cox"
+ * @param offset Offset vector
+ * @param standardize Whether to standardize the covariates
+ * @param shrinkage Whether to shrinkage parameters using pvals
+ * @param ties Method for handling ties in Cox models
+ * @param lambda Penalty strength parameter (NULL for default)
+ * @param tau Truncation parameter (NULL for default)
+ * @param alpha Level of significance
+ * 
+ * @return List with log-likelihood, BIC, Bayes factors, PMP and coefficient estimates, pvals
  */
-Rcpp::List univariate_cox(
+List single_effect_fit(
+    const arma::mat& X,
     SEXP y,
-    const Rcpp::NumericVector& x,
-    Rcpp::Nullable<Rcpp::NumericVector> offset,
-    std::string ties
-);
-
-/**
- * For each column of X, fits a univariate model (GLM or Cox, chosen by 'family'),
- * collects per-variable stats (coef, SE, p-values, BIC, evidence), forms Bayes
- * weights via a stabilized softmax on evidence, and (optionally) performs
- * shrinkage tests using univariate_loglik.
- *
- * @param X            n x p design matrix.
- * @param y            GLM vector or Cox (time,status).
- * @param family       GLM family or "cox".
- * @param offset       Optional offset (length 1 or n).
- * @param standardize  (kept for API compatibility; handled in inner fits as needed)
- * @param shrinkage    Whether to zero out expectations if p > alpha in LRT.
- * @param ties         Cox ties method ("efron" default).
- * @param lambda,tau   (kept for API compatibility; not used in glm/cox wrappers)
- * @param alpha        Significance level for shrinkage tests.
- *
- * @return List with elements:
- *   - loglik, bic, bic_diff, bf, pmp
- *   - intercept (length p; 0 for Cox), theta (length p), se_theta (length p)
- *   - pval_raw, pval_intercept, pval_theta
- *   - evidence, evidence_raw
- *   - expect_intercept, expect_theta, expect_variance
- */
-Rcpp::List single_effect_fit(
-    const arma::mat&   X,
-    SEXP               y,
-    SEXP               family,
-    arma::vec          offset,
-    bool               standardize,
-    bool               shrinkage,
-    std::string        ties,
-    double             lambda,
-    double             tau,
-    double             alpha
+    SEXP family,
+    arma::vec offset,
+    bool standardize,
+    bool shrinkage,
+    std::string ties,
+    double lambda,
+    double tau,
+    double alpha
 );
 
 /**
@@ -318,11 +292,3 @@ List additive_effect_fit(
     double tol,
     int max_iter
 );
-
-
-
-
-
-
-
-

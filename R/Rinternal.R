@@ -4,107 +4,6 @@
 #' @importFrom Rcpp evalCpp
 NULL
 
-#' Univariate GLM Fit via R's \code{glm()}
-#'
-#' @description
-#' Fits a single-predictor generalized linear model (GLM) against the null
-#' (intercept-only) model using \code{stats::glm()}, returning coefficient
-#' estimates, standard errors, Wald test p-values, likelihood ratio test
-#' statistics, and BIC-based model comparison quantities.
-#'
-#' @details
-#' This function wraps R's \code{glm()} for univariate fits, with an optional
-#' offset term. For each predictor, it fits:
-#' \deqn{y \sim 1 + x + \mathrm{offset}}
-#' and compares it to the null model
-#' \deqn{y \sim 1 + \mathrm{offset}.}
-#'
-#' Extracts the slope coefficient, standard error, and Wald test p-value
-#' (from \code{summary(glm)}), as well as the log-likelihoods, BIC values,
-#' likelihood ratio test (LRT), and the BIC-based approximation to the
-#' Bayes factor:
-#' \deqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1.}
-#'
-#' @param x Numeric vector of length \code{n}: covariate values.
-#' @param y Numeric vector of length \code{n}: response values.
-#' @param family A GLM family object (e.g.\ \code{binomial()}, \code{gaussian()},
-#'   \code{poisson()}).
-#' @param offset Optional numeric vector of length \code{n}, or scalar: offset
-#'   term in the linear predictor. If scalar, it is expanded.
-#'
-#' @return A list with elements:
-#' \itemize{
-#'   \item \code{intercept}: Estimated intercept.
-#'   \item \code{beta}: Estimated slope coefficient for \code{x}.
-#'   \item \code{se}: Standard error of \code{beta}.
-#'   \item \code{wald_p}: Wald test p-value for \code{beta}.
-#'   \item \code{logLik1}: Log-likelihood of single-variable model.
-#'   \item \code{logLik0}: Log-likelihood of null (intercept-only) model.
-#'   \item \code{BIC1}: BIC of single-variable model.
-#'   \item \code{BIC0}: BIC of null model.
-#'   \item \code{LRT}: Likelihood ratio statistic \eqn{2(\ell_1 - \ell_0)}.
-#'   \item \code{LRT_p}: Likelihood ratio test p-value (chi-square with df=1).
-#'   \item \code{deltaBIC}: Difference \eqn{\mathrm{BIC}_1 - \mathrm{BIC}_0}
-#'         (negative favors the variable model).
-#'   \item \code{twoLogBF}: Approximate \eqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1}.
-#' }
-#'
-#' @name univariate_glm
-#' @export
-NULL
-
-#' Univariate Cox Proportional Hazards Fit via \code{survival::coxph()}
-#'
-#' @description
-#' Fits a single-predictor Cox proportional hazards model against the null
-#' (no covariates) using \code{survival::coxph()}, returning the coefficient
-#' estimate, standard error, Wald test, likelihood ratio test statistics,
-#' and BIC-based model comparison quantities.
-#'
-#' @details
-#' This function wraps \code{survival::coxph()} for univariate fits, with an
-#' optional offset term and choice of ties handling. For each predictor, it fits:
-#' \deqn{\mathrm{Surv}(time, status) \sim x + \mathrm{offset}}
-#' and compares it to the null model
-#' \deqn{\mathrm{Surv}(time, status) \sim 1 + \mathrm{offset}.}
-#'
-#' Extracts the slope coefficient, standard error, and Wald test p-value
-#' (from \code{summary.coxph()}), as well as the partial log-likelihoods,
-#' BIC values, likelihood ratio test (LRT), and the BIC-based approximation
-#' to the Bayes factor:
-#' \deqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1.}
-#'
-#' @param y Response data: either an \code{n × 2} numeric matrix with columns
-#'   (time, status), or a list of two numeric vectors: (time, status).
-#' @param x Numeric vector of length \code{n}: covariate values.
-#' @param offset Optional numeric vector of length \code{n}, or scalar: offset
-#'   term in the linear predictor. If scalar, it is expanded.
-#' @param ties Character string: method for handling tied event times,
-#'   either \code{"efron"} (default) or \code{"breslow"}.
-#'
-#' @return A list with elements:
-#' \itemize{
-#'   \item \code{beta}: Estimated regression coefficient for \code{x}.
-#'   \item \code{se}: Standard error of \code{beta}.
-#'   \item \code{wald_z}: Wald test statistic.
-#'   \item \code{wald_p}: Wald test p-value.
-#'   \item \code{logLik1}: Partial log-likelihood of single-variable model.
-#'   \item \code{logLik0}: Partial log-likelihood of null model.
-#'   \item \code{LRT}: Likelihood ratio statistic \eqn{2(\ell_1 - \ell_0)}.
-#'   \item \code{LRT_p}: Likelihood ratio test p-value (chi-square with df=1).
-#'   \item \code{BIC1}: BIC of single-variable model (based on partial likelihood).
-#'   \item \code{BIC0}: BIC of null model (based on partial likelihood).
-#'   \item \code{deltaBIC}: Difference \eqn{\mathrm{BIC}_1 - \mathrm{BIC}_0}
-#'         (negative favors variable model).
-#'   \item \code{twoLogBF}: Approximate \eqn{2 \log BF_{1,0} \approx \mathrm{BIC}_0 - \mathrm{BIC}_1}.
-#'   \item \code{ties}: Ties handling method used.
-#'   \item \code{has_offset}: Logical indicating if an offset was provided.
-#' }
-#'
-#' @name univariate_cox
-#' @export
-NULL
-
 #' Compute Log-Likelihood for Univariate GLM
 #'
 #' @description 
@@ -421,60 +320,55 @@ NULL
 #' @export
 NULL
 
-#' Single-Effect Screening (GLM / Cox)
+#' Compute Single‐Effect Fit for GLM or Cox with Optional Truncated‐L1 Penalty
 #'
 #' @description
-#' For each column of \code{X}, fits a univariate model (GLM via \code{stats::glm()}
-#' or Cox PH via \code{survival::coxph()}, selected by \code{family}), computes
-#' per-variable statistics (coef, SE, p-values, BIC, evidence), converts
-#' BIC-based evidence to Bayes factors and posterior model probabilities (PMP)
-#' using a numerically stable softmax, and optionally applies shrinkage tests
-#' using likelihood-ratio tests on the expected coefficients.
+#' Applies a single‐effect model to each column of a predictor matrix using either
+#' GLM (via IRLS + truncated‐L1) or Cox partial likelihood (via penalized IRLS).
 #'
-#' @param X An \eqn{n \times p} numeric matrix of predictors.
-#' @param y For GLM: numeric vector of length \eqn{n}. For Cox: either an
-#'   \eqn{n \times 2} matrix \code{(time, status)} or a list \code{list(time, status)}.
-#' @param family GLM family object (e.g., \code{binomial()}, \code{gaussian()},
-#'   \code{poisson()}), or the string \code{"cox"} to use Cox PH.
-#' @param offset Optional numeric vector of length \eqn{n}, or scalar; if scalar,
-#'   it is expanded to length \eqn{n}.
-#' @param standardize Logical, kept for API compatibility (inner fits use R modeling).
-#' @param shrinkage Logical; if \code{TRUE}, zero out \code{expect_*} entries when the
-#'   corresponding LRT p-value exceeds \code{alpha}.
-#' @param ties Cox ties handling: \code{"efron"} (default) or \code{"breslow"}.
-#' @param lambda,tau Numeric; kept for API compatibility (not used by glm/cox wrappers).
-#' @param alpha Numeric in (0,1); significance level for shrinkage tests (default 0.05).
+#' @param X Numeric matrix (n × p) of predictors. Each column is fit separately.
+#' @param y Response:
+#'   - For GLMs: numeric vector of length n.
+#'   - For Cox: numeric matrix with 2 columns (time, status) and n rows.
+#' @param family A stats::family object (e.g. \code{gaussian()}, \code{binomial()}, 
+#'   \code{poisson()}) or a Cox family list with \code{family = "cox"}.
+#' @param offset Numeric scalar or vector (length n) giving the linear predictor offset (default: 0).
+#' @param standardize Logical: if TRUE, center and scale each predictor column before fitting (default: TRUE).
+#' @param shrinkage Logical: if TRUE, shrinkage parameters in fitting (default: TRUE).
+#' @param ties Character: ties method for Cox partial likelihood ("efron" or "breslow", default: "efron").
+#' @param lambda Numeric penalty weight; if ≤ 0, defaults to \eqn{\sqrt{2\log(n)/n}} (default: 0.0).
+#' @param tau Numeric truncation parameter; if ≤ 0, defaults to 1.0 (default: 1.0).
+#' @param alpha level of significance
 #'
-#' @return A list with components (all length \eqn{p} unless noted):
-#' \itemize{
-#'   \item \code{loglik}: log-likelihood for each single-variable model.
-#'   \item \code{bic}: BIC of each single-variable model.
-#'   \item \code{bic_diff}: \code{BIC1 - BIC0} (global null BIC).
-#'   \item \code{bf}: Bayes factors via stabilized \code{exp(0.5 * evidence)}.
-#'   \item \code{pmp}: posterior model probabilities (softmax over evidence).
-#'   \item \code{intercept}: intercept estimates (0 for Cox).
-#'   \item \code{theta}: slope estimates from univariate fits.
-#'   \item \code{se_theta}: standard errors of \code{theta}.
-#'   \item \code{pval_raw}: Wald (GLM) or LRT (Cox) p-values from univariate fits.
-#'   \item \code{pval_intercept}: LRT p-values for intercept (expectation test).
-#'   \item \code{pval_theta}: LRT p-values for slope (expectation test).
-#'   \item \code{evidence}: \code{twoLogBF ≈ BIC0 - BIC1} per variable.
-#'   \item \code{evidence_raw}: same as \code{evidence} (kept for compatibility).
-#'   \item \code{expect_intercept}: PMP-weighted intercept per variable (post-shrinkage).
-#'   \item \code{expect_theta}: PMP-weighted slope per variable (post-shrinkage).
-#'   \item \code{expect_variance}: scalar \code{Var_pmp(theta)}.
-#' }
+#' @return A list of length p, where each element is itself a list with components:
+#'   \item{loglik}{Unpenalized log‐likelihood at the fitted coefficient.}
+#'   \item{bic}{Bayesian Information Criterion: \eqn{-2*logLik + 2\log(n)}.}
+#'   \item{bic_diff}{BIC difference from null model.}
+#'   \item{bf}{Bayes factor.}
+#'   \item{pmp}{Posterior model probability.}
+#'   \item{intercept}{Estimated intercept for that predictor.}
+#'   \item{theta}{Estimated coefficient for that predictor.}
+#'   \item{pval_intercept}{P-value for estimated intercept for that predictor.}
+#'   \item{pval_theta}{P-value for estimated coefficient for that predictor.}
+#'   \item{expect_intercept}{Expected value of intercept under model averaging.}
+#'   \item{expect_theta}{Expected value of coefficient under model averaging.}
+#'   \item{expect_variance}{Expected variance under model averaging.}
 #'
 #' @examples
-#' set.seed(1)
-#' n <- 200; p <- 5
+#' \dontrun{
+#' set.seed(123)
+#' n <- 80; p <- 3
 #' X <- matrix(rnorm(n*p), n, p)
-#' beta <- c(1, 0, 0.5, 0, 0)
-#' eta  <- 0.2 + X %*% beta
-#' y    <- rbinom(n, 1, plogis(eta))
-#' out  <- single_effect_fit(X, y, binomial(), offset = rep(0, n))
-#' str(out$pmp)
+#' # Gaussian example
+#' y_gauss <- X[,1] * 1.2 + rnorm(n)
+#' res_glm <- single_effect_fit(X, y_gauss, family = gaussian())
 #'
+#' # Cox example
+#' times <- rexp(n, rate = exp(0.5 * X[,2]))
+#' status <- rbinom(n, 1, 0.7)
+#' y_cox <- cbind(time=times, status=status)
+#' res_cox <- single_effect_fit(X, y_cox, family = list(family="cox"))
+#' }
 #' @name single_effect_fit
 #' @export
 NULL
