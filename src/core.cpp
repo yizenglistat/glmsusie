@@ -602,6 +602,175 @@ double univariate_irls_glm_no_intercept(const arma::vec&   x,
   return theta;
 }
 
+// // [[Rcpp::export]]
+// Rcpp::List univariate_irls_glm(const arma::vec&   x,
+//                                const arma::vec&   y,
+//                                SEXP               family,
+//                                arma::vec          offset,
+//                                int                max_iter   = 25,
+//                                double             tol        = 1e-8) {
+//   int n = x.n_elem;
+//   if ((int)y.n_elem != n)   stop("x and y must have same length");
+//   if (offset.n_elem == 0)   offset = arma::zeros<arma::vec>(n);
+//   if (offset.n_elem == 1 && n>1) offset = arma::vec(n).fill(offset(0));
+//   if ((int)offset.n_elem != n) stop("offset must be length 1 or n");
+//   if (TYPEOF(family) != VECSXP) stop("family must be a stats::family object");
+
+//   // Extract family functions
+//   List fam = as<List>(family);
+//   Function linkinv = fam["linkinv"];
+//   Function varfun = fam["variance"];
+//   Function mu_eta = fam["mu.eta"];
+  
+//   // Handle dispersion - checking if NULL first
+//   double dispersion = 1.0;  // Default to 1.0 (appropriate for binomial/Poisson)
+
+//   // Check if "dispersion" exists in the family object
+//   if (fam.containsElementNamed("dispersion")) {
+//     // Additional check if it's not NULL
+//     if (!Rf_isNull(fam["dispersion"])) {
+//       dispersion = as<double>(fam["dispersion"]);
+//     }
+//   }
+  
+//   CharacterVector family_name = fam["family"];
+//   bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
+  
+//   // Initialize parameters
+//   double intercept = 0.0, intercept_new = 0.0;
+//   double theta = 0.0, theta_new = 0.0;
+  
+//   // Initialize linear predictor
+//   arma::vec eta = offset;
+//   // Bound eta for numerical stability (especially for Poisson)
+//   if (is_poisson) {
+//     eta = arma::clamp(eta, -20.0, 20.0);  // Prevent overflow in exp()
+//   }
+  
+//   NumericVector mu_r = linkinv(wrap(eta));
+//   arma::vec mu = as<arma::vec>(mu_r);
+  
+//   // Ensure mu is valid (especially for Poisson where mu > 0)
+//   if (is_poisson) {
+//     for (int i = 0; i < n; i++) {
+//       if (mu[i] <= 0) mu[i] = 1e-8;
+//     }
+//   }
+  
+//   for (int iter = 0; iter < max_iter; ++iter) {
+//     // Calculate IRLS weights & working response
+//     NumericVector var_r = varfun(wrap(mu));
+//     NumericVector gprime = mu_eta(wrap(eta));  // Using eta instead of mu_r for derivative
+    
+//     // Handle numerical issues
+//     for (int i = 0; i < n; i++) {
+//       // For Poisson with log link, gprime = mu, and var_mu = mu
+//       // For small mu, we can get unstable values - set a floor
+//       if (R_IsNaN(var_r[i]) || var_r[i] <= 0) var_r[i] = 1e-8;
+//       if (R_IsNaN(gprime[i]) || gprime[i] <= 0) gprime[i] = 1e-8;
+//     }
+    
+//     arma::vec var_mu = as<arma::vec>(var_r);
+//     arma::vec gprime_vec = as<arma::vec>(gprime);
+    
+//     // Calculate weights (w = gprime² / (var_mu * dispersion))
+//     arma::vec w = arma::square(gprime_vec) / (var_mu * dispersion);
+    
+//     // Handle weights that are too large or NaN
+//     for (int i = 0; i < n; i++) {
+//       if (!std::isfinite(w[i]) || w[i] <= 0) w[i] = 1e-8;
+//       else if (w[i] > 1e8) w[i] = 1e8;  // Cap large weights
+//     }
+    
+//     // Calculate working response
+//     arma::vec z(n);
+//     for (int i = 0; i < n; i++) {
+//       double diff = y[i] - mu[i];
+//       z[i] = eta[i] + diff / gprime_vec[i];
+//       // Handle extreme values
+//       if (!std::isfinite(z[i])) z[i] = eta[i];
+//     }
+    
+//     // Weighted LS subproblem for intercept + theta*x
+//     arma::vec z0 = z - offset;
+    
+//     // Create design matrix with intercept (ones) and x
+//     arma::mat X(n, 2);
+//     X.col(0) = arma::ones<arma::vec>(n); // Intercept column
+//     X.col(1) = x;                        // x column
+    
+//     // Create weighted X
+//     arma::mat Xw = X;
+//     for (int i = 0; i < n; i++) {
+//       Xw.row(i) *= std::sqrt(w[i]);
+//     }
+    
+//     // Create weighted z
+//     arma::vec zw = z0 % arma::sqrt(w);
+    
+//     // Normal equations: (X'WX)b = X'Wz
+//     arma::mat XtWX = Xw.t() * Xw;
+//     arma::vec XtWz = Xw.t() * zw;
+    
+//     // Solve for intercept and theta
+//     arma::vec params;
+//     bool solved = arma::solve(params, XtWX, XtWz);
+    
+//     if (!solved) {
+//       // Fallback to a more stable approach if standard solve fails
+//       arma::mat XtWX_reg = XtWX;
+//       XtWX_reg.diag() += 1e-6; // Add small regularization
+//       solved = arma::solve(params, XtWX_reg, XtWz);
+      
+//       if (!solved) {
+//         // If still fails, use pseudoinverse
+//         params = arma::pinv(XtWX) * XtWz;
+//       }
+//     }
+    
+//     intercept_new = params(0);
+//     theta_new = params(1);
+    
+//     // Check convergence
+//     if (std::abs(intercept_new - intercept) < tol && 
+//         std::abs(theta_new - theta) < tol) {
+//       intercept = intercept_new;
+//       theta = theta_new;
+//       break;
+//     }
+    
+//     intercept = intercept_new;
+//     theta = theta_new;
+    
+//     // Update eta and mu for next IRLS iteration
+//     eta = offset + intercept + theta * x;
+    
+//     // Bound eta for numerical stability (especially for Poisson)
+//     if (is_poisson) {
+//       eta = arma::clamp(eta, -20.0, 20.0);  // Prevent overflow in exp()
+//     }
+    
+//     mu_r = linkinv(wrap(eta));
+//     mu = as<arma::vec>(mu_r);
+    
+//     // Ensure mu is valid (especially for Poisson where mu > 0)
+//     if (is_poisson) {
+//       for (int i = 0; i < n; i++) {
+//         if (mu[i] <= 0) mu[i] = 1e-8;
+//       }
+//     }
+//   }
+  
+//   // Return both parameters in a List
+//   Rcpp::List result = Rcpp::List::create(
+//     Rcpp::Named("intercept") = intercept,
+//     Rcpp::Named("theta") = theta
+//   );
+  
+//   return result;
+// }
+
+
 // [[Rcpp::export]]
 Rcpp::List univariate_irls_glm(const arma::vec&   x,
                                const arma::vec&   y,
@@ -617,157 +786,139 @@ Rcpp::List univariate_irls_glm(const arma::vec&   x,
   if (TYPEOF(family) != VECSXP) stop("family must be a stats::family object");
 
   // Extract family functions
-  List fam = as<List>(family);
-  Function linkinv = fam["linkinv"];
-  Function varfun = fam["variance"];
-  Function mu_eta = fam["mu.eta"];
-  
-  // Handle dispersion - checking if NULL first
-  double dispersion = 1.0;  // Default to 1.0 (appropriate for binomial/Poisson)
+  Rcpp::List fam = as<Rcpp::List>(family);
+  Rcpp::Function linkinv = fam["linkinv"];
+  Rcpp::Function varfun  = fam["variance"];
+  Rcpp::Function mu_eta  = fam["mu.eta"];
+  Rcpp::CharacterVector family_name = fam["family"];
 
-  // Check if "dispersion" exists in the family object
-  if (fam.containsElementNamed("dispersion")) {
-    // Additional check if it's not NULL
-    if (!Rf_isNull(fam["dispersion"])) {
-      dispersion = as<double>(fam["dispersion"]);
-    }
+  // Optional dispersion (default 1 for binomial/poisson)
+  double dispersion = 1.0;
+  if (fam.containsElementNamed("dispersion") && !Rf_isNull(fam["dispersion"])) {
+    dispersion = as<double>(fam["dispersion"]);
   }
-  
-  CharacterVector family_name = fam["family"];
+
   bool is_poisson = (as<std::string>(family_name[0]) == "poisson");
-  
-  // Initialize parameters
-  double intercept = 0.0, intercept_new = 0.0;
-  double theta = 0.0, theta_new = 0.0;
-  
-  // Initialize linear predictor
+
+  // ---------- Detect intercept-only case ----------
+  // Treat x as "zero" if its L2 norm is tiny (safer than elementwise check)
+  const double x_norm2 = arma::dot(x, x);
+  const bool intercept_only = (x_norm2 < 1e-14);
+
+  // Initialize
+  double intercept = 0.0, theta = 0.0;
+
+  // Initial linear predictor
   arma::vec eta = offset;
-  // Bound eta for numerical stability (especially for Poisson)
-  if (is_poisson) {
-    eta = arma::clamp(eta, -20.0, 20.0);  // Prevent overflow in exp()
-  }
-  
-  NumericVector mu_r = linkinv(wrap(eta));
+  if (is_poisson) eta = arma::clamp(eta, -20.0, 20.0); // numeric safety
+
+  Rcpp::NumericVector mu_r = linkinv(Rcpp::wrap(eta));
   arma::vec mu = as<arma::vec>(mu_r);
-  
-  // Ensure mu is valid (especially for Poisson where mu > 0)
   if (is_poisson) {
-    for (int i = 0; i < n; i++) {
-      if (mu[i] <= 0) mu[i] = 1e-8;
-    }
+    for (int i = 0; i < n; ++i) if (mu[i] <= 0) mu[i] = 1e-8;
   }
-  
+
+  // ---------- IRLS loop ----------
   for (int iter = 0; iter < max_iter; ++iter) {
-    // Calculate IRLS weights & working response
-    NumericVector var_r = varfun(wrap(mu));
-    NumericVector gprime = mu_eta(wrap(eta));  // Using eta instead of mu_r for derivative
-    
-    // Handle numerical issues
-    for (int i = 0; i < n; i++) {
-      // For Poisson with log link, gprime = mu, and var_mu = mu
-      // For small mu, we can get unstable values - set a floor
-      if (R_IsNaN(var_r[i]) || var_r[i] <= 0) var_r[i] = 1e-8;
-      if (R_IsNaN(gprime[i]) || gprime[i] <= 0) gprime[i] = 1e-8;
+    // variance(mu) and dmu/deta at current eta
+    Rcpp::NumericVector var_r = varfun(Rcpp::wrap(mu));
+    Rcpp::NumericVector gprime = mu_eta(Rcpp::wrap(eta)); // derivative wrt eta
+
+    for (int i = 0; i < n; ++i) {
+      if (!R_finite(var_r[i]) || var_r[i] <= 0) var_r[i] = 1e-8;
+      if (!R_finite(gprime[i]) || gprime[i] <= 0) gprime[i] = 1e-8;
     }
-    
     arma::vec var_mu = as<arma::vec>(var_r);
     arma::vec gprime_vec = as<arma::vec>(gprime);
-    
-    // Calculate weights (w = gprime² / (var_mu * dispersion))
+
+    // weights and working response
     arma::vec w = arma::square(gprime_vec) / (var_mu * dispersion);
-    
-    // Handle weights that are too large or NaN
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; ++i) {
       if (!std::isfinite(w[i]) || w[i] <= 0) w[i] = 1e-8;
-      else if (w[i] > 1e8) w[i] = 1e8;  // Cap large weights
+      else if (w[i] > 1e8) w[i] = 1e8;
     }
-    
-    // Calculate working response
+
     arma::vec z(n);
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; ++i) {
       double diff = y[i] - mu[i];
-      z[i] = eta[i] + diff / gprime_vec[i];
-      // Handle extreme values
-      if (!std::isfinite(z[i])) z[i] = eta[i];
+      double zi   = eta[i] + diff / gprime_vec[i];
+      z[i] = std::isfinite(zi) ? zi : eta[i];
     }
-    
-    // Weighted LS subproblem for intercept + theta*x
+
+    // remove offset
     arma::vec z0 = z - offset;
-    
-    // Create design matrix with intercept (ones) and x
-    arma::mat X(n, 2);
-    X.col(0) = arma::ones<arma::vec>(n); // Intercept column
-    X.col(1) = x;                        // x column
-    
-    // Create weighted X
-    arma::mat Xw = X;
-    for (int i = 0; i < n; i++) {
-      Xw.row(i) *= std::sqrt(w[i]);
-    }
-    
-    // Create weighted z
-    arma::vec zw = z0 % arma::sqrt(w);
-    
-    // Normal equations: (X'WX)b = X'Wz
-    arma::mat XtWX = Xw.t() * Xw;
-    arma::vec XtWz = Xw.t() * zw;
-    
-    // Solve for intercept and theta
-    arma::vec params;
-    bool solved = arma::solve(params, XtWX, XtWz);
-    
-    if (!solved) {
-      // Fallback to a more stable approach if standard solve fails
-      arma::mat XtWX_reg = XtWX;
-      XtWX_reg.diag() += 1e-6; // Add small regularization
-      solved = arma::solve(params, XtWX_reg, XtWz);
-      
-      if (!solved) {
-        // If still fails, use pseudoinverse
+
+    if (intercept_only) {
+      // ----- 1x1 WLS: intercept update only -----
+      double S0 = arma::sum(w);
+      if (!(S0 > 0) || !std::isfinite(S0)) S0 = 1e-8;
+      double t0 = arma::dot(w, z0);
+      double intercept_new = t0 / S0;
+
+      // convergence check
+      if (std::abs(intercept_new - intercept) < tol) {
+        intercept = intercept_new;
+        break;
+      }
+      intercept = intercept_new;
+
+      // update eta, mu
+      eta = offset + intercept;
+      if (is_poisson) eta = arma::clamp(eta, -20.0, 20.0);
+      mu_r = linkinv(Rcpp::wrap(eta));
+      mu   = as<arma::vec>(mu_r);
+      if (is_poisson) for (int i = 0; i < n; ++i) if (mu[i] <= 0) mu[i] = 1e-8;
+
+    } else {
+      // ----- 2-parameter WLS: intercept + theta -----
+      arma::mat X(n, 2);
+      X.col(0) = arma::ones<arma::vec>(n);
+      X.col(1) = x;
+
+      // form XtWX and XtWz safely
+      arma::vec sw  = arma::sqrt(w);
+      arma::mat Xw  = X.each_col() % sw;
+      arma::vec zw  = z0 % sw;
+
+      arma::mat XtWX = Xw.t() * Xw;
+      arma::vec XtWz = Xw.t() * zw;
+
+      // ridge for stability
+      double ridge = 1e-8 * (XtWX(0,0) + XtWX(1,1) + 1.0);
+      XtWX(0,0) += ridge;
+      XtWX(1,1) += ridge;
+
+      arma::vec params;
+      bool ok = arma::solve(params, XtWX, XtWz, arma::solve_opts::no_approx);
+      if (!ok) {
         params = arma::pinv(XtWX) * XtWz;
       }
-    }
-    
-    intercept_new = params(0);
-    theta_new = params(1);
-    
-    // Check convergence
-    if (std::abs(intercept_new - intercept) < tol && 
-        std::abs(theta_new - theta) < tol) {
-      intercept = intercept_new;
-      theta = theta_new;
-      break;
-    }
-    
-    intercept = intercept_new;
-    theta = theta_new;
-    
-    // Update eta and mu for next IRLS iteration
-    eta = offset + intercept + theta * x;
-    
-    // Bound eta for numerical stability (especially for Poisson)
-    if (is_poisson) {
-      eta = arma::clamp(eta, -20.0, 20.0);  // Prevent overflow in exp()
-    }
-    
-    mu_r = linkinv(wrap(eta));
-    mu = as<arma::vec>(mu_r);
-    
-    // Ensure mu is valid (especially for Poisson where mu > 0)
-    if (is_poisson) {
-      for (int i = 0; i < n; i++) {
-        if (mu[i] <= 0) mu[i] = 1e-8;
+
+      double intercept_new = params[0];
+      double theta_new     = params[1];
+
+      if (std::abs(intercept_new - intercept) < tol &&
+          std::abs(theta_new - theta)         < tol) {
+        intercept = intercept_new;
+        theta     = theta_new;
+        break;
       }
+      intercept = intercept_new;
+      theta     = theta_new;
+
+      // update eta, mu
+      eta = offset + intercept + theta * x;
+      if (is_poisson) eta = arma::clamp(eta, -20.0, 20.0);
+      mu_r = linkinv(Rcpp::wrap(eta));
+      mu   = as<arma::vec>(mu_r);
+      if (is_poisson) for (int i = 0; i < n; ++i) if (mu[i] <= 0) mu[i] = 1e-8;
     }
   }
-  
-  // Return both parameters in a List
-  Rcpp::List result = Rcpp::List::create(
+
+  return Rcpp::List::create(
     Rcpp::Named("intercept") = intercept,
-    Rcpp::Named("theta") = theta
+    Rcpp::Named("theta")     = intercept_only ? 0.0 : theta
   );
-  
-  return result;
 }
 
 // // [[Rcpp::export]]
