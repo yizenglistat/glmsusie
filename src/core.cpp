@@ -862,14 +862,37 @@ List univariate_fit(
     double lambda = 0.0,
     double tau = 0.5)
 {
-  int n = x.n_elem;
-  bool is_cox = TYPEOF(family) == STRSXP ? as<std::string>(family) == "cox" : 
-                 as<std::string>(as<List>(family)["family"]) == "cox";
-  
-  // Handle offset
-  if (offset.n_elem == 1 && n > 1) offset = arma::vec(n, arma::fill::value(offset(0)));
-  
-  // Standardize predictor (only if non-constant)
+  const int n = x.n_elem;
+
+  // Identify family type
+  const bool is_cox = TYPEOF(family) == STRSXP
+    ? as<std::string>(family) == "cox"
+    : as<std::string>(as<List>(family)["family"]) == "cox";
+
+  // Broadcast offset if needed
+  if (offset.n_elem == 1 && n > 1)
+    offset = arma::vec(n, arma::fill::value(offset(0)));
+
+  // Prepare response in the desired shape
+  arma::vec y_vec;      // for GLM
+  arma::mat y_mat;      // for Cox (time, status)
+  if (is_cox) {
+    if (TYPEOF(y) == VECSXP) {
+      NumericVector time   = as<NumericVector>(as<List>(y)[0]);
+      NumericVector status = as<NumericVector>(as<List>(y)[1]);
+      y_mat.set_size(n, 2);
+      y_mat.col(0) = as<arma::vec>(time);
+      y_mat.col(1) = as<arma::vec>(status);
+    } else {
+      y_mat = as<arma::mat>(y);
+    }
+  } else {
+    y_vec = (TYPEOF(y) == VECSXP)
+      ? as<arma::vec>(as<NumericVector>(as<List>(y)[0]))
+      : as<arma::vec>(as<NumericVector>(y));
+  }
+
+  // Standardize predictor (if non-constant)
   double x_mean = 0.0, x_norm = 1.0;
   arma::vec x_std = x;
   if (standardize) {
@@ -882,71 +905,94 @@ List univariate_fit(
       x_std = x; x_mean = 0.0; x_norm = 1.0;
     }
   }
-  
-  // Fit
+
+  // ---------- Fit alternative model (θ free) ----------
   double intercept_std = 0.0;
   double theta_std     = 0.0;
+
   if (is_cox) {
-    // y as matrix [time, status]
-    arma::mat y_mat = TYPEOF(y) == VECSXP ? arma::mat(n, 2) : as<arma::mat>(y);
-    if (TYPEOF(y) == VECSXP) {
-      NumericVector time   = as<NumericVector>(as<List>(y)[0]);
-      NumericVector status = as<NumericVector>(as<List>(y)[1]);
-      y_mat.col(0) = as<arma::vec>(time);
-      y_mat.col(1) = as<arma::vec>(status);
-    }
+    // Cox: no intercept in partial likelihood
     theta_std = univariate_irls_cox(x_std, y_mat, offset, ties, lambda, tau);
   } else {
-    arma::vec y_vec = TYPEOF(y) == VECSXP ? 
-      as<arma::vec>(as<NumericVector>(as<List>(y)[0])) : 
-      as<arma::vec>(as<NumericVector>(y));
     Rcpp::List res = univariate_irls_glm(x_std, y_vec, family, offset);
     intercept_std = as<double>(res["intercept"]);
     theta_std     = as<double>(res["theta"]);
   }
-  
-  // Back-transform
-  double theta     = theta_std / x_norm;
-  double intercept = intercept_std - theta * x_mean;
 
-  // Log-likelihoods
-  double loglik  = univariate_loglik(x, y, family, theta, offset, intercept, ties);
-  double loglik0 = univariate_loglik(x, y, family, 0.0, offset, intercept, ties);
-  double lrt     = 2.0 * (loglik - loglik0);
-  double lrt_p   = (lrt > 0) ? R::pchisq(lrt, 1.0, /*lower_tail=*/false, /*log_p=*/false) : 1.0;
-  double bic     = -2.0 * loglik + std::log((double)n) * (theta != 0.0 ? 1.0 : 0.0);
+  // Back-transform to original x-scale
+  const double theta     = theta_std / x_norm;
+  const double intercept = intercept_std - theta * x_mean;
 
-  // ------- New: SE via observed info (finite-difference Hessian), Wald p-value, evidence -------
-  // central difference second derivative of loglik wrt theta at MLE
+  // Alt log-likelihood at its own MLEs
+  const double loglik = univariate_loglik(x, y, family, theta, offset, intercept, ties);
+
+  // ---------- Fit null model properly (θ = 0 with its own MLE intercept) ----------
+  double intercept0 = 0.0;
+  if (!is_cox) {
+    // GLM: intercept-only fit with same offset
+    Rcpp::List res0 = univariate_irls_glm(arma::zeros<arma::vec>(n), y_vec, family, offset);
+    intercept0 = as<double>(res0["intercept"]);
+  } // Cox: no intercept; β=0 is the null
+
+  const double loglik0 = univariate_loglik(x, y, family, 0.0, offset, intercept0, ties);
+
+  // Likelihood ratio test, p-value, and BIC/evidence
+  const double lrt   = 2.0 * (loglik - loglik0);
+  const double lrt_p = (lrt > 0.0) ? R::pchisq(lrt, 1.0, /*lower_tail=*/false, /*log_p=*/false) : 1.0;
+
+  // BIC for the alternative model (k = 1 additional slope parameter; intercept cancels in ΔBIC)
+  const double bic = -2.0 * loglik + std::log((double)n) * (theta != 0.0 ? 1.0 : 0.0);
+
+  // Evidence on the "2*log BF" scale: evidence = 2*log(BF_10) = -ΔBIC = 2(ℓ1-ℓ0) - log n
+  const double evidence = lrt - std::log((double)n);
+
+  // ---------- Profiled SE via finite-diff Hessian in θ ----------
+  // Use the *profile* log-likelihood: at θ±h, re-maximize the intercept (GLM).
   const double h = std::max(1e-6, 1e-4 * (1.0 + std::abs(theta)));
-  double ll_plus  = univariate_loglik(x, y, family, theta + h, offset, intercept, ties);
-  double ll_minus = univariate_loglik(x, y, family, theta - h, offset, intercept, ties);
-  double d2 = (ll_plus - 2.0*loglik + ll_minus) / (h*h);   // approx second derivative
-  double info = -d2;                                       // observed information
 
-  double std_err = NA_REAL;
+  auto intercept_only_glm = [&](double theta_fix) {
+    // absorb θ * x into the offset and refit an intercept-only GLM
+    arma::vec off = offset + theta_fix * x; // NOTE: theta on original x-scale
+    Rcpp::List r = univariate_irls_glm(arma::zeros<arma::vec>(n), y_vec, family, off);
+    return as<double>(r["intercept"]);
+  };
+
+  double ll_plus  = NA_REAL, ll_minus = NA_REAL;
+
+  if (is_cox) {
+    // Cox: no intercept to profile
+    ll_plus  = univariate_loglik(x, y, family, theta + h, offset, 0.0, ties);
+    ll_minus = univariate_loglik(x, y, family, theta - h, offset, 0.0, ties);
+  } else {
+    const double intercept_plus  = intercept_only_glm(theta + h);
+    const double intercept_minus = intercept_only_glm(theta - h);
+    ll_plus  = univariate_loglik(x, y, family, theta + h, offset, intercept_plus,  ties);
+    ll_minus = univariate_loglik(x, y, family, theta - h, offset, intercept_minus, ties);
+  }
+
+  const double d2   = (ll_plus - 2.0*loglik + ll_minus) / (h*h); // second derivative
+  const double info = -d2;                                       // observed information
+
+  double std_err = NA_REAL, z = NA_REAL, p_wald = NA_REAL;
   if (std::isfinite(info) && info > 0.0) {
     std_err = std::sqrt(1.0 / info);
+    if (R_finite(std_err) && std_err > 0.0) {
+      z = theta / std_err;
+      p_wald = 2.0 * R::pnorm(std::fabs(z), 0.0, 1.0, /*lower_tail=*/false, /*log_p=*/false);
+    }
   }
-
-  double z = NA_REAL, p_wald = NA_REAL;
-  if (R_finite(std_err) && std_err > 0.0) {
-    z = theta / std_err;
-    p_wald = 2.0 * R::pnorm(std::fabs(z), 0.0, 1.0, /*lower_tail=*/false, /*log_p=*/false);
-  }
-
-  double evidence = lrt - std::log((double)n);
 
   return List::create(
-    Named("intercept")   = intercept,
-    Named("theta")       = theta,
-    Named("std_err")     = std_err,        // NEW
-    Named("p_wald")     = p_wald,         // NEW (Wald)
-    Named("lrt")         = lrt,
-    Named("lrt_p_value") = lrt_p,
-    Named("loglik")      = loglik,
-    Named("bic")         = bic,
-    Named("evidence")    = evidence        // NEW (BF10 via BIC)
+    Named("intercept")    = intercept,
+    Named("theta")        = theta,
+    Named("std_err")      = std_err,        // profiled SE
+    Named("p_wald")       = p_wald,         // Wald p-value
+    Named("lrt")          = lrt,
+    Named("lrt_p_value")  = lrt_p,
+    Named("loglik")       = loglik,
+    Named("loglik0")      = loglik0,        // (added for debugging/verification)
+    Named("bic")          = bic,
+    Named("evidence")     = evidence        // = 2*log BF_10 = -ΔBIC
   );
 }
 
