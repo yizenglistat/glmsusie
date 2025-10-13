@@ -935,8 +935,7 @@ List univariate_fit(
     p_wald = 2.0 * R::pnorm(std::fabs(z), 0.0, 1.0, /*lower_tail=*/false, /*log_p=*/false);
   }
 
-  // BIC-based Bayes factor (Schwarz approximation): BF10 ≈ exp((LRT - log n)/2)
-  double evidence = std::exp(0.5 * (lrt - std::log((double)n)));
+  double evidence = lrt - std::log((double)n);
 
   return List::create(
     Named("intercept")   = intercept,
