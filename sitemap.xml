@@ -12,6 +12,7 @@
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/AIC.glmsusie.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/BIC.glmsusie.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/additive_effect_fit.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmsusie/reference/benchmark.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/coef.glmsusie.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/combine_fisher.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/combine_simes.html</loc></url>
@@ -34,6 +35,9 @@
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/print.glmsusie.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/print.summary.glmsusie.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/residuals.glmsusie.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmsusie/reference/run_elastic_net.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmsusie/reference/run_glmnet.html</loc></url>
+<url><loc>https://yizenglistat.github.io/glmsusie/reference/run_lasso.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/single_effect_fit.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/summarize_coef.html</loc></url>
 <url><loc>https://yizenglistat.github.io/glmsusie/reference/summarize_cs.html</loc></url>
