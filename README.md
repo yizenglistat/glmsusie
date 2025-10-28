@@ -7,7 +7,6 @@
 [![License: GPL-3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![CRAN status](https://www.r-pkg.org/badges/version/glmsusie)](https://CRAN.R-project.org/package=glmsusie)
 [![Downloads](https://cranlogs.r-pkg.org/badges/glmsusie)](https://cran.r-project.org/package=glmsusie)
-[![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmsusie/graph/badge.svg)](https://app.codecov.io/gh/yizenglistat/glmsusie)
 
 **glmsusie** implements the *generalized sum of single effects (gSuSiE)* framework for variable selection in generalized linera and Cox models with highly correlated predictors. This R package accompanies the manuscript entitled *"A simple implementation of variable selection for general regression models with highly correlated predictors"* and provides reproducible code for all simulation studies. 
 

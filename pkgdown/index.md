@@ -8,7 +8,6 @@
 [![License: GPL-3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![CRAN status](https://www.r-pkg.org/badges/version/glmsusie)](https://CRAN.R-project.org/package=glmsusie)
 [![Downloads](https://cranlogs.r-pkg.org/badges/glmsusie)](https://cran.r-project.org/package=glmsusie)
-[![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmsusie/graph/badge.svg)](https://app.codecov.io/gh/yizenglistat/glmsusie)
 
 ## About
 
@@ -19,7 +18,6 @@ At its core, gSuSiE decomposes regression effects into additive “single-effect
 Beyond credible sets and posterior inclusion probabilities (PIPs), gSuSiE also provides **standard errors, $p$-values, and 2BIC statistics** as additional diagnostic measures, offering both Bayesian and frequentist perspectives on variable importance.
 
 Developed by **Yizeng Li** and **Wei Pan**, Division of Biostatistics and Health data Science, University of Minnesota Twin Cities.
-
 
 ## Quick start
 
