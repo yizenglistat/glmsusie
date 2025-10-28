@@ -96,13 +96,15 @@ summary(fit)
 ## Computation time: 0.01 seconds.
 ```
 
-## To reproduce the simulation results in the paper
+## Reproduction
 
-We can reproduce the results by setting different sample size `n` and `family` accordingly below. 
+The simulation results from the manuscript can be reproduced by adjusting the sample size `n` and `family` parameters below. We compare gSuSiE against SuSiE (Gaussian models only), LASSO, and Elastic Net (all model types). Additional implementation details are provided in the manuscript.
 
-#### S1 simulation results reproduce
+#### Reproduced simulation results for S1
 ```{r}
 library(glmsusie)
+library(susieR)
+
 seed <- 42
 n <- 50
 family <- gaussian()
@@ -132,9 +134,11 @@ res_s1$lasso
 res_s1$enet
 ```
 
-#### S2 simulation results reproduce
+#### Reproduced simulation results for S2
 ```{r}
 library(glmsusie)
+library(susieR)
+
 seed <- 42
 n <- 50
 family <- gaussian()
@@ -158,16 +162,17 @@ res_s2 <- benchmark(
   seed        = seed
 )
 
-# Compare the performance of gSuSiE vs SuSiE in this block-correlation scenario
 res_s2$glmsusie
 res_s2$susie
 res_s2$lasso
 res_s2$enet
 ```
 
-#### S3 simulation results reproduce
+#### Reproduced simulation results for S3
 ```{r}
 library(glmsusie)
+library(susieR)
+
 seed <- 42
 n <- 50
 family <- gaussian()
@@ -197,6 +202,121 @@ res_s3$lasso
 res_s3$enet
 ```
 
+#### The null example from the manuscript
+```{r}
+library(glmsusie)
+library(susieR)
+
+set.seed(928)
+
+sim_data <- generate(
+  settings = "S1",
+  n = 50, 
+  family = gaussian(),
+  rho = 0.98, 
+  theta = c(0,0), 
+  intercept = 0
+)
+
+X <- sim_data$X
+y <- sim_data$y
+
+res <- glmsusie(
+  X = X, 
+  y = y, 
+  L = 10, 
+  family = gaussian()
+)
+
+res$pmp[,1]
+res$theta[,1]
+res$std_err[,1]
+res$pval_wald[,1]
+res$evidence[,1]
+
+
+# SuSiE results
+res_susie <- susie(X, y)
+res_susie$pip
+coef(res_susie)[-1]
+
+# LASSO
+run_lasso(X, y)
+
+# Elastic Net
+run_elastic_net(X, y)
+```
+
+**Table 1: Null Scenario Results**
+
+| Parameter | Quantification | gSuSiE | SuSiE | LASSO | Elastic Net |
+|-----------|----------------|--------|-------|--------|-------------|
+| | CS/VS | {1,2} | {1,2} | {} | {} |
+| β₁=0 | Estimate | 0.000 | 0.010 | 0.000 | 0.000 |
+| β₁=0 | SE | 0.157 | -- | -- | -- |
+| β₁=0 | PIP | 0.495 | 0.499 | -- | -- |
+| β₁=0 | p-value | 0.287 | -- | -- | -- |
+| β₁=0 | 2BIC | -2.791 | -- | -- | -- |
+| β₂=0 | Estimate | 0.000 | 0.010 | 0.000 | 0.000 |
+| β₂=0 | SE | 0.161 | -- | -- | -- |
+| β₂=0 | PIP | 0.505 | 0.501 | -- | -- |
+| β₂=0 | p-value | 0.278 | -- | -- | -- |
+| β₂=0 | 2BIC | -2.748 | -- | -- | -- |
+
+#### The signal example from the manuscript
+```{r}
+library(glmsusie)
+library(susieR)
+
+set.seed(141)
+
+sim_data <- generate(
+  settings = "S1",
+  n = 50, 
+  family = gaussian(),
+  rho = 0.98, 
+  theta = c(1,0), 
+  intercept = 0
+)
+
+X <- sim_data$X
+y <- sim_data$y
+
+res <- glmsusie(
+  X = X, 
+  y = y, 
+  L = 10, 
+  family = gaussian()
+)
+
+res$pmp[,1]
+res$theta[,1]
+res$std_err[,1]
+res$pval_wald[,1]
+res$evidence[,1]
+res_susie <- susie(X, y)
+res_susie$pip
+coef(res_susie)[-1]
+run_lasso(X, y)
+run_elastic_net(X, y)
+```
+
+**Table 2: Signal Scenario Results**
+
+| Parameter | Quantification | gSuSiE | SuSiE | LASSO | Elastic Net |
+|-----------|----------------|--------|-------|--------|-------------|
+| | CS/VS | {1,2} | {1,2} | {1},{2} | {1},{2} |
+| β₁=1 | Estimate | 0.335 | 0.320 | 0.108 | 0.108 |
+| β₁=1 | SE | 0.145 | -- | -- | -- |
+| β₁=1 | PIP | 0.498 | 0.498 | -- | -- |
+| β₁=1 | p-value | <0.001 | -- | -- | -- |
+| β₁=1 | 2BIC | 14.098 | -- | -- | -- |
+| β₂=0 | Estimate | 0.330 | 0.314 | 0.102 | 0.105 |
+| β₂=0 | SE | 0.141 | -- | -- | -- |
+| β₂=0 | PIP | 0.502 | 0.502 | -- | -- |
+| β₂=0 | p-value | <0.001 | -- | -- | -- |
+| β₂=0 | 2BIC | 14.114 | -- | -- | -- |
+
 ## Open Issues & Support
 
 [![GitHub issues](https://img.shields.io/github/issues-raw/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/issues)
@@ -204,7 +324,5 @@ res_s3$enet
 ## License
 
 GPL-3 | © 2025 Yizeng Li & Wei Pan
-
----
 
 > _“Extensible and generalizable variable selection under strong multicollinear settings---glmsusie delivers both statistical rigor and computational efficiency.”_  

@@ -69,14 +69,14 @@ generate <- function(
 
   ## 1) construct correlation matrix Σ
   Sigma <- switch(settings,
-    ex1 = { M <- matrix(rho, p, p); diag(M) <- 1; M },
-    ex2 = {
-      if (p < 5) stop("ex2 requires length(theta) >= 5")
+    S1 = { M <- matrix(rho, p, p); diag(M) <- 1; M },
+    S2 = {
+      if (p < 5) stop("S2 requires length(theta) >= 5")
       M5 <- matrix(rho, 5, 5); diag(M5) <- 1
       M  <- diag(1, p); M[1:5,1:5] <- M5; M
     },
-    ex3 = {
-      if (p %% 2 != 0) stop("ex3 requires length(theta) even")
+    S3 = {
+      if (p %% 2 != 0) stop("S3 requires length(theta) even")
       b <- p/2
       B <- matrix(rho, b, b); diag(B) <- 1
       M <- diag(1, p)

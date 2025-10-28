@@ -45,7 +45,65 @@
 #' @export
 run_glmnet <- function(X, y, family = gaussian(), alpha = 1, 
                        standardize = TRUE, nfolds = 10) {
-  # [existing function body]
+  
+  if (!requireNamespace("glmnet", quietly = TRUE)) {
+    stop("Package 'glmnet' is required but not installed.")
+  }
+  
+  p <- ncol(X)
+  
+  # Handle family conversion
+  if (is.character(family) && family == "cox") {
+    glmnet_family <- "cox"
+  } else if (!is.character(family)) {
+    glmnet_family <- family$family
+  } else {
+    glmnet_family <- family
+  }
+  
+  # For Cox regression, need to handle differently
+  if (glmnet_family == "cox") {
+    # Assuming y is a Surv object or matrix with time and status
+    cv_fit <- glmnet::cv.glmnet(X, y, family = "cox", alpha = alpha, 
+                                standardize = standardize, nfolds = nfolds)
+  } else {
+    cv_fit <- glmnet::cv.glmnet(X, y, family = glmnet_family, alpha = alpha,
+                                standardize = standardize, nfolds = nfolds)
+  }
+  
+  # Get coefficients at lambda.1se (more conservative) or lambda.min
+  coef_1se <- as.numeric(coef(cv_fit, s = "lambda.1se"))
+  
+  # For Cox, coef() doesn't include intercept
+  if (glmnet_family == "cox") {
+    theta <- coef_1se
+  } else {
+    theta <- coef_1se[-1]  # Remove intercept
+  }
+  
+  # Find selected variables (non-zero coefficients)
+  selected <- which(theta != 0)
+  
+  # Create credible sets (singleton sets for each selected variable)
+  cs_sets <- if (length(selected) > 0) {
+    lapply(selected, function(x) x)  # Each selected variable forms its own set
+  } else {
+    list()  # Empty list if no variables selected
+  }
+  
+  # Create binary PIPs (1 for selected, 0 for unselected)
+  # Alternative: could set to NA since glmnet doesn't produce true PIPs
+  pip <- rep(0, p)
+  pip[selected] <- 1
+  
+  return(list(
+    cs = list(sets = cs_sets),
+    theta = theta,
+    pip = pip,
+    lambda_1se = cv_fit$lambda.1se,
+    lambda_min = cv_fit$lambda.min,
+    selected = selected
+  ))
 }
 
 #' Run LASSO Regression with Cross-Validation

@@ -8,7 +8,7 @@ generate(
   n = 600,
   theta = c(1, 0),
   intercept = 0,
-  settings = c("ex1", "ex2", "ex3"),
+  settings = c("S1", "S2", "S3"),
   rho = 0.9,
   dispersion = 1,
   family = gaussian(),
@@ -25,10 +25,10 @@ generate(
 
 \item{settings}{Character; correlation pattern:
 \itemize{
-\item \code{"ex1"}: all p variables equally correlated.
-\item \code{"ex2"}: first 5×5 block correlated, others independent.
-\item \code{"ex3"}: two p/2 × p/2 blocks correlated.
-}  Default: \code{c("ex1","ex2","ex3")}.}
+\item \code{"S1"}: all p variables equally correlated.
+\item \code{"S2"}: first 5×5 block correlated, others independent.
+\item \code{"S3"}: two p/2 × p/2 blocks correlated.
+}  Default: \code{c("S1","S2","S3")}.}
 
 \item{rho}{Numeric in \code{[0,1]}; within-block correlation (default: 0.9).}
 
@@ -64,17 +64,17 @@ Binomial, Poisson, Gamma GLMs, and Cox survival data with exponential baseline h
 \examples{
 \dontrun{
 # Gaussian data, p = 2
-dat1 <- generate(n = 100, theta = c(1, 0), settings = "ex1",
+dat1 <- generate(n = 100, theta = c(1, 0), settings = "S1",
                  family = gaussian(), dispersion = 2)
 
 # Binomial data with probit link
 dat2 <- generate(n = 200, theta = c(0.5, -0.5),
                  family = binomial(link = "probit"),
-                 settings = "ex2", rho = 0.7)
+                 settings = "S2", rho = 0.7)
 
 # Cox survival data
 dat3 <- generate(n = 150, theta = c(1, 1, 0),
-                 settings = "ex3", family = "cox",
+                 settings = "S3", family = "cox",
                  censoring_rate = 0.2, baseline_hazard = 0.05)
 }
 
