@@ -2,15 +2,13 @@
 % Please edit documentation in R/method.R
 \name{plot_cs_matrix}
 \alias{plot_cs_matrix}
-\title{Plot inclusion probabilities for a set of "confidence sets"}
+\title{Plot inclusion probabilities for a set of "credible sets"}
 \usage{
 plot_cs_matrix(
   prob_mat,
   row_labels = paste0("CS", seq_len(nrow(prob_mat))),
   var_labels = seq_len(ncol(prob_mat)),
-  low_col = "white",
-  high_col = "black",
-  drop_zero = TRUE
+  alpha = 0.05
 )
 }
 \arguments{
@@ -20,15 +18,11 @@ plot_cs_matrix(
 
 \item{var_labels}{Optional character or numeric vector of length p. Default 1:p.}
 
-\item{low_col}{Colour for P≈0. Default \code{"white"}.}
-
-\item{high_col}{Colour for P≈1. Default \code{"black"}.}
-
-\item{drop_zero}{Logical; if \code{TRUE}, drop zero-probability entries (default: \code{TRUE}).}
+\item{alpha}{Coverage level for credible sets. Default 0.05 (95\% coverage).}
 }
 \value{
-A ggplot2 object showing crosses of size ∝ P and colour ∝ P.
+A ggplot2 object showing credible sets.
 }
 \description{
-Plot inclusion probabilities for a set of "confidence sets"
+Plot inclusion probabilities for a set of "credible sets"
 }

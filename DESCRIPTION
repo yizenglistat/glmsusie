@@ -1,6 +1,6 @@
 Package: glmsusie
 Type: Package
-Title: Generalized Linear Models with Confident Sets
+Title: gSuSiE: Generalized Sum of Single Effects for Generalized Linear and Cox Models
 Version: 0.1.0
 Date: 2025-04-29
 Authors@R: c(
@@ -20,18 +20,22 @@ Imports:
     stats,
     utils,
     ggplot2,
+    glmnet,
+    future,
+    future.apply,
+    susieR,
     rlang
 LinkingTo: Rcpp, RcppArmadillo
 Suggests:
     knitr,
     pkgdown,
     rmarkdown,
-    susieR,
     yaml,
     purrr,
     dplyr,
     tidyr,
     glue,
+    progress,
     survival
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

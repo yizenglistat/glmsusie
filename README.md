@@ -1,4 +1,4 @@
-# glmsusie: Generalized Linear Models with Confidence Sets
+# glmsusie: A Simple Implementation for Generalized Sum of Single Effects Model
 
 <!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/network)
@@ -13,14 +13,14 @@
 
 ## Overview
 
-**glmsusie** implements *likelihood-based additive single-effect regression (LASER)* via a block-coordinate ascent algorithm, and provides *confidence sets (CSs)* for variable selection with uncertainty quantification.  
+**glmsusie** implements the *generalized sum of single effects (gSuSiE)* framework via a blockwise coordinate ascent algorithm, performing variable selection with uncertainty quantification to generalized linear and Cox models.
 
 Key features:
-- **Robust variable selection** under high multicollinearity  
-- **Confident sets** that capture posterior uncertainty in variable inclusion  
-- **Flexible modeling**: Gaussian, generalized linear (e.g. logistic, Poisson), and Cox regression  
-- **High/Scalable performance** via a C++ (Rcpp & Armadillo) backend  
-- **Extensions**: applicable to general likelihood-based regression variable selection problems
+- **Variable selection** with uncertainty quantification through BIC-based posterior inclusion probabilities (PIPs)
+- **Credible sets** that capture selection uncertainty in variable inclusion
+- **Flexible modeling**: Generalized linear models (e.g., Gaussian, logistic, Poisson, and Gamma), Cox proportional hazards regression and general regression models
+- **Scalable performance** via optimized C++ implementation using Rcpp and Armadillo
+- **Handles multicollinearity** by modeling correlated predictors through sum of single-effect components
 
 ## Installation
 
@@ -105,4 +105,4 @@ GPL-3 | © 2025 Yizeng Li & Wei Pan
 
 ---
 
-> _“Extensible and generalizable variable selection with confidence in high‐dimensional, multicollinear settings---glmsusie delivers both statistical rigor and computational efficiency.”_  
+> _“Extensible and generalizable variable selection under strong multicollinear settings---glmsusie delivers both statistical rigor and computational efficiency.”_  
