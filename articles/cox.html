@@ -38,9 +38,9 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmsusie"><span class="fa fa-brands fa-github"></span></a></li>
-<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com"><span class="fa fa-solid fa-envelope"></span></a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi"><span class="fa fa-solid fa-book"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmsusie" aria-label="Github repository"><span class="fa fa-brands fa-github"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com" aria-label="Contact email"><span class="fa fa-solid fa-envelope"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi" aria-label="Research paper"><span class="fa fa-solid fa-book"></span></a></li>
       </ul>
 </div>
 
@@ -150,9 +150,7 @@ located in different correlation blocks.</p>
 <h2 id="fit-gsusie-model">Fit gSuSiE model<a class="anchor" aria-label="anchor" href="#fit-gsusie-model"></a>
 </h2>
 <p>We allow up to <span class="math inline">L=10</span> single effects
-and use the Cox family for survival regression. The method is robust to
-larger <span class="math inline">L</span> values with minimal
-overfitting risk.</p>
+and use the Cox family for survival regression.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load glmsusie library</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/yizenglistat/glmsusie" class="external-link">glmsusie</a></span><span class="op">)</span></span>
@@ -194,7 +192,7 @@ overfitting risk.</p>
 <span><span class="co">## cs4 {18}        1</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 3 iterations.</span></span>
-<span><span class="co">## Computation time: 87.03 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 87.35 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -206,7 +204,7 @@ overfitting risk.</p>
 high correlation within blocks:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"coefficients"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cox_files/figure-html/coef-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="cox_files/figure-html/coef-1.png" alt="Estimated regression coefficients showing variable selection results." width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="posterior-inclusion-probabilities">Posterior inclusion probabilities<a class="anchor" aria-label="anchor" href="#posterior-inclusion-probabilities"></a>
@@ -215,7 +213,7 @@ high correlation within blocks:</p>
 single-effect component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"probabilities"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cox_files/figure-html/prob-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="cox_files/figure-html/prob-1.png" alt="Posterior inclusion probabilities" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="credible-sets">95% credible sets<a class="anchor" aria-label="anchor" href="#credible-sets"></a>
@@ -225,7 +223,7 @@ active with 95% confidence. Note how the method handles correlated
 variables within blocks:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"sets"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cox_files/figure-html/cs-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="cox_files/figure-html/cs-1.png" alt="Credible sets" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="credible-sets-summary">Credible sets summary<a class="anchor" aria-label="anchor" href="#credible-sets-summary"></a>

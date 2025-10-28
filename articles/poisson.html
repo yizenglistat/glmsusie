@@ -38,9 +38,9 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmsusie"><span class="fa fa-brands fa-github"></span></a></li>
-<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com"><span class="fa fa-solid fa-envelope"></span></a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi"><span class="fa fa-solid fa-book"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmsusie" aria-label="Github repository"><span class="fa fa-brands fa-github"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com" aria-label="Contact email"><span class="fa fa-solid fa-envelope"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi" aria-label="Research paper"><span class="fa fa-solid fa-book"></span></a></li>
       </ul>
 </div>
 
@@ -89,7 +89,7 @@ outcomes and highly correlated predictors:</p>
 </h2>
 <p>We generate <span class="math inline">n=1000</span> observations and
 <span class="math inline">p=100</span> predictors with block-wise
-correlation. Every 10 consecutive variables are highly correlated (<span class="math inline">\rho=0.95</span>) within each block, while blocks
+correlation. Every 10 consecutive variables are highly correlated (<span class="math inline">\rho=0.98</span>) within each block, while blocks
 are independent. Only 4 variables have nonzero effects on the log rate,
 located in different correlation blocks.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -99,7 +99,7 @@ located in different correlation blocks.</p>
 <span><span class="va">L</span> <span class="op">&lt;-</span> <span class="fl">10</span>       <span class="co"># number of single-effect components</span></span>
 <span><span class="va">block_size</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">n_blocks</span> <span class="op">&lt;-</span> <span class="va">p</span> <span class="op">/</span> <span class="va">block_size</span></span>
-<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">0.95</span>   <span class="co"># within-block correlation</span></span>
+<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">0.98</span>   <span class="co"># within-block correlation</span></span>
 <span></span>
 <span><span class="co"># Create block-wise correlation matrix</span></span>
 <span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">p</span>, <span class="va">p</span><span class="op">)</span></span>
@@ -116,34 +116,32 @@ located in different correlation blocks.</p>
 <span></span>
 <span><span class="co"># True sparse coefficients (one per block, spread across different blocks)</span></span>
 <span><span class="va">theta_true</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">p</span><span class="op">)</span></span>
-<span><span class="va">theta_true</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">18</span>, <span class="fl">47</span>, <span class="fl">82</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">theta_true</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">18</span>, <span class="fl">47</span>, <span class="fl">82</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate count response via Poisson model</span></span>
-<span><span class="va">linear_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="fl">1.5</span> <span class="op">+</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">theta_true</span><span class="op">)</span>  <span class="co"># with intercept for reasonable counts</span></span>
+<span><span class="va">linear_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">theta_true</span><span class="op">)</span>  <span class="co"># with intercept for reasonable counts</span></span>
 <span><span class="va">lambda</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">linear_pred</span><span class="op">)</span>  <span class="co"># log link</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">lambda</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"True nonzero coefficients at positions:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">## True nonzero coefficients at positions: 3 18 47 82</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"True coefficient values:"</span>, <span class="va">theta_true</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">]</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">## True coefficient values: 1 -1 1 -1</span></span>
+<span><span class="co">## True coefficient values: 1 -0.5 0.5 -0.5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Response summary:\n"</span><span class="op">)</span></span>
 <span><span class="co">## Response summary:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">##    0.00    1.00    4.00   30.21   18.25 3506.00</span></span>
+<span><span class="co">##   0.000   0.000   0.000   0.953   1.000  39.000</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Mean count:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">## Mean count: 30.211</span></span>
+<span><span class="co">## Mean count: 0.953</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Variance:"</span>, <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">## Variance: 25082.71</span></span></code></pre></div>
+<span><span class="co">## Variance: 6.287078</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fit-gsusie-model">Fit gSuSiE model<a class="anchor" aria-label="anchor" href="#fit-gsusie-model"></a>
 </h2>
 <p>We allow up to <span class="math inline">L=10</span> single effects
-and use the Poisson family for count regression. The method is robust to
-larger <span class="math inline">L</span> values with minimal
-overfitting risk.</p>
+and use the Poisson family for count regression.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load glmsusie library</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/yizenglistat/glmsusie" class="external-link">glmsusie</a></span><span class="op">)</span></span>
@@ -165,27 +163,27 @@ overfitting risk.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Coefficients: (sorted by PIP)</span></span>
 <span><span class="co">##         Estimate    PIP</span></span>
-<span><span class="co">## X3   0.990733310 1.0000</span></span>
-<span><span class="co">## X18 -1.000802004 1.0000</span></span>
-<span><span class="co">## X47  0.977914688 1.0000</span></span>
-<span><span class="co">## X82 -1.018739389 1.0000</span></span>
-<span><span class="co">## X42  0.004638575 0.2144</span></span>
-<span><span class="co">## X45  0.004647262 0.2084</span></span>
-<span><span class="co">## X50  0.003998071 0.2000</span></span>
-<span><span class="co">## X44  0.003676988 0.1773</span></span>
-<span><span class="co">## X43  0.002795040 0.1417</span></span>
-<span><span class="co">## X46  0.001897861 0.1018</span></span>
+<span><span class="co">## X3   1.071676622 1.0000</span></span>
+<span><span class="co">## X47  0.528881765 0.9940</span></span>
+<span><span class="co">## X18 -0.503746091 0.9274</span></span>
+<span><span class="co">## X82 -0.283454779 0.7249</span></span>
+<span><span class="co">## X88 -0.025207794 0.0641</span></span>
+<span><span class="co">## X83 -0.021628894 0.0536</span></span>
+<span><span class="co">## X85 -0.016117410 0.0429</span></span>
+<span><span class="co">## X89 -0.014803722 0.0397</span></span>
+<span><span class="co">## X12 -0.014921813 0.0276</span></span>
+<span><span class="co">## X81 -0.009984642 0.0266</span></span>
 <span><span class="co">## ... (90 more coefficients not shown)</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 95% Confidence Sets:</span></span>
-<span><span class="co">##      Set Coverage</span></span>
-<span><span class="co">## cs1 {82}        1</span></span>
-<span><span class="co">## cs2  {3}        1</span></span>
-<span><span class="co">## cs3 {47}        1</span></span>
-<span><span class="co">## cs4 {18}        1</span></span>
+<span><span class="co">##                          Set Coverage</span></span>
+<span><span class="co">## cs1 {81, 82, 83, 85, 88, 89}   0.9519</span></span>
+<span><span class="co">## cs2                      {3}   1.0000</span></span>
+<span><span class="co">## cs3                     {47}   0.9940</span></span>
+<span><span class="co">## cs4                 {12, 18}   0.9550</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 3 iterations.</span></span>
-<span><span class="co">## Computation time: 17.5 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 15.8 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -197,7 +195,7 @@ overfitting risk.</p>
 high correlation within blocks:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"coefficients"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="poisson_files/figure-html/coef-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="poisson_files/figure-html/coef-1.png" alt="Estimated regression coefficients showing variable selection results." width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="posterior-inclusion-probabilities">Posterior inclusion probabilities<a class="anchor" aria-label="anchor" href="#posterior-inclusion-probabilities"></a>
@@ -206,7 +204,7 @@ high correlation within blocks:</p>
 single-effect component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"probabilities"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="poisson_files/figure-html/prob-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="poisson_files/figure-html/prob-1.png" alt="Posterior inclusion probabilities" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="credible-sets">95% credible sets<a class="anchor" aria-label="anchor" href="#credible-sets"></a>
@@ -216,7 +214,7 @@ active with 95% confidence. Note how the method handles correlated
 variables within blocks:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"sets"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="poisson_files/figure-html/cs-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="poisson_files/figure-html/cs-1.png" alt="Credible sets" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="credible-sets-summary">Credible sets summary<a class="anchor" aria-label="anchor" href="#credible-sets-summary"></a>
@@ -239,10 +237,10 @@ variables within blocks:</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"No credible sets identified\n"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co">## Number of credible sets: 4 </span></span>
-<span><span class="co">## CS 1 contains variables: 82 </span></span>
+<span><span class="co">## CS 1 contains variables: 81 82 83 85 88 89 </span></span>
 <span><span class="co">## CS 2 contains variables: 3 </span></span>
 <span><span class="co">## CS 3 contains variables: 47 </span></span>
-<span><span class="co">## CS 4 contains variables: 18 </span></span>
+<span><span class="co">## CS 4 contains variables: 12 18 </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## True variables covered by credible sets: 82 3 47 18 </span></span>
 <span><span class="co">## Coverage rate: 4 / 4</span></span></code></pre></div>
@@ -264,11 +262,11 @@ variables within blocks:</p>
 <span><span class="co"># Show results for true active variables</span></span>
 <span><span class="va">active_comparison</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">active_comparison</span><span class="op">)</span></span>
-<span><span class="co">##     Variable True_Coef Estimated_Coef PIP</span></span>
-<span><span class="co">## X3         3         1      0.9907333   1</span></span>
-<span><span class="co">## X18       18        -1     -1.0008020   1</span></span>
-<span><span class="co">## X47       47         1      0.9779147   1</span></span>
-<span><span class="co">## X82       82        -1     -1.0187394   1</span></span></code></pre></div>
+<span><span class="co">##     Variable True_Coef Estimated_Coef       PIP</span></span>
+<span><span class="co">## X3         3       1.0      1.0716766 0.9999998</span></span>
+<span><span class="co">## X18       18      -0.5     -0.5037461 0.9273998</span></span>
+<span><span class="co">## X47       47       0.5      0.5288818 0.9939535</span></span>
+<span><span class="co">## X82       82      -0.5     -0.2834548 0.7248531</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

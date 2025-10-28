@@ -38,9 +38,9 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmsusie"><span class="fa fa-brands fa-github"></span></a></li>
-<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com"><span class="fa fa-solid fa-envelope"></span></a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi"><span class="fa fa-solid fa-book"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/yizenglistat/glmsusie" aria-label="Github repository"><span class="fa fa-brands fa-github"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../mailto:yizenglistat@gmail.com" aria-label="Contact email"><span class="fa fa-solid fa-envelope"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://doi.org/your-paper-doi" aria-label="Research paper"><span class="fa fa-solid fa-book"></span></a></li>
       </ul>
 </div>
 
@@ -149,7 +149,7 @@ risk of overfitting.</p>
 <span><span class="co">## cs4 {300}   1.0000</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 4 iterations.</span></span>
-<span><span class="co">## Computation time: 31.14 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 30.89 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -161,7 +161,7 @@ risk of overfitting.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"coefficients"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mwe_files/figure-html/coef-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="mwe_files/figure-html/coef-1.png" alt="Estimated regression coefficients showing variable selection results." width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="estimated-inclusion-probability">Estimated inclusion probability<a class="anchor" aria-label="anchor" href="#estimated-inclusion-probability"></a>
@@ -171,7 +171,7 @@ single-effect component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"probabilities"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mwe_files/figure-html/prob-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="mwe_files/figure-html/prob-1.png" alt="Posterior inclusion probabilities" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="estimated-95-confidence-sets">Estimated 95% confidence sets<a class="anchor" aria-label="anchor" href="#estimated-95-confidence-sets"></a>
@@ -181,7 +181,7 @@ least one is likely to be active, with <span class="math inline">95\%</span> con
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"sets"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mwe_files/figure-html/cs-1.png" width="875" style="display: block; margin: auto;"></p>
+<p><img src="mwe_files/figure-html/cs-1.png" alt="Credible sets" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="performance-evalution">Performance evalution<a class="anchor" aria-label="anchor" href="#performance-evalution"></a>
