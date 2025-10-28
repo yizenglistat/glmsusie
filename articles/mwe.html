@@ -149,7 +149,7 @@ risk of overfitting.</p>
 <span><span class="co">## cs4 {300}   1.0000</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 4 iterations.</span></span>
-<span><span class="co">## Computation time: 30.08 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 30.17 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -187,11 +187,11 @@ least one is likely to be active, with <span class="math inline">95\%</span> con
 <h3 id="performance-evalution">Performance evalution<a class="anchor" aria-label="anchor" href="#performance-evalution"></a>
 </h3>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># compare with SuSiE</span></span>
+<code class="sourceCode R"><span><span class="va">rmse_glmsusie</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># compare with SuSiE</span></span>
 <span><span class="va">fitted_susie</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="fu">susieR</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/susieR/man/susie.html" class="external-link">susie</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">y</span>, <span class="va">L</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fitted_glmsusie</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">rmse_susie</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="va">fitted_susie</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">rmse_glmsusie</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="va">fitted_glmsusie</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"susie"</span>, <span class="st">"glmsusie"</span><span class="op">)</span>,</span>
