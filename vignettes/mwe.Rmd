@@ -80,7 +80,7 @@ summary(fit)
 ## Coefficient estimates
 We recover four peaks at the true locations
 
-```{r coef}
+```{r coef, fig.alt = "Estimated regression coefficients showing variable selection results."}
 # plot coefficients
 plot(fit, which="coefficients")
 ```
@@ -88,7 +88,7 @@ plot(fit, which="coefficients")
 ## Estimated inclusion probability
 Shows the inclusion probability each variable is included in any single-effect component:
 
-```{r prob}
+```{r prob, fig.alt = "Posterior inclusion probabilities"}
 # plot coefficients
 plot(fit, which="probabilities")
 ```
@@ -96,7 +96,7 @@ plot(fit, which="probabilities")
 ## Estimated 95% confidence sets
 Each confidence set (CS) contains a small group of variables where at least one is likely to be active, with $95\%$ confidence.
 
-```{r cs}
+```{r cs, fig.alt = "Credible sets"}
 # plot coefficients
 plot(fit, which="sets")
 ```

@@ -13,10 +13,13 @@ navbar:
   right:
     - icon: fa-brands fa-github
       href: https://github.com/yizenglistat/glmsusie
+      aria-label: "Github repository"
     - icon: fa-solid fa-envelope
       href: mailto:yizenglistat@gmail.com
+      aria-label: "Contact email"
     - icon: fa-solid fa-book
       href: https://doi.org/your-paper-doi
+      aria-label: "Research paper"
 
 home:
   sidebar:

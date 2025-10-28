@@ -80,7 +80,7 @@ cat("True coefficient values:", theta_true[theta_true != 0], "\n")
 
 # Fit gSuSiE model
 
-We allow up to $L=10$ single effects and use the default Gaussian family. The method is robust to larger $L$ values with minimal overfitting risk.
+We allow up to $L=10$ single effects and use the default Gaussian family. 
 
 ```{r fit}
 # Load glmsusie library
@@ -103,7 +103,7 @@ summary(fit)
 
 The method successfully identifies the true signal locations despite high correlation within blocks:
 
-```{r coef}
+```{r coef, fig.alt = "Estimated regression coefficients showing variable selection results."}
 plot(fit, which = "coefficients")
 ```
 
@@ -111,7 +111,7 @@ plot(fit, which = "coefficients")
 
 Shows the probability that each variable is included in any single-effect component:
 
-```{r prob}
+```{r prob, fig.alt = "Posterior inclusion probabilities"}
 plot(fit, which = "probabilities")
 ```
 
@@ -119,7 +119,7 @@ plot(fit, which = "probabilities")
 
 Each credible set contains variables where at least one is likely active with 95% confidence. Note how the method handles correlated variables within blocks:
 
-```{r cs}
+```{r cs, fig.alt = "Credible sets"}
 plot(fit, which = "sets")
 ```
 

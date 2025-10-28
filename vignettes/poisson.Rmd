@@ -43,7 +43,7 @@ In this vignette, we demonstrate gSuSiE's performance with count outcomes and hi
 
 # Simulate data
 
-We generate $n=1000$ observations and $p=100$ predictors with block-wise correlation. Every 10 consecutive variables are highly correlated ($\rho=0.95$) within each block, while blocks are independent. Only 4 variables have nonzero effects on the log rate, located in different correlation blocks.
+We generate $n=1000$ observations and $p=100$ predictors with block-wise correlation. Every 10 consecutive variables are highly correlated ($\rho=0.98$) within each block, while blocks are independent. Only 4 variables have nonzero effects on the log rate, located in different correlation blocks.
 
 ```{r simulate}
 set.seed(42)
@@ -52,7 +52,7 @@ p <- 100      # number of predictors
 L <- 10       # number of single-effect components
 block_size <- 10
 n_blocks <- p / block_size
-rho <- 0.95   # within-block correlation
+rho <- 0.98   # within-block correlation
 
 # Create block-wise correlation matrix
 Sigma <- matrix(0, p, p)
@@ -69,10 +69,10 @@ X <- MASS::mvrnorm(n, mu = rep(0, p), Sigma = Sigma)
 
 # True sparse coefficients (one per block, spread across different blocks)
 theta_true <- rep(0, p)
-theta_true[c(3, 18, 47, 82)] <- c(1, -1, 1, -1)
+theta_true[c(3, 18, 47, 82)] <- c(1, -0.5, 0.5, -0.5)
 
 # Generate count response via Poisson model
-linear_pred <- drop(1.5 + X %*% theta_true)  # with intercept for reasonable counts
+linear_pred <- drop(-1 + X %*% theta_true)  # with intercept for reasonable counts
 lambda <- exp(linear_pred)  # log link
 y <- rpois(n, lambda)
 
@@ -86,7 +86,7 @@ cat("Variance:", var(y), "\n")
 
 # Fit gSuSiE model
 
-We allow up to $L=10$ single effects and use the Poisson family for count regression. The method is robust to larger $L$ values with minimal overfitting risk.
+We allow up to $L=10$ single effects and use the Poisson family for count regression.
 
 ```{r fit}
 # Load glmsusie library
@@ -109,7 +109,7 @@ summary(fit)
 
 The method successfully identifies the true signal locations despite high correlation within blocks:
 
-```{r coef}
+```{r coef, fig.alt = "Estimated regression coefficients showing variable selection results."}
 plot(fit, which = "coefficients")
 ```
 
@@ -117,7 +117,7 @@ plot(fit, which = "coefficients")
 
 Shows the probability that each variable is included in any single-effect component:
 
-```{r prob}
+```{r prob, fig.alt = "Posterior inclusion probabilities"}
 plot(fit, which = "probabilities")
 ```
 
@@ -125,7 +125,7 @@ plot(fit, which = "probabilities")
 
 Each credible set contains variables where at least one is likely active with 95% confidence. Note how the method handles correlated variables within blocks:
 
-```{r cs}
+```{r cs, fig.alt = "Credible sets"}
 plot(fit, which = "sets")
 ```
 
