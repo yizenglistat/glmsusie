@@ -1,5 +1,4 @@
-# glmsusie: A simple implementation of variable selection for general regression models with highly correlated predictors
-
+# glmsusie
 <!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/network)
  -->
@@ -10,19 +9,14 @@
 [![Downloads](https://cranlogs.r-pkg.org/badges/glmsusie)](https://cran.r-project.org/package=glmsusie)
 [![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmsusie/graph/badge.svg)](https://app.codecov.io/gh/yizenglistat/glmsusie)
 
+**glmsusie** implements the *generalized sum of single effects (gSuSiE)* framework for variable selection in generalized linera and Cox models with highly correlated predictors. This R package accompanies the manuscript entitled *"A simple implementation of variable selection for general regression models with highly correlated predictors"* and provides reproducible code for all simulation studies. 
 
-## Overview
+The gSuSiE framework offers four key features
 
-**glmsusie** implements the *generalized sum of single effects (gSuSiE)* framework via a blockwise coordinate ascent algorithm, performing variable selection with uncertainty quantification for generalized linear and Cox models. 
-
-This R package accompanies the manuscript entitled *"A simple implementation of variable selection for general regression models with highly correlated predictors"* and provides reproducible code for the simulation studies presented in the paper.
-
-Key features:
-- **Variable selection** with uncertainty quantification through BIC-based posterior inclusion probabilities (PIPs)
-- **Credible sets** that capture selection uncertainty in variable inclusion
-- **Flexible modeling**: Generalized linear models (e.g., Gaussian, logistic, Poisson, and Gamma), Cox proportional hazards regression and general regression models
-- **Scalable performance** via optimized C++ implementation using Rcpp and Armadillo
-- **Handles multicollinearity** by modeling correlated predictors through sum of single-effect components
+- Preserves SuSiE's structure for stable variable selection under multicollinearity, providing credible sets (CSs) and posterior inclusion probabilities (PIPs)
+- Extends applicability beyond linear regression to generalized linear and Cox models while avoiding complex Bayesian posterior computation
+- Provides additional inferential quantities (e.g., p-values, standard errors) when PIPs alone are insufficient
+- Adopts a simple, modular design that can be readily extended to other regression models
 
 ## Installation
 
