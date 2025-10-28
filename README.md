@@ -67,11 +67,11 @@ prob <- plogis(0.5 + X %*% theta)
 y <- rbinom(n, 1, prob)
 
 fit <- glmsusie(X           = X, 
-             y           = y,
-             family      = binomial("logit"),
-             L           = 10L,
-             coverage    = 0.95,
-             seed        = SEED)
+                y           = y,
+                family      = binomial("logit"),
+                L           = 10L,
+                coverage    = 0.95,
+                seed        = SEED)
 summary(fit)
 ## Call:
 ## glmsusie(X = X, y = y, L = 10L, family = binomial("logit"), coverage = 0.95,
