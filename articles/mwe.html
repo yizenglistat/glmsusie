@@ -68,17 +68,17 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>The <em>glmsusie</em> package implements likelihood-based additive
-single-sffect regression (LASER), a sparse model that represents the
-overall effect as a sum of a small number of <em>single-effect</em>
-components. In this vignette we:</p>
+<p>The <em>glmsusie</em> package implements the generalized sum of
+single effects (gSuSiE) model, that represents the overall effect as a
+sum of a small number of <em>single-effect</em> components. In this
+vignette we:</p>
 <ul>
-<li>Simulate a high-dimensional sparse Gaussian linear regression
-model</li>
-<li>Fit a Gaussian LASER model via <code><a href="../reference/glmsusie.html">glmsusie()</a></code>
+<li>Simulate a high-dimensional sparse linear regression dataset</li>
+<li>Apply gSuSiE to perform variable selection via
+<code><a href="../reference/glmsusie.html">glmsusie()</a></code>
 </li>
-<li>Visualize coefficient esimates, inclusion probabilities, and
-confidence sets</li>
+<li>Visualize coefficient estimates, posterior inclusion probabilities
+(PIPs), credible sets (CSs) and so on.</li>
 <li>Evaluate predictive performance vs. <a href="https://stephenslab.github.io/susieR/index.html" class="external-link">SuSiE</a>
 </li>
 </ul>
@@ -86,9 +86,8 @@ confidence sets</li>
 <div class="section level2">
 <h2 id="simulate-data">Simulate data<a class="anchor" aria-label="anchor" href="#simulate-data"></a>
 </h2>
-<p>We generate (<span class="math inline">n=1000</span>) observations
-and (<span class="math inline">p=1000</span>) variables, with only 4
-true active (nonzero) effects.</p>
+<p>We generate a sparse linear regression dataset with <span class="math inline">n=1000</span> observations and <span class="math inline">p=1000</span> predictors, where only 4 variables
+have nonzero effects.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span>    <span class="co"># sample size</span></span>
@@ -150,7 +149,7 @@ risk of overfitting.</p>
 <span><span class="co">## cs4 {300}   1.0000</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 4 iterations.</span></span>
-<span><span class="co">## Computation time: 30.22 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 30.08 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
