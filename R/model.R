@@ -1,4 +1,4 @@
-#' Generalized Linear Models with Confidence Sets (GLMCS)
+#' Generalized Linear Models with Confidence Sets (glmsusie)
 #'
 #' @description
 #' Fits a sparse Likelihood-based Additive Single-Effect Regression (LASER) model
@@ -56,7 +56,7 @@
 #'        (default: 100).
 #' @param seed Integer seed for reproducibility (default: NULL).
 #'
-#' @return A list with class "glmcs" containing:
+#' @return A list with class "glmsusie" containing:
 #' \describe{
 #'   \item{call}{The matched call}
 #'   \item{X}{The model matrix}
@@ -90,7 +90,7 @@
 #' y <- X %*% true_beta + rnorm(n)
 #' 
 #' # Fit model with 3 components
-#' fit <- glmcs(X, y, L = 3, family = gaussian())
+#' fit <- glmsusie(X, y, L = 3, family = gaussian())
 #' 
 #' # Examine results
 #' summary(fit)
@@ -107,17 +107,17 @@
 #' status <- rbinom(100, 1, 0.7)
 #' y_cox <- cbind(times, status)
 #' 
-#' fit_cox <- glmcs(X, y_cox, L = 2, family = list(family = "cox"))
+#' fit_cox <- glmsusie(X, y_cox, L = 2, family = list(family = "cox"))
 #' summary(fit_cox)
 #' }
 #'
 #' @seealso
-#' \code{\link{summary.glmcs}} for summarizing model results,
-#' \code{\link{coef.glmcs}} for extracting coefficients,
-#' \code{\link{plot.glmcs}} for plotting results
+#' \code{\link{summary.glmsusie}} for summarizing model results,
+#' \code{\link{coef.glmsusie}} for extracting coefficients,
+#' \code{\link{plot.glmsusie}} for plotting results
 #'
 #' @export
-glmcs <- function(X, y, L = 10L,
+glmsusie <- function(X, y, L = 10L,
                   family = gaussian(),
                   coverage = 0.95,
                   cor_threshold = 0.5,
@@ -290,6 +290,6 @@ glmcs <- function(X, y, L = 10L,
   names(result$pip) <- col_names
   
   # Assign class and return
-  class(result) <- "glmcs"
+  class(result) <- "glmsusie"
   result
 }

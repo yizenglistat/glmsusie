@@ -2,42 +2,42 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 decompose_theta <- function(theta, L) {
-    .Call(`_glmcs_decompose_theta`, theta, L)
+    .Call(`_glmsusie_decompose_theta`, theta, L)
 }
 
 univariate_loglik_cox <- function(x, y, theta, offset, ties = "efron") {
-    .Call(`_glmcs_univariate_loglik_cox`, x, y, theta, offset, ties)
+    .Call(`_glmsusie_univariate_loglik_cox`, x, y, theta, offset, ties)
 }
 
 univariate_loglik_glm <- function(x, y, family, theta, offset, intercept) {
-    .Call(`_glmcs_univariate_loglik_glm`, x, y, family, theta, offset, intercept)
+    .Call(`_glmsusie_univariate_loglik_glm`, x, y, family, theta, offset, intercept)
 }
 
 univariate_loglik <- function(x, y, family, theta, offset, intercept = 0.0, ties = "efron") {
-    .Call(`_glmcs_univariate_loglik`, x, y, family, theta, offset, intercept, ties)
+    .Call(`_glmsusie_univariate_loglik`, x, y, family, theta, offset, intercept, ties)
 }
 
 univariate_irls_cox <- function(x, y, offset, ties = "efron", lambda = 0.0, tau = 1e-5, max_iter = 25L, tol = 1e-8) {
-    .Call(`_glmcs_univariate_irls_cox`, x, y, offset, ties, lambda, tau, max_iter, tol)
+    .Call(`_glmsusie_univariate_irls_cox`, x, y, offset, ties, lambda, tau, max_iter, tol)
 }
 
 univariate_irls_glm_no_intercept <- function(x, y, family, offset, max_iter = 25L, tol = 1e-8) {
-    .Call(`_glmcs_univariate_irls_glm_no_intercept`, x, y, family, offset, max_iter, tol)
+    .Call(`_glmsusie_univariate_irls_glm_no_intercept`, x, y, family, offset, max_iter, tol)
 }
 
 univariate_irls_glm <- function(x, y, family, offset, max_iter = 25L, tol = 1e-8) {
-    .Call(`_glmcs_univariate_irls_glm`, x, y, family, offset, max_iter, tol)
+    .Call(`_glmsusie_univariate_irls_glm`, x, y, family, offset, max_iter, tol)
 }
 
 univariate_fit <- function(x, y, family, offset, standardize = TRUE, ties = "efron", lambda = 0.0, tau = 0.5) {
-    .Call(`_glmcs_univariate_fit`, x, y, family, offset, standardize, ties, lambda, tau)
+    .Call(`_glmsusie_univariate_fit`, x, y, family, offset, standardize, ties, lambda, tau)
 }
 
 single_effect_fit <- function(X, y, family, offset, standardize = TRUE, shrinkage = TRUE, ties = "efron", lambda = 0.0, tau = 0.5, alpha = 0.05) {
-    .Call(`_glmcs_single_effect_fit`, X, y, family, offset, standardize, shrinkage, ties, lambda, tau, alpha)
+    .Call(`_glmsusie_single_effect_fit`, X, y, family, offset, standardize, shrinkage, ties, lambda, tau, alpha)
 }
 
 additive_effect_fit <- function(X, y, L, family, standardize = TRUE, ties = "efron", lambda = 0.0, tau = 0.5, decompose = TRUE, shrinkage = TRUE, alpha = 0.05, tol = 5e-2, max_iter = 100L) {
-    .Call(`_glmcs_additive_effect_fit`, X, y, L, family, standardize, ties, lambda, tau, decompose, shrinkage, alpha, tol, max_iter)
+    .Call(`_glmsusie_additive_effect_fit`, X, y, L, family, standardize, ties, lambda, tau, decompose, shrinkage, alpha, tol, max_iter)
 }
 

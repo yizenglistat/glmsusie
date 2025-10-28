@@ -1,19 +1,19 @@
-# glmcs: Generalized Linear Models with Confidence Sets
+# glmsusie: Generalized Linear Models with Confidence Sets
 
-<!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/network)
+<!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/network)
  -->
-[![R-CMD-check](https://github.com/yizenglistat/glmcs/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/yizenglistat/glmcs/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/yizenglistat/glmsusie/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/yizenglistat/glmsusie/actions/workflows/R-CMD-check.yaml)
 [![R](https://img.shields.io/badge/R-%3E%3D%203.5.0-blue.svg)](https://www.r-project.org/)
 [![License: GPL-3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-[![CRAN status](https://www.r-pkg.org/badges/version/glmcs)](https://CRAN.R-project.org/package=glmcs)
-[![Downloads](https://cranlogs.r-pkg.org/badges/glmcs)](https://cran.r-project.org/package=glmcs)
-[![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmcs/graph/badge.svg)](https://app.codecov.io/gh/yizenglistat/glmcs)
+[![CRAN status](https://www.r-pkg.org/badges/version/glmsusie)](https://CRAN.R-project.org/package=glmsusie)
+[![Downloads](https://cranlogs.r-pkg.org/badges/glmsusie)](https://cran.r-project.org/package=glmsusie)
+[![Codecov test coverage](https://codecov.io/gh/yizenglistat/glmsusie/graph/badge.svg)](https://app.codecov.io/gh/yizenglistat/glmsusie)
 
 
 ## Overview
 
-**glmcs** implements *likelihood-based additive single-effect regression (LASER)* via a block-coordinate ascent algorithm, and provides *confidence sets (CSs)* for variable selection with uncertainty quantification.  
+**glmsusie** implements *likelihood-based additive single-effect regression (LASER)* via a block-coordinate ascent algorithm, and provides *confidence sets (CSs)* for variable selection with uncertainty quantification.  
 
 Key features:
 - **Robust variable selection** under high multicollinearity  
@@ -29,13 +29,13 @@ Development version from GitHub:
 ```r
 # remotes
 if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
-remotes::install_github("yizenglistat/glmcs")
+remotes::install_github("yizenglistat/glmsusie")
 ```
 
 ## Demo
 
 ```r
-library(glmcs)
+library(glmsusie)
 
 SEED <- 42
 
@@ -64,7 +64,7 @@ theta[c(2, 5)] <- 1
 prob <- plogis(0.5 + X %*% theta)
 y <- rbinom(n, 1, prob)
 
-fit <- glmcs(X           = X, 
+fit <- glmsusie(X           = X, 
              y           = y,
              family      = binomial("logit"),
              L           = 10L,
@@ -72,7 +72,7 @@ fit <- glmcs(X           = X,
              seed        = SEED)
 summary(fit)
 ## Call:
-## glmcs(X = X, y = y, L = 10L, family = binomial("logit"), coverage = 0.95,
+## glmsusie(X = X, y = y, L = 10L, family = binomial("logit"), coverage = 0.95,
 ##     seed = SEED)
 
 ## Family: binomial
@@ -97,7 +97,7 @@ summary(fit)
 
 ## Open Issues & Support
 
-[![GitHub issues](https://img.shields.io/github/issues-raw/yizenglistat/glmcs.svg)](https://github.com/yizenglistat/glmcs/issues)
+[![GitHub issues](https://img.shields.io/github/issues-raw/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/issues)
 
 ## License
 
@@ -105,4 +105,4 @@ GPL-3 | © 2025 Yizeng Li & Wei Pan
 
 ---
 
-> _“Extensible and generalizable variable selection with confidence in high‐dimensional, multicollinear settings---glmcs delivers both statistical rigor and computational efficiency.”_  
+> _“Extensible and generalizable variable selection with confidence in high‐dimensional, multicollinear settings---glmsusie delivers both statistical rigor and computational efficiency.”_  

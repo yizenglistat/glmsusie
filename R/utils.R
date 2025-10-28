@@ -255,9 +255,9 @@ summarize_coef <- function(sims_coef, true_theta, decimal=2) {
   )
 }
 
-#’ Summarize Confidence Sets from a glmcs Fit
+#’ Summarize Confidence Sets from a glmsusie Fit
 #’
-#’ @param object A fitted model object of class “glmcs”
+#’ @param object A fitted model object of class “glmsusie”
 #’ @return A named list with:
 #’   * \code{n_sets}: total number of confidence sets  
 #’   * \code{avg_size}: average size of those sets  

@@ -1,6 +1,6 @@
-# Internal functions for glmcs package
+# Internal functions for glmsusie package
 
-#' @useDynLib glmcs, .registration = TRUE
+#' @useDynLib glmsusie, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 NULL
 

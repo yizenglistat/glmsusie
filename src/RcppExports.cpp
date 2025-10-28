@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // decompose_theta
 arma::mat decompose_theta(const arma::mat& theta, int L);
-RcppExport SEXP _glmcs_decompose_theta(SEXP thetaSEXP, SEXP LSEXP) {
+RcppExport SEXP _glmsusie_decompose_theta(SEXP thetaSEXP, SEXP LSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -25,7 +25,7 @@ END_RCPP
 }
 // univariate_loglik_cox
 double univariate_loglik_cox(const arma::vec& x, const arma::mat& y, double theta, arma::vec offset, std::string ties);
-RcppExport SEXP _glmcs_univariate_loglik_cox(SEXP xSEXP, SEXP ySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
+RcppExport SEXP _glmsusie_univariate_loglik_cox(SEXP xSEXP, SEXP ySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP tiesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -40,7 +40,7 @@ END_RCPP
 }
 // univariate_loglik_glm
 double univariate_loglik_glm(const arma::vec& x, const arma::vec& y, SEXP family, double theta, const arma::vec& offset, double intercept);
-RcppExport SEXP _glmcs_univariate_loglik_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP interceptSEXP) {
+RcppExport SEXP _glmsusie_univariate_loglik_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP interceptSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -56,7 +56,7 @@ END_RCPP
 }
 // univariate_loglik
 double univariate_loglik(const arma::vec& x, SEXP y, SEXP family, double theta, const arma::vec& offset, double intercept, std::string ties);
-RcppExport SEXP _glmcs_univariate_loglik(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP interceptSEXP, SEXP tiesSEXP) {
+RcppExport SEXP _glmsusie_univariate_loglik(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP thetaSEXP, SEXP offsetSEXP, SEXP interceptSEXP, SEXP tiesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -73,7 +73,7 @@ END_RCPP
 }
 // univariate_irls_cox
 double univariate_irls_cox(arma::vec x, arma::mat y, arma::vec offset, std::string ties, double lambda, double tau, int max_iter, double tol);
-RcppExport SEXP _glmcs_univariate_irls_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+RcppExport SEXP _glmsusie_univariate_irls_cox(SEXP xSEXP, SEXP ySEXP, SEXP offsetSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -91,7 +91,7 @@ END_RCPP
 }
 // univariate_irls_glm_no_intercept
 double univariate_irls_glm_no_intercept(const arma::vec& x, const arma::vec& y, SEXP family, arma::vec offset, int max_iter, double tol);
-RcppExport SEXP _glmcs_univariate_irls_glm_no_intercept(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+RcppExport SEXP _glmsusie_univariate_irls_glm_no_intercept(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -107,7 +107,7 @@ END_RCPP
 }
 // univariate_irls_glm
 Rcpp::List univariate_irls_glm(const arma::vec& x, const arma::vec& y, SEXP family, arma::vec offset, int max_iter, double tol);
-RcppExport SEXP _glmcs_univariate_irls_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+RcppExport SEXP _glmsusie_univariate_irls_glm(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -123,7 +123,7 @@ END_RCPP
 }
 // univariate_fit
 List univariate_fit(const arma::vec& x, SEXP y, SEXP family, arma::vec offset, bool standardize, std::string ties, double lambda, double tau);
-RcppExport SEXP _glmcs_univariate_fit(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP) {
+RcppExport SEXP _glmsusie_univariate_fit(SEXP xSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -141,7 +141,7 @@ END_RCPP
 }
 // single_effect_fit
 Rcpp::List single_effect_fit(const arma::mat& X, SEXP y, SEXP family, arma::vec offset, bool standardize, bool shrinkage, std::string ties, double lambda, double tau, double alpha);
-RcppExport SEXP _glmcs_single_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP shrinkageSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP alphaSEXP) {
+RcppExport SEXP _glmsusie_single_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP familySEXP, SEXP offsetSEXP, SEXP standardizeSEXP, SEXP shrinkageSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP alphaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -161,7 +161,7 @@ END_RCPP
 }
 // additive_effect_fit
 List additive_effect_fit(const arma::mat& X, SEXP y, int L, SEXP family, bool standardize, std::string ties, double lambda, double tau, bool decompose, bool shrinkage, double alpha, double tol, int max_iter);
-RcppExport SEXP _glmcs_additive_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP LSEXP, SEXP familySEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP decomposeSEXP, SEXP shrinkageSEXP, SEXP alphaSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
+RcppExport SEXP _glmsusie_additive_effect_fit(SEXP XSEXP, SEXP ySEXP, SEXP LSEXP, SEXP familySEXP, SEXP standardizeSEXP, SEXP tiesSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP decomposeSEXP, SEXP shrinkageSEXP, SEXP alphaSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -184,20 +184,20 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_glmcs_decompose_theta", (DL_FUNC) &_glmcs_decompose_theta, 2},
-    {"_glmcs_univariate_loglik_cox", (DL_FUNC) &_glmcs_univariate_loglik_cox, 5},
-    {"_glmcs_univariate_loglik_glm", (DL_FUNC) &_glmcs_univariate_loglik_glm, 6},
-    {"_glmcs_univariate_loglik", (DL_FUNC) &_glmcs_univariate_loglik, 7},
-    {"_glmcs_univariate_irls_cox", (DL_FUNC) &_glmcs_univariate_irls_cox, 8},
-    {"_glmcs_univariate_irls_glm_no_intercept", (DL_FUNC) &_glmcs_univariate_irls_glm_no_intercept, 6},
-    {"_glmcs_univariate_irls_glm", (DL_FUNC) &_glmcs_univariate_irls_glm, 6},
-    {"_glmcs_univariate_fit", (DL_FUNC) &_glmcs_univariate_fit, 8},
-    {"_glmcs_single_effect_fit", (DL_FUNC) &_glmcs_single_effect_fit, 10},
-    {"_glmcs_additive_effect_fit", (DL_FUNC) &_glmcs_additive_effect_fit, 13},
+    {"_glmsusie_decompose_theta", (DL_FUNC) &_glmsusie_decompose_theta, 2},
+    {"_glmsusie_univariate_loglik_cox", (DL_FUNC) &_glmsusie_univariate_loglik_cox, 5},
+    {"_glmsusie_univariate_loglik_glm", (DL_FUNC) &_glmsusie_univariate_loglik_glm, 6},
+    {"_glmsusie_univariate_loglik", (DL_FUNC) &_glmsusie_univariate_loglik, 7},
+    {"_glmsusie_univariate_irls_cox", (DL_FUNC) &_glmsusie_univariate_irls_cox, 8},
+    {"_glmsusie_univariate_irls_glm_no_intercept", (DL_FUNC) &_glmsusie_univariate_irls_glm_no_intercept, 6},
+    {"_glmsusie_univariate_irls_glm", (DL_FUNC) &_glmsusie_univariate_irls_glm, 6},
+    {"_glmsusie_univariate_fit", (DL_FUNC) &_glmsusie_univariate_fit, 8},
+    {"_glmsusie_single_effect_fit", (DL_FUNC) &_glmsusie_single_effect_fit, 10},
+    {"_glmsusie_additive_effect_fit", (DL_FUNC) &_glmsusie_additive_effect_fit, 13},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_glmcs(DllInfo *dll) {
+RcppExport void R_init_glmsusie(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

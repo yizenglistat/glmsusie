@@ -130,13 +130,13 @@ iskept <- function(pmp, pval, alpha = 0.05) {
   return(keep)
 }
 
-#' Extract Model Coefficients from a glmcs Object
+#' Extract Model Coefficients from a glmsusie Object
 #'
 #' @description
-#' Extracts coefficients from a glmcs model fit by summing the coefficients
+#' Extracts coefficients from a glmsusie model fit by summing the coefficients
 #' across all single effects for each predictor.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param intercept Logical; if TRUE, include the intercept term as the first element
 #'        of the returned vector. Default is FALSE.
 #' @param ... Additional arguments (not used).
@@ -146,7 +146,7 @@ iskept <- function(pmp, pval, alpha = 0.05) {
 #'         will be named "(Intercept)".
 #'
 #' @export
-coef.glmcs <- function(object, intercept = FALSE, ...) {
+coef.glmsusie <- function(object, intercept = FALSE, ...) {
   # Sum coefficients across all kept effects
   if (is.null(object$kept) || !any(object$kept)) {
     # If no effects kept, return all zeros
@@ -166,12 +166,12 @@ coef.glmcs <- function(object, intercept = FALSE, ...) {
   }
 }
 
-#' Model Predictions from a glmcs Object
+#' Model Predictions from a glmsusie Object
 #'
 #' @description
-#' Produces predictions from a glmcs model for new data or the original training data.
+#' Produces predictions from a glmsusie model for new data or the original training data.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param newdata An optional data frame or matrix in which to look for variables with
 #'        which to predict. If omitted, the fitted values are returned.
 #' @param type Character string specifying the type of prediction:
@@ -185,7 +185,7 @@ coef.glmcs <- function(object, intercept = FALSE, ...) {
 #' @return Vector or matrix of predictions, depending on the type.
 #'
 #' @export
-predict.glmcs <- function(object, newdata = NULL, type = c("link", "response", "terms"), ...) {
+predict.glmsusie <- function(object, newdata = NULL, type = c("link", "response", "terms"), ...) {
   type <- match.arg(type)
   
   # Get coefficients
@@ -234,12 +234,12 @@ predict.glmcs <- function(object, newdata = NULL, type = c("link", "response", "
 }
 
 
-#' Extract Residuals from a glmcs Object
+#' Extract Residuals from a glmsusie Object
 #'
 #' @description
-#' Extracts residuals from a glmcs model fit.
+#' Extracts residuals from a glmsusie model fit.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param type Character string indicating the type of residuals to be returned:
 #'        \itemize{
 #'          \item "deviance": deviance residuals
@@ -252,7 +252,7 @@ predict.glmcs <- function(object, newdata = NULL, type = c("link", "response", "
 #' @return A numeric vector of residuals.
 #'
 #' @export
-residuals.glmcs <- function(object, type = c("deviance", "pearson", "response", "working"), ...) {
+residuals.glmsusie <- function(object, type = c("deviance", "pearson", "response", "working"), ...) {
   type <- match.arg(type)
   
   # Get fitted values
@@ -290,19 +290,19 @@ residuals.glmcs <- function(object, type = c("deviance", "pearson", "response", 
   }
 }
 
-#' Summarize a glmcs Model Fit
+#' Summarize a glmsusie Model Fit
 #'
 #' @description
-#' Produces a summary of a glmcs model fit, including coefficients,
+#' Produces a summary of a glmsusie model fit, including coefficients,
 #' confidence sets, and model fit statistics.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param ... Additional arguments (not used).
 #'
-#' @return A list with class "summary.glmcs" containing various summary statistics.
+#' @return A list with class "summary.glmsusie" containing various summary statistics.
 #'
 #' @export
-summary.glmcs <- function(object, ...) {
+summary.glmsusie <- function(object, ...) {
   # Extract coefficients
   theta <- coef(object)
   
@@ -338,13 +338,13 @@ summary.glmcs <- function(object, ...) {
     elapsed = object$elapsed
   )
   
-  class(result) <- "summary.glmcs"
+  class(result) <- "summary.glmsusie"
   return(result)
 }
 
-#' Print a glmcs Model Summary
+#' Print a glmsusie Model Summary
 #'
-#' @param x A summary.glmcs object created by \code{summary.glmcs()}.
+#' @param x A summary.glmsusie object created by \code{summary.glmsusie()}.
 #' @param digits Number of significant digits to use for printing.
 #' @param max_sets Maximum number of confidence sets to display (default: 5).
 #' @param ... Additional arguments (not used).
@@ -352,7 +352,7 @@ summary.glmcs <- function(object, ...) {
 #' @return The summary object invisibly.
 #'
 #' @export
-print.summary.glmcs <- function(x, digits = max(3, getOption("digits") - 3), 
+print.summary.glmsusie <- function(x, digits = max(3, getOption("digits") - 3), 
                                max_sets = 5, ...) {
   cat("\nCall:\n")
   print(x$call)
@@ -397,16 +397,16 @@ print.summary.glmcs <- function(x, digits = max(3, getOption("digits") - 3),
   invisible(x)
 }
 
-#' Print a glmcs Model Object
+#' Print a glmsusie Model Object
 #'
-#' @param x A glmcs object.
+#' @param x A glmsusie object.
 #' @param ... Additional arguments passed to print.
 #'
 #' @return The object invisibly.
 #'
 #' @export
-print.glmcs <- function(x, ...) {
-  cat("glmcs (Generalized Linear Model with Confidence Sets)\n")
+print.glmsusie <- function(x, ...) {
+  cat("glmsusie (Generalized Linear Model with Confidence Sets)\n")
   
   cat("\nCall:\n")
   print(x$call)
@@ -483,7 +483,7 @@ plot_cs_matrix <- function(prob_mat,
       guide  = ggplot2::guide_axis(n.dodge = 2)
     ) +
     ggplot2::labs(
-      title = "glmcs Confidence Sets",
+      title = "glmsusie Confidence Sets",
       x     = "Variable",
       y     = NULL
     ) +
@@ -496,12 +496,12 @@ plot_cs_matrix <- function(prob_mat,
     return(p)
 }
 
-#' Plot a glmcs Model Object
+#' Plot a glmsusie Model Object
 #'
 #' @description
-#' Produces various plots for visualizing glmcs model results.
+#' Produces various plots for visualizing glmsusie model results.
 #'
-#' @param x A glmcs object.
+#' @param x A glmsusie object.
 #' @param which Integer or character string specifying which plot to create:
 #'        \itemize{
 #'          \item 1 or "coefficients": Plot of coefficient estimates
@@ -514,7 +514,7 @@ plot_cs_matrix <- function(prob_mat,
 #' @return A ggplot2 object.
 #' @importFrom rlang .data
 #' @export
-plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"), 
+plot.glmsusie <- function(x, which = c("coefficients", "probabilities", "sets"), 
                        n_top = 20, ...) {
   # Check for ggplot2
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
@@ -562,7 +562,7 @@ plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"),
       ggplot2::geom_point(size = 2.5, shape = 7) +  # Changed to cross shape (4)
       ggplot2::geom_segment(ggplot2::aes(x = 0, xend = .data$Coefficient, 
                                         yend = .data$Variable), color = "gray90", linewidth = 0.2) +
-      ggplot2::labs(title = "glmcs Coefficient Estimates",
+      ggplot2::labs(title = "glmsusie Coefficient Estimates",
                    x = "Coefficient Value", y = NULL) +
       ggplot2::theme_minimal() +
       ggplot2::theme(
@@ -583,7 +583,7 @@ plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"),
       ggplot2::geom_point(size = 2.5, shape = 7) +  # Changed to cross shape (4)
       ggplot2::geom_segment(ggplot2::aes(x = 0, xend = .data$Probability, 
                                         yend = .data$Variable), color = "gray90", linewidth = 0.2) +
-      ggplot2::labs(title = "glmcs Inclusion Probabilities",
+      ggplot2::labs(title = "glmsusie Inclusion Probabilities",
                    x = "Probability", y = NULL) +
       ggplot2::theme_minimal() +
       ggplot2::theme(
@@ -613,34 +613,34 @@ plot.glmcs <- function(x, which = c("coefficients", "probabilities", "sets"),
   return(p)
 }
 
-#' Extract Fitted Values from a glmcs Object
+#' Extract Fitted Values from a glmsusie Object
 #'
 #' @description
-#' Returns fitted values from a glmcs model object.
+#' Returns fitted values from a glmsusie model object.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param ... Additional arguments (not used).
 #'
 #' @return A vector of fitted values on the scale of the response variable.
 #'
 #' @export
-fitted.glmcs <- function(object, ...) {
+fitted.glmsusie <- function(object, ...) {
   # Use predict with type "response" to get fitted values
   predict(object, type = "response")
 }
 
-#' Extract Log-Likelihood from a glmcs Object
+#' Extract Log-Likelihood from a glmsusie Object
 #'
 #' @description
-#' Returns the log-likelihood of a glmcs model object.
+#' Returns the log-likelihood of a glmsusie model object.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param ... Additional arguments (not used).
 #'
 #' @return Log-likelihood value.
 #'
 #' @export
-logLik.glmcs <- function(object, ...) {
+logLik.glmsusie <- function(object, ...) {
   # pull out basics
   fam  <- object$family
   X    <- object$X
@@ -705,19 +705,19 @@ logLik.glmcs <- function(object, ...) {
   ll
 }
 
-#' Extract AIC from a glmcs Object
+#' Extract AIC from a glmsusie Object
 #'
 #' @description
-#' Returns the Akaike Information Criterion (AIC) for a glmcs model.
+#' Returns the Akaike Information Criterion (AIC) for a glmsusie model.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param ... Additional arguments (not used).
 #' @param k Numeric, the penalty per parameter to be used; default is 2.
 #'
 #' @return AIC value.
 #'
 #' @export
-AIC.glmcs <- function(object, ..., k = 2) {
+AIC.glmsusie <- function(object, ..., k = 2) {
   # Get log-likelihood
   ll <- logLik(object)
   
@@ -729,18 +729,18 @@ AIC.glmcs <- function(object, ..., k = 2) {
 }
 
 
-#' Extract BIC from a glmcs Object
+#' Extract BIC from a glmsusie Object
 #'
 #' @description
-#' Returns the Bayesian Information Criterion (BIC) for a glmcs model.
+#' Returns the Bayesian Information Criterion (BIC) for a glmsusie model.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param ... Additional arguments (not used).
 #'
 #' @return BIC value.
 #'
 #' @export
-BIC.glmcs <- function(object, ...) {
+BIC.glmsusie <- function(object, ...) {
   # Get log-likelihood
   ll <- logLik(object)
   
@@ -752,18 +752,18 @@ BIC.glmcs <- function(object, ...) {
   return(bic)
 }
 
-#' Calculate Deviance for a glmcs Object
+#' Calculate Deviance for a glmsusie Object
 #'
 #' @description
-#' Returns the deviance of a glmcs model.
+#' Returns the deviance of a glmsusie model.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param ... Additional arguments (not used).
 #'
 #' @return Deviance value.
 #'
 #' @export
-deviance.glmcs <- function(object, ...) {
+deviance.glmsusie <- function(object, ...) {
   # Extract components needed for deviance calculation
   y <- object$y
   fitted_values <- fitted(object)
@@ -776,18 +776,18 @@ deviance.glmcs <- function(object, ...) {
   return(dev)
 }
 
-#' Extract Dispersion Parameter from a glmcs Object
+#' Extract Dispersion Parameter from a glmsusie Object
 #'
 #' @description
-#' Returns the estimated dispersion parameter from a glmcs model.
+#' Returns the estimated dispersion parameter from a glmsusie model.
 #'
-#' @param object A fitted model object of class "glmcs".
+#' @param object A fitted model object of class "glmsusie".
 #' @param ... Additional arguments (not used).
 #'
 #' @return Dispersion parameter value.
 #'
 #' @export
-dispersion.glmcs <- function(object, ...) {
+dispersion.glmsusie <- function(object, ...) {
   # Return dispersion if available, otherwise calculate
   if (!is.null(object$dispersion)) {
     return(object$dispersion)

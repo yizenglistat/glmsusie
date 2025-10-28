@@ -1,4 +1,4 @@
-url: https://yizenglistat.github.io/glmcs
+url: https://yizenglistat.github.io/glmsusie
 destination: doc
 navbar:
   left:
@@ -12,7 +12,7 @@ navbar:
       href: reference/index.html
   right:
     - icon: fa-brands fa-github
-      href: https://github.com/yizenglistat/glmcs
+      href: https://github.com/yizenglistat/glmsusie
     - icon: fa-solid fa-envelope
       href: mailto:yizenglistat@gmail.com
     - icon: fa-solid fa-book
