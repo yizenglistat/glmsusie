@@ -1,5 +1,5 @@
 ---
-title: "Cox Regression Examples"
+title: "Cox Regression with Correlated Predictors"
 author: "Yizeng Li"
 date: "`r Sys.Date()`"
 output:
@@ -9,15 +9,14 @@ output:
     fig_width: 5
     fig_height: 4
 tags:
-  - "survival"
+  - "survival analysis"
   - "Cox regression"
-  - "multicollinearity"
+  - "correlated predictors"
 vignette: >
-  %\VignetteIndexEntry{Cox Regression Examples}
+  %\VignetteIndexEntry{Cox Regression with Correlated Predictors}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse   = TRUE,
@@ -33,87 +32,153 @@ library(ggplot2)
 
 # Introduction
 
-The *glmsusie* package implements likelihood-based additive single-sffect regression (LASER), a sparse model that represents the overall effect as a sum of a small number of *single-effect* components. In this vignette we:
+The **glmsusie** package implements the generalized sum of single effects (gSuSiE) model, which represents the overall effect as a sum of a small number of *single-effect* components. This approach extends variable selection to various regression models including Cox proportional hazards regression for survival analysis.
 
-- Simulate a high-dimensional sparse Gaussian linear regression model
-- Fit a Gaussian LASER model via `glmsusie()`
-- Visualize coefficient esimates, inclusion probabilities, and confidence sets
-- Evaluate predictive performance vs. [SuSiE](https://stephenslab.github.io/susieR/index.html)
+In this vignette, we demonstrate gSuSiE's performance with survival outcomes and highly correlated predictors:
+
+- Simulate a block-wise correlation structure with 100 predictors
+- Apply gSuSiE to perform variable selection via `glmsusie()` with Cox regression
+- Visualize coefficient estimates, posterior inclusion probabilities (PIPs), and credible sets (CSs)
+- Evaluate predictive performance for survival analysis
 
 # Simulate data
-We generate ($n=1000$) observations and ($p=1000$) variables, with only 4 true active (nonzero) effects.
+
+We generate $n=1000$ observations and $p=100$ predictors with block-wise correlation. Every 10 consecutive variables are highly correlated ($\rho=0.95$) within each block, while blocks are independent. Only 4 variables have nonzero effects on the hazard, located in different correlation blocks.
 
 ```{r simulate}
 set.seed(42)
-n <- 1000    # sample size
-p <- 1000    # number of predictors
-L <- 10      # number of single-effect components
+n <- 1000     # sample size
+p <- 100      # number of predictors
+L <- 10       # number of single-effect components
+block_size <- 10
+n_blocks <- p / block_size
+rho <- 0.95    # within-block correlation
 
-# true sparse coefficients
+# Create block-wise correlation matrix
+Sigma <- matrix(0, p, p)
+for (b in 1:n_blocks) {
+  block_idx <- ((b-1)*block_size + 1):(b*block_size)
+  # Within-block correlation matrix
+  block_corr <- matrix(rho, block_size, block_size)
+  diag(block_corr) <- 1
+  Sigma[block_idx, block_idx] <- block_corr
+}
+
+# Generate correlated predictors
+X <- MASS::mvrnorm(n, mu = rep(0, p), Sigma = Sigma)
+
+# True sparse coefficients (one per block, spread across different blocks)
 theta_true <- rep(0, p)
-theta_true[c(100, 200, 300, 400)] <- 1
+theta_true[c(3, 18, 47, 82)] <- c(1, -1, 1, -1)
 
-# covariate matrix and response
-X <- matrix(rnorm(n * p), nrow = n, ncol = p)
-y <- drop(X %*% theta_true + rnorm(n))
+# Generate survival data
+library(survival)
+linear_pred <- drop(X %*% theta_true)
+hazard_ratio <- exp(linear_pred)
+
+# Generate survival times from exponential distribution
+lambda_baseline <- 0.1
+survival_times <- rexp(n, rate = lambda_baseline * hazard_ratio)
+
+# Generate censoring times (administrative censoring)
+censor_times <- runif(n, min = 5, max = 15)
+
+# Observed times and event indicators
+observed_times <- pmin(survival_times, censor_times)
+event_indicator <- as.numeric(survival_times <= censor_times)
+
+# Create survival object
+y <- Surv(observed_times, event_indicator)
+
+cat("True nonzero coefficients at positions:", which(theta_true != 0), "\n")
+cat("True coefficient values:", theta_true[theta_true != 0], "\n")
+cat("Event rate:", mean(event_indicator), "\n")
+cat("Median follow-up time:", median(observed_times), "\n")
 ```
 
-# Fit the LASER model
-We allow up to ($L=10$) single effects and use the default Gaussian family. Generally, this method is robust to larger $L$ values and present minimal risk of overfitting. 
- 
+# Fit gSuSiE model
+
+We allow up to $L=10$ single effects and use the Cox family for survival regression. The method is robust to larger $L$ values with minimal overfitting risk.
+
 ```{r fit}
-# load glmsusie library
+# Load glmsusie library
 library(glmsusie)
 
-# model fitting
+# Model fitting
 fit <- glmsusie(
-  X              = X,
-  y              = y,
-  L              = L,
-  family         = gaussian()
+  X      = X,
+  y      = y,
+  L      = L,
+  family = cox()
 )
+
 summary(fit)
 ```
-
 
 # Results
 
 ## Coefficient estimates
-We recover four peaks at the true locations
+
+The method successfully identifies the true signal locations despite high correlation within blocks:
 
 ```{r coef}
-# plot coefficients
-plot(fit, which="coefficients")
+plot(fit, which = "coefficients")
 ```
 
-## Estimated inclusion probability
-Shows the inclusion probability each variable is included in any single-effect component:
+## Posterior inclusion probabilities
+
+Shows the probability that each variable is included in any single-effect component:
 
 ```{r prob}
-# plot coefficients
-plot(fit, which="probabilities")
+plot(fit, which = "probabilities")
 ```
 
-## Estimated 95% confidence sets
-Each confidence set (CS) contains a small group of variables where at least one is likely to be active, with $95\%$ confidence.
+## 95% credible sets
+
+Each credible set contains variables where at least one is likely active with 95% confidence. Note how the method handles correlated variables within blocks:
 
 ```{r cs}
-# plot coefficients
-plot(fit, which="sets")
+plot(fit, which = "sets")
 ```
 
-## Performance evalution
+## Credible sets summary
+```{r cs_summary}
+# Summary of credible sets
+cs_sets <- fit$cs$sets
+if (length(cs_sets) > 0) {
+  cat("Number of credible sets:", length(cs_sets), "\n")
+  for (i in seq_along(cs_sets)) {
+    cat("CS", i, "contains variables:", cs_sets[[i]], "\n")
+  }
+  
+  # Check coverage of true variables
+  true_vars <- which(theta_true != 0)
+  covered_vars <- intersect(unlist(cs_sets), true_vars)
+  cat("\nTrue variables covered by credible sets:", covered_vars, "\n")
+} else {
+  cat("No credible sets identified\n")
+}
+```
 
-```{r perform}
-# compare with SuSiE
-fitted_susie  <- fitted(susieR::susie(X, y, L))
-fitted_glmsusie  <- fitted(fit)
-rmse_susie    <- sqrt(mean((y - fitted_susie)^2))
-rmse_glmsusie    <- sqrt(mean((y - fitted_glmsusie)^2))
+## Coefficient comparison
 
-data.frame(
-  Method = c("susie", "glmsusie"),
-  RMSE   = c(rmse_susie, rmse_glmsusie)
+Compare estimated coefficients with true values:
+
+```{r coef_comparison}
+# Extract coefficients
+coef_est <- coef(fit)
+comparison <- data.frame(
+  Variable = 1:p,
+  True_Coef = theta_true,
+  Estimated_Coef = coef_est,
+  PIP = fit$pip
 )
+
+# Show results for true active variables
+active_comparison <- comparison[theta_true != 0, ]
+print(active_comparison)
 ```
 
+# Conclusion
+
+This example demonstrates that gSuSiE effectively handles Cox proportional hazards regression with highly correlated predictors. The method identifies relevant variables even when they are embedded within correlation blocks, providing both point estimates and uncertainty quantification through credible sets. The Cox family implementation successfully recovers the sparse signal structure in survival data while properly handling censoring and the semi-parametric nature of the Cox model.

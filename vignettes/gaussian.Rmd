@@ -43,7 +43,7 @@ In this vignette, we demonstrate gSuSiE's performance with highly correlated pre
 
 # Simulate data
 
-We generate $n=500$ observations and $p=100$ predictors with block-wise correlation. Every 10 consecutive variables are highly correlated ($\rho=0.98$) within each block, while blocks are independent. Only 4 variables have nonzero effects, located in different correlation blocks.
+We generate $n=5000$ observations and $p=100$ predictors with block-wise correlation. Every 10 consecutive variables are highly correlated ($\rho=0.98$) within each block, while blocks are independent. Only 4 variables have nonzero effects, located in different correlation blocks.
 
 ```{r simulate}
 set.seed(42)
