@@ -89,7 +89,7 @@ correlated predictors:</p>
 <div class="section level2">
 <h2 id="simulate-data">Simulate data<a class="anchor" aria-label="anchor" href="#simulate-data"></a>
 </h2>
-<p>We generate <span class="math inline">n=500</span> observations and
+<p>We generate <span class="math inline">n=5000</span> observations and
 <span class="math inline">p=100</span> predictors with block-wise
 correlation. Every 10 consecutive variables are highly correlated (<span class="math inline">\rho=0.98</span>) within each block, while blocks
 are independent. Only 4 variables have nonzero effects, located in
@@ -156,28 +156,28 @@ risk.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Coefficients: (sorted by PIP)</span></span>
 <span><span class="co">##        Estimate    PIP</span></span>
-<span><span class="co">## X82 -1.00455847 0.9999</span></span>
-<span><span class="co">## X47  0.99552173 0.9994</span></span>
-<span><span class="co">## X18 -0.90263767 0.9849</span></span>
-<span><span class="co">## X3   0.58003843 0.8059</span></span>
-<span><span class="co">## X4   0.08666866 0.2506</span></span>
-<span><span class="co">## X5   0.05426638 0.1618</span></span>
-<span><span class="co">## X1   0.04286195 0.1436</span></span>
-<span><span class="co">## X10  0.03441246 0.1262</span></span>
-<span><span class="co">## X6   0.03396987 0.1241</span></span>
-<span><span class="co">## X2   0.03030643 0.1160</span></span>
+<span><span class="co">## X18 -0.99143940 0.9936</span></span>
+<span><span class="co">## X82 -1.04180572 0.9888</span></span>
+<span><span class="co">## X3   0.91926763 0.9810</span></span>
+<span><span class="co">## X47  0.43663754 0.6886</span></span>
+<span><span class="co">## X45  0.23453415 0.4970</span></span>
+<span><span class="co">## X50  0.08743698 0.2307</span></span>
+<span><span class="co">## X49  0.04493075 0.1328</span></span>
+<span><span class="co">## X44  0.04494264 0.1311</span></span>
+<span><span class="co">## X41  0.02691908 0.0851</span></span>
+<span><span class="co">## X43  0.01019643 0.0358</span></span>
 <span><span class="co">## ... (90 more coefficients not shown)</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 95% Confidence Sets:</span></span>
-<span><span class="co">##                              Set Coverage</span></span>
-<span><span class="co">## cs1                         {82}   0.9999</span></span>
-<span><span class="co">## cs2              {1, 3, 4, 5, 6}   0.9537</span></span>
-<span><span class="co">## cs3 {1, 2, 3, 4, 5, 6, 7, 9, 10}   0.9597</span></span>
-<span><span class="co">## cs4                         {47}   0.9994</span></span>
-<span><span class="co">## cs5                         {18}   0.9849</span></span>
+<span><span class="co">##                                  Set Coverage</span></span>
+<span><span class="co">## cs1                             {82}   0.9888</span></span>
+<span><span class="co">## cs2                              {3}   0.9810</span></span>
+<span><span class="co">## cs3 {41, 42, 43, 44, 45, 47, 49, 50}   0.9762</span></span>
+<span><span class="co">## cs4                 {44, 45, 47, 50}   0.9633</span></span>
+<span><span class="co">## cs5                             {18}   0.9936</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 3 iterations.</span></span>
-<span><span class="co">## Computation time: 15.8 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 14.44 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -230,8 +230,8 @@ variables within blocks:</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">performance</span><span class="op">)</span></span>
 <span><span class="co">##   Method     RMSE</span></span>
-<span><span class="co">## 1  SuSiE 3.008832</span></span>
-<span><span class="co">## 2 gSuSiE 3.009038</span></span></code></pre></div>
+<span><span class="co">## 1  SuSiE 3.008884</span></span>
+<span><span class="co">## 2 gSuSiE 3.009010</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="susie-credible-sets-comparison">SuSiE credible sets comparison<a class="anchor" aria-label="anchor" href="#susie-credible-sets-comparison"></a>
@@ -256,10 +256,10 @@ variables within blocks:</p>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"No credible sets identified by SuSiE\n"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">## CS L1 contains variables: 82 (PIP: 0.9999) </span></span>
-<span><span class="co">## CS L2 contains variables: 47 (PIP: 0.9994) </span></span>
-<span><span class="co">## CS L4 contains variables: 18 (PIP: 0.9848) </span></span>
-<span><span class="co">## CS L3 contains variables: 3 (PIP: 0.7468), 4 (PIP: 0.2041), 5 (PIP: 0.028)</span></span></code></pre></div>
+<span><span class="co">## CS L1 contains variables: 82 (PIP: 0.9872) </span></span>
+<span><span class="co">## CS L2 contains variables: 18 (PIP: 0.9934) </span></span>
+<span><span class="co">## CS L4 contains variables: 3 (PIP: 0.9775) </span></span>
+<span><span class="co">## CS L3 contains variables: 45 (PIP: 0.2959), 47 (PIP: 0.6635)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="visualize-susie-credible-sets">Visualize SuSiE credible sets<a class="anchor" aria-label="anchor" href="#visualize-susie-credible-sets"></a>

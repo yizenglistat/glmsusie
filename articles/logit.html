@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Logistic Regression Examples • glmsusie</title>
+<title>Logistic Regression with Correlated Predictors • glmsusie</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +13,7 @@
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="Logistic Regression Examples">
+<meta property="og:title" content="Logistic Regression with Correlated Predictors">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -54,7 +54,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Logistic Regression Examples</h1>
+      <h1>Logistic Regression with Correlated Predictors</h1>
                         <h4 data-toc-skip class="author">Yizeng Li</h4>
             
             <h4 data-toc-skip class="date">2025-10-28</h4>
@@ -68,89 +68,117 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>The <em>glmsusie</em> package implements likelihood-based additive
-single-sffect regression (LASER), a sparse model that represents the
-overall effect as a sum of a small number of <em>single-effect</em>
-components. In this vignette we:</p>
+<p>The <strong>glmsusie</strong> package implements the generalized sum
+of single effects (gSuSiE) model, which represents the overall effect as
+a sum of a small number of <em>single-effect</em> components. This
+approach extends the <a href="https://stephenslab.github.io/susieR/index.html" class="external-link">SuSiE method</a>
+to general regression models including logistic regression.</p>
+<p>In this vignette, we demonstrate gSuSiE’s performance with binary
+outcomes and highly correlated predictors:</p>
 <ul>
-<li>Simulate a high-dimensional sparse Gaussian linear regression
-model</li>
-<li>Fit a Gaussian LASER model via <code><a href="../reference/glmsusie.html">glmsusie()</a></code>
-</li>
-<li>Visualize coefficient esimates, inclusion probabilities, and
-confidence sets</li>
-<li>Evaluate predictive performance vs. <a href="https://stephenslab.github.io/susieR/index.html" class="external-link">SuSiE</a>
-</li>
+<li>Simulate a block-wise correlation structure with 100 predictors</li>
+<li>Apply gSuSiE to perform variable selection via
+<code><a href="../reference/glmsusie.html">glmsusie()</a></code> with binomial family</li>
+<li>Visualize coefficient estimates, posterior inclusion probabilities
+(PIPs), and credible sets (CSs)</li>
+<li>Evaluate predictive performance for binary classification</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="simulate-data">Simulate data<a class="anchor" aria-label="anchor" href="#simulate-data"></a>
 </h2>
-<p>We generate (<span class="math inline">n=1000</span>) observations
-and (<span class="math inline">p=1000</span>) variables, with only 4
-true active (nonzero) effects.</p>
+<p>We generate <span class="math inline">n=2500</span> observations and
+<span class="math inline">p=100</span> predictors with block-wise
+correlation. Every 10 consecutive variables are highly correlated (<span class="math inline">\rho=0.95</span>) within each block, while blocks
+are independent. Only 4 variables have nonzero effects, located in
+different correlation blocks.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span>    <span class="co"># sample size</span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">1000</span>    <span class="co"># number of predictors</span></span>
-<span><span class="va">L</span> <span class="op">&lt;-</span> <span class="fl">10</span>      <span class="co"># number of single-effect components</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">2500</span>     <span class="co"># sample size</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">100</span>      <span class="co"># number of predictors</span></span>
+<span><span class="va">L</span> <span class="op">&lt;-</span> <span class="fl">10</span>       <span class="co"># number of single-effect components</span></span>
+<span><span class="va">block_size</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span><span class="va">n_blocks</span> <span class="op">&lt;-</span> <span class="va">p</span> <span class="op">/</span> <span class="va">block_size</span></span>
+<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">0.95</span>    <span class="co"># within-block correlation</span></span>
 <span></span>
-<span><span class="co"># true sparse coefficients</span></span>
+<span><span class="co"># Create block-wise correlation matrix</span></span>
+<span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">p</span>, <span class="va">p</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">b</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">n_blocks</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">block_idx</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="op">(</span><span class="va">b</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="va">block_size</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="op">(</span><span class="va">b</span><span class="op">*</span><span class="va">block_size</span><span class="op">)</span></span>
+<span>  <span class="co"># Within-block correlation matrix</span></span>
+<span>  <span class="va">block_corr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">rho</span>, <span class="va">block_size</span>, <span class="va">block_size</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">block_corr</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span>  <span class="va">Sigma</span><span class="op">[</span><span class="va">block_idx</span>, <span class="va">block_idx</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">block_corr</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Generate correlated predictors</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span><span class="va">n</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">p</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="va">Sigma</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># True sparse coefficients (one per block, spread across different blocks)</span></span>
 <span><span class="va">theta_true</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">p</span><span class="op">)</span></span>
-<span><span class="va">theta_true</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span>, <span class="fl">400</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">theta_true</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">18</span>, <span class="fl">47</span>, <span class="fl">82</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># covariate matrix and response</span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="va">p</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">n</span>, ncol <span class="op">=</span> <span class="va">p</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">theta_true</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Generate binary response via logistic model</span></span>
+<span><span class="va">linear_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span> <span class="op">+</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">theta_true</span><span class="op">)</span> <span class="co"># with intercept</span></span>
+<span><span class="va">prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">linear_pred</span><span class="op">)</span>  <span class="co"># inverse logit</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="va">prob</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"True nonzero coefficients at positions:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">## True nonzero coefficients at positions: 3 18 47 82</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"True coefficient values:"</span>, <span class="va">theta_true</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">]</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">## True coefficient values: 1 -1 1 -1</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Response proportion (positives):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">## Response proportion (positives): 0.1328</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="fit-the-laser-model">Fit the LASER model<a class="anchor" aria-label="anchor" href="#fit-the-laser-model"></a>
+<h2 id="fit-gsusie-model">Fit gSuSiE model<a class="anchor" aria-label="anchor" href="#fit-gsusie-model"></a>
 </h2>
-<p>We allow up to (<span class="math inline">L=10</span>) single effects
-and use the default Gaussian family. Generally, this method is robust to
-larger <span class="math inline">L</span> values and present minimal
-risk of overfitting.</p>
+<p>We allow up to <span class="math inline">L=10</span> single effects
+and use the binomial family for logistic regression. The method is
+robust to larger <span class="math inline">L</span> values with minimal
+overfitting risk.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># load glmsusie library</span></span>
+<code class="sourceCode R"><span><span class="co"># Load glmsusie library</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/yizenglistat/glmsusie" class="external-link">glmsusie</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># model fitting</span></span>
+<span><span class="co"># Model fitting</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/glmsusie.html">glmsusie</a></span><span class="op">(</span></span>
-<span>  X              <span class="op">=</span> <span class="va">X</span>,</span>
-<span>  y              <span class="op">=</span> <span class="va">y</span>,</span>
-<span>  L              <span class="op">=</span> <span class="va">L</span>,</span>
-<span>  family         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  X      <span class="op">=</span> <span class="va">X</span>,</span>
+<span>  y      <span class="op">=</span> <span class="va">y</span>,</span>
+<span>  L      <span class="op">=</span> <span class="va">L</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Call:</span></span>
-<span><span class="co">## glmsusie(X = X, y = y, L = L, family = gaussian())</span></span>
+<span><span class="co">## glmsusie(X = X, y = y, L = L, family = binomial())</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Family: gaussian </span></span>
+<span><span class="co">## Family: binomial </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Coefficients: (sorted by PIP)</span></span>
-<span><span class="co">##       Estimate    PIP</span></span>
-<span><span class="co">## X300 1.0347174 1.0000</span></span>
-<span><span class="co">## X400 0.9491801 1.0000</span></span>
-<span><span class="co">## X100 0.9476146 1.0000</span></span>
-<span><span class="co">## X200 0.9745533 0.9997</span></span>
-<span><span class="co">## X1   0.0000000 0.0000</span></span>
-<span><span class="co">## X2   0.0000000 0.0000</span></span>
-<span><span class="co">## X3   0.0000000 0.0000</span></span>
-<span><span class="co">## X4   0.0000000 0.0000</span></span>
-<span><span class="co">## X5   0.0000000 0.0000</span></span>
-<span><span class="co">## X6   0.0000000 0.0000</span></span>
-<span><span class="co">## ... (990 more coefficients not shown)</span></span>
+<span><span class="co">##        Estimate    PIP</span></span>
+<span><span class="co">## X82 -1.02522761 0.9979</span></span>
+<span><span class="co">## X18 -0.98738766 0.9962</span></span>
+<span><span class="co">## X3   0.90256709 0.9791</span></span>
+<span><span class="co">## X47  0.51813756 0.7045</span></span>
+<span><span class="co">## X42  0.16480081 0.3267</span></span>
+<span><span class="co">## X44  0.07489590 0.1875</span></span>
+<span><span class="co">## X45  0.05783056 0.1544</span></span>
+<span><span class="co">## X41  0.04501620 0.1313</span></span>
+<span><span class="co">## X43  0.02078277 0.0785</span></span>
+<span><span class="co">## X50  0.01642584 0.0651</span></span>
+<span><span class="co">## ... (90 more coefficients not shown)</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 95% Confidence Sets:</span></span>
-<span><span class="co">##       Set Coverage</span></span>
-<span><span class="co">## cs1 {200}   0.9997</span></span>
-<span><span class="co">## cs2 {100}   1.0000</span></span>
-<span><span class="co">## cs3 {400}   1.0000</span></span>
-<span><span class="co">## cs4 {300}   1.0000</span></span>
+<span><span class="co">##                  Set Coverage</span></span>
+<span><span class="co">## cs1             {82}   0.9979</span></span>
+<span><span class="co">## cs2              {3}   0.9790</span></span>
+<span><span class="co">## cs3 {42, 44, 45, 47}   0.9536</span></span>
+<span><span class="co">## cs4             {18}   0.9962</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Model converged after 4 iterations.</span></span>
-<span><span class="co">## Computation time: 30.12 seconds.</span></span></code></pre></div>
+<span><span class="co">## Model converged after 3 iterations.</span></span>
+<span><span class="co">## Computation time: 17.06 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -158,50 +186,91 @@ risk of overfitting.</p>
 <div class="section level3">
 <h3 id="coefficient-estimates">Coefficient estimates<a class="anchor" aria-label="anchor" href="#coefficient-estimates"></a>
 </h3>
-<p>We recover four peaks at the true locations</p>
+<p>The method successfully identifies the true signal locations despite
+high correlation within blocks:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"coefficients"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"coefficients"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="logit_files/figure-html/coef-1.png" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
-<h3 id="estimated-inclusion-probability">Estimated inclusion probability<a class="anchor" aria-label="anchor" href="#estimated-inclusion-probability"></a>
+<h3 id="posterior-inclusion-probabilities">Posterior inclusion probabilities<a class="anchor" aria-label="anchor" href="#posterior-inclusion-probabilities"></a>
 </h3>
-<p>Shows the inclusion probability each variable is included in any
+<p>Shows the probability that each variable is included in any
 single-effect component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"probabilities"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"probabilities"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="logit_files/figure-html/prob-1.png" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
-<h3 id="estimated-95-confidence-sets">Estimated 95% confidence sets<a class="anchor" aria-label="anchor" href="#estimated-95-confidence-sets"></a>
+<h3 id="credible-sets">95% credible sets<a class="anchor" aria-label="anchor" href="#credible-sets"></a>
 </h3>
-<p>Each confidence set (CS) contains a small group of variables where at
-least one is likely to be active, with <span class="math inline">95\%</span> confidence.</p>
+<p>Each credible set contains variables where at least one is likely
+active with 95% confidence. Note how the method handles correlated
+variables within blocks:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># plot coefficients</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="st">"sets"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"sets"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="logit_files/figure-html/cs-1.png" width="875" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
-<h3 id="performance-evalution">Performance evalution<a class="anchor" aria-label="anchor" href="#performance-evalution"></a>
+<h3 id="credible-sets-summary">Credible sets summary<a class="anchor" aria-label="anchor" href="#credible-sets-summary"></a>
 </h3>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># compare with SuSiE</span></span>
-<span><span class="va">fitted_susie</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="fu">susieR</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/susieR/man/susie.html" class="external-link">susie</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">y</span>, <span class="va">L</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fitted_glmsusie</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="va">rmse_susie</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="va">fitted_susie</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">rmse_glmsusie</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="va">fitted_glmsusie</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  Method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"susie"</span>, <span class="st">"glmsusie"</span><span class="op">)</span>,</span>
-<span>  RMSE   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">rmse_susie</span>, <span class="va">rmse_glmsusie</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">##     Method      RMSE</span></span>
-<span><span class="co">## 1    susie 0.9728844</span></span>
-<span><span class="co">## 2 glmsusie 0.9609528</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Summary of credible sets</span></span>
+<span><span class="va">cs_sets</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">cs</span><span class="op">$</span><span class="va">sets</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">cs_sets</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Number of credible sets:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">cs_sets</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">cs_sets</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"CS"</span>, <span class="va">i</span>, <span class="st">"contains variables:"</span>, <span class="va">cs_sets</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  </span>
+<span>  <span class="co"># Check coverage of true variables</span></span>
+<span>  <span class="va">true_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  <span class="va">covered_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">cs_sets</span><span class="op">)</span>, <span class="va">true_vars</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nTrue variables covered by credible sets:"</span>, <span class="va">covered_vars</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"No credible sets identified\n"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">## Number of credible sets: 4 </span></span>
+<span><span class="co">## CS 1 contains variables: 82 </span></span>
+<span><span class="co">## CS 2 contains variables: 3 </span></span>
+<span><span class="co">## CS 3 contains variables: 42 44 45 47 </span></span>
+<span><span class="co">## CS 4 contains variables: 18 </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## True variables covered by credible sets: 82 3 47 18</span></span></code></pre></div>
 </div>
+<div class="section level3">
+<h3 id="coefficient-comparison">Coefficient comparison<a class="anchor" aria-label="anchor" href="#coefficient-comparison"></a>
+</h3>
+<p>Compare estimated coefficients with true values:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Extract coefficients</span></span>
+<span><span class="va">coef_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Variable <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">p</span>,</span>
+<span>  True_Coef <span class="op">=</span> <span class="va">theta_true</span>,</span>
+<span>  Estimated_Coef <span class="op">=</span> <span class="va">coef_est</span>,</span>
+<span>  PIP <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">pip</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Show results for true active variables</span></span>
+<span><span class="va">active_comparison</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">active_comparison</span><span class="op">)</span></span>
+<span><span class="co">##     Variable True_Coef Estimated_Coef       PIP</span></span>
+<span><span class="co">## X3         3         1      0.9025671 0.9790571</span></span>
+<span><span class="co">## X18       18        -1     -0.9873877 0.9961945</span></span>
+<span><span class="co">## X47       47         1      0.5181376 0.7044932</span></span>
+<span><span class="co">## X82       82        -1     -1.0252276 0.9978847</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
+</h2>
+<p>This example demonstrates that gSuSiE effectively handles logistic
+regression with highly correlated predictors. The method identifies
+relevant variables even when they are embedded within correlation
+blocks, providing both point estimates and uncertainty quantification
+through credible sets. The binomial family implementation successfully
+recovers the sparse signal structure in binary outcomes.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
