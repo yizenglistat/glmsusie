@@ -1,4 +1,4 @@
-# glmsusie: A Simple Implementation for Generalized Sum of Single Effects Model
+# glmsusie: A simple implementation of variable selection for general regression models with highly correlated predictors
 
 <!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/network)
@@ -13,7 +13,9 @@
 
 ## Overview
 
-**glmsusie** implements the *generalized sum of single effects (gSuSiE)* framework via a blockwise coordinate ascent algorithm, performing variable selection with uncertainty quantification to generalized linear and Cox models.
+**glmsusie** implements the *generalized sum of single effects (gSuSiE)* framework via a blockwise coordinate ascent algorithm, performing variable selection with uncertainty quantification for generalized linear and Cox models. 
+
+This R package accompanies the manuscript entitled *"A simple implementation of variable selection for general regression models with highly correlated predictors"* and provides reproducible code for the simulation studies presented in the paper.
 
 Key features:
 - **Variable selection** with uncertainty quantification through BIC-based posterior inclusion probabilities (PIPs)
@@ -94,6 +96,106 @@ summary(fit)
 ## Computation time: 0.01 seconds.
 ```
 
+## To reproduce the simulation results in the paper
+
+We can reproduce the results by setting different sample size `n` and `family` accordingly below. 
+
+#### S1 simulation results reproduce
+```{r}
+library(glmsusie)
+seed <- 42
+n <- 50
+family <- gaussian()
+# family <- binomial()
+# family <- "cox"
+
+# -----------------------------------------------------------------------------
+# Experiment 1: SuSiE "S1" setting (two covariates highly correlated, p=2)
+# True signal: (1, 0)
+# -----------------------------------------------------------------------------
+res_s1 <- benchmark(
+  settings    = "S1",           # correlation structure
+  n_sims      = 1000,           # number of Monte Carlo replicates
+  n           = n,              # sample size
+  rho         = 0.98,           # within-block correlation
+  family      = family,         # family distribution
+  true_theta  = c(1, 0),        # true coefficients
+  intercept   = 0,              # true intercept
+  dispersion  = 9,              # error variance
+  parallel    = TRUE,           # parallel computing
+  seed        = seed            # reproducibility
+)
+
+res_s1$glmsusie
+res_s1$susie
+res_s1$lasso
+res_s1$enet
+```
+
+#### S2 simulation results reproduce
+```{r}
+library(glmsusie)
+seed <- 42
+n <- 50
+family <- gaussian()
+# family <- binomial()
+# family <- "cox"
+
+# -----------------------------------------------------------------------------
+# Experiment 2: SuSiE "S2" setting (5 variables in a 5×5 block, p=5)
+# True signal: (0, 1, 1, 0, 0)
+# -----------------------------------------------------------------------------
+res_s2 <- benchmark(
+  settings    = "S2",
+  n_sims      = 1000,
+  n           = n,
+  rho         = 0.9,
+  family      = family,
+  true_theta  = c(0, 1, 1, 0, 0),
+  intercept   = 0,
+  dispersion  = 9,
+  parallel    = TRUE,
+  seed        = seed
+)
+
+# Compare the performance of gSuSiE vs SuSiE in this block-correlation scenario
+res_s2$glmsusie
+res_s2$susie
+res_s2$lasso
+res_s2$enet
+```
+
+#### S3 simulation results reproduce
+```{r}
+library(glmsusie)
+seed <- 42
+n <- 50
+family <- gaussian()
+# family <- binomial()
+# family <- "cox"
+
+# -----------------------------------------------------------------------------
+# Experiment 3: Additional "S3" setting (two blocks of size p/2 × p/2, p=4)
+# True signal: (0, 1, 0, 1)
+# -----------------------------------------------------------------------------
+res_s3 <- benchmark(
+  settings    = "S3",
+  n_sims      = 1000,
+  n           = n,
+  rho         = 0.98,
+  family      = family,
+  true_theta  = c(0, 1, 0, 1),
+  intercept   = 0,
+  dispersion  = 9,
+  parallel    = TRUE,
+  seed        = seed
+)
+
+res_s3$glmsusie
+res_s3$susie
+res_s3$lasso
+res_s3$enet
+```
 
 ## Open Issues & Support
 
