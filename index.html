@@ -50,29 +50,20 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="glmsusie-a-simple-implementation-for-generalized-sum-of-single-effects-model">glmsusie: A Simple Implementation for Generalized Sum of Single Effects Model<a class="anchor" aria-label="anchor" href="#glmsusie-a-simple-implementation-for-generalized-sum-of-single-effects-model"></a>
-</h1></div>
-<!-- [![GitHub stars](https://img.shields.io/github/stars/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yizenglistat/glmsusie.svg)](https://github.com/yizenglistat/glmsusie/network)
- -->
+  <main id="main" class="col-md-9"><div class="section level2">
+<h2 id="glmsusie">glmsusie<a class="anchor" aria-label="anchor" href="#glmsusie"></a>
+</h2>
+<hr>
 <p><a href="https://github.com/yizenglistat/glmsusie/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/yizenglistat/glmsusie/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://www.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%3E%3D%203.5.0-blue.svg" alt="R"></a> <a href="https://www.gnu.org/licenses/gpl-3.0.en.html" class="external-link"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL-3"></a> <a href="https://CRAN.R-project.org/package=glmsusie" class="external-link"><img src="https://www.r-pkg.org/badges/version/glmsusie" alt="CRAN status"></a> <a href="https://cran.r-project.org/package=glmsusie" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/glmsusie" alt="Downloads"></a></p>
-<div class="section level2">
-<h2 id="about">About<a class="anchor" aria-label="anchor" href="#about"></a>
-</h2>
-<p>The <code>glmsusie</code> package implements the <strong>generalized Sum of Single Effects (gSuSiE)</strong> model, a likelihood-based extension of the Bayesian SuSiE framework for variable selection in generalized linear and survival (Cox) regression models. gSuSiE is designed for settings with highly correlated predictors and sparse true signals, where traditional penalized regression methods often struggle.</p>
-<p>At its core, gSuSiE decomposes regression effects into additive “single-effect” components, enabling stable variable selection and interpretable uncertainty quantification through <strong>credible sets (CSs)</strong> — groups of correlated variables that collectively have high probability of containing at least one true effect.</p>
-<p>Beyond credible sets and posterior inclusion probabilities (PIPs), gSuSiE also provides <strong>standard errors, <span class="math inline">p</span>-values, and 2BIC statistics</strong> as additional diagnostic measures, offering both Bayesian and frequentist perspectives on variable importance.</p>
+<p>The <code>glmsusie</code> package implements the <em>generalized Sum of Single Effects (gSuSiE)</em> model, a likelihood-based extension of the Bayesian SuSiE framework for variable selection in generalized linear and survival (Cox) regression models. gSuSiE is designed for settings with highly correlated predictors and sparse true signals, where traditional penalized regression methods often struggle.</p>
+<p>At its core, gSuSiE decomposes regression effects into additive “single-effect” components, enabling stable variable selection and interpretable uncertainty quantification through <em>credible sets (CSs)</em> — groups of correlated variables that collectively have high probability of containing at least one true effect.</p>
+<p>Beyond credible sets and <em>posterior inclusion probabilities (PIPs)</em>, gSuSiE also provides <em>standard errors (SEs), <span class="math inline">p</span>-values, and 2BIC values</em> as additional diagnostic measures, offering both Bayesian and frequentist perspectives on variable importance.</p>
 <p>Developed by <strong>Yizeng Li</strong> and <strong>Wei Pan</strong>, Division of Biostatistics and Health data Science, University of Minnesota Twin Cities.</p>
-</div>
-<div class="section level2">
-<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
-</h2>
-<p>You can install the released version of glmsusie from CRAN:</p>
+<div class="section level3">
+<h3 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h3>
+<p>You can install the latest development version of <code>glmsusie</code> below:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"glmsusie"</span><span class="op">)</span></span></code></pre></div>
-<p>Alternatively, install the latest development version of <code>glmsusie</code> from Github:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"yizenglistat/glmsusie"</span><span class="op">)</span></span></code></pre></div>
 <p>See <a href="articles/mwe.html">here</a> for a brief illustraton of <code>glmsusie</code>. For more documentation and examples please visit <a href="https://github.com/yizenglistat/glmsusie" class="external-link">https://github.com/yizenglistat/glmsusie</a>.</p>
