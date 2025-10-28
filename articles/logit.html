@@ -128,7 +128,7 @@ different correlation blocks.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"True coefficient values:"</span>, <span class="va">theta_true</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">]</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">## True coefficient values: 1 -1 1 -1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Response proportion (positives):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">## Response proportion (positives): 0.1328</span></span></code></pre></div>
+<span><span class="co">## Response proportion (positives): 0.1296</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fit-gsusie-model">Fit gSuSiE model<a class="anchor" aria-label="anchor" href="#fit-gsusie-model"></a>
@@ -158,27 +158,28 @@ overfitting risk.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Coefficients: (sorted by PIP)</span></span>
 <span><span class="co">##        Estimate    PIP</span></span>
-<span><span class="co">## X82 -1.02522761 0.9979</span></span>
-<span><span class="co">## X18 -0.98738766 0.9962</span></span>
-<span><span class="co">## X3   0.90256709 0.9791</span></span>
-<span><span class="co">## X47  0.51813756 0.7045</span></span>
-<span><span class="co">## X42  0.16480081 0.3267</span></span>
-<span><span class="co">## X44  0.07489590 0.1875</span></span>
-<span><span class="co">## X45  0.05783056 0.1544</span></span>
-<span><span class="co">## X41  0.04501620 0.1313</span></span>
-<span><span class="co">## X43  0.02078277 0.0785</span></span>
-<span><span class="co">## X50  0.01642584 0.0651</span></span>
+<span><span class="co">## X47  0.94628134 0.9990</span></span>
+<span><span class="co">## X18 -0.90801671 0.9802</span></span>
+<span><span class="co">## X82 -0.73486720 0.9109</span></span>
+<span><span class="co">## X7   0.24976181 0.4268</span></span>
+<span><span class="co">## X4   0.17222280 0.3477</span></span>
+<span><span class="co">## X2   0.12770384 0.2657</span></span>
+<span><span class="co">## X8   0.12946897 0.2530</span></span>
+<span><span class="co">## X5   0.05700890 0.1331</span></span>
+<span><span class="co">## X10  0.05091489 0.1236</span></span>
+<span><span class="co">## X3   0.04815316 0.1183</span></span>
 <span><span class="co">## ... (90 more coefficients not shown)</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 95% Confidence Sets:</span></span>
-<span><span class="co">##                  Set Coverage</span></span>
-<span><span class="co">## cs1             {82}   0.9979</span></span>
-<span><span class="co">## cs2              {3}   0.9790</span></span>
-<span><span class="co">## cs3 {42, 44, 45, 47}   0.9536</span></span>
-<span><span class="co">## cs4             {18}   0.9962</span></span>
+<span><span class="co">##                                 Set Coverage</span></span>
+<span><span class="co">## cs1                        {81, 82}   0.9743</span></span>
+<span><span class="co">## cs2 {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}   0.9737</span></span>
+<span><span class="co">## cs3                            {47}   0.9990</span></span>
+<span><span class="co">## cs4                            {18}   0.9801</span></span>
+<span><span class="co">## cs5          {2, 3, 4, 5, 7, 8, 10}   0.9597</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 3 iterations.</span></span>
-<span><span class="co">## Computation time: 17.33 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 18.94 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -230,11 +231,12 @@ variables within blocks:</p>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"No credible sets identified\n"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">## Number of credible sets: 4 </span></span>
-<span><span class="co">## CS 1 contains variables: 82 </span></span>
-<span><span class="co">## CS 2 contains variables: 3 </span></span>
-<span><span class="co">## CS 3 contains variables: 42 44 45 47 </span></span>
+<span><span class="co">## Number of credible sets: 5 </span></span>
+<span><span class="co">## CS 1 contains variables: 81 82 </span></span>
+<span><span class="co">## CS 2 contains variables: 1 2 3 4 5 6 7 8 9 10 </span></span>
+<span><span class="co">## CS 3 contains variables: 47 </span></span>
 <span><span class="co">## CS 4 contains variables: 18 </span></span>
+<span><span class="co">## CS 5 contains variables: 2 3 4 5 7 8 10 </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## True variables covered by credible sets: 82 3 47 18</span></span></code></pre></div>
 </div>
@@ -256,10 +258,10 @@ variables within blocks:</p>
 <span><span class="va">active_comparison</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">active_comparison</span><span class="op">)</span></span>
 <span><span class="co">##     Variable True_Coef Estimated_Coef       PIP</span></span>
-<span><span class="co">## X3         3         1      0.9025671 0.9790571</span></span>
-<span><span class="co">## X18       18        -1     -0.9873877 0.9961945</span></span>
-<span><span class="co">## X47       47         1      0.5181376 0.7044932</span></span>
-<span><span class="co">## X82       82        -1     -1.0252276 0.9978847</span></span></code></pre></div>
+<span><span class="co">## X3         3         1     0.04815316 0.1183015</span></span>
+<span><span class="co">## X18       18        -1    -0.90801671 0.9801525</span></span>
+<span><span class="co">## X47       47         1     0.94628134 0.9990470</span></span>
+<span><span class="co">## X82       82        -1    -0.73486720 0.9108888</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

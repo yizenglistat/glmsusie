@@ -142,9 +142,9 @@ located in different correlation blocks.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"True coefficient values:"</span>, <span class="va">theta_true</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">]</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">## True coefficient values: 1 -1 1 -1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Event rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">event_indicator</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">## Event rate: 0.608</span></span>
+<span><span class="co">## Event rate: 0.58</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Median follow-up time:"</span>, <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">observed_times</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">## Median follow-up time: 4.682838</span></span></code></pre></div>
+<span><span class="co">## Median follow-up time: 5.514619</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fit-gsusie-model">Fit gSuSiE model<a class="anchor" aria-label="anchor" href="#fit-gsusie-model"></a>
@@ -173,29 +173,28 @@ overfitting risk.</p>
 <span><span class="co">## Family: cox </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Coefficients: (sorted by PIP)</span></span>
-<span><span class="co">##         Estimate    PIP</span></span>
-<span><span class="co">## X47  0.901898999 1.0000</span></span>
-<span><span class="co">## X82 -0.852089479 1.0000</span></span>
-<span><span class="co">## X18 -0.874196084 1.0000</span></span>
-<span><span class="co">## X3   0.810845532 1.0000</span></span>
-<span><span class="co">## X7   0.064899968 0.3493</span></span>
-<span><span class="co">## X9   0.053064353 0.2864</span></span>
-<span><span class="co">## X2   0.019897998 0.1139</span></span>
-<span><span class="co">## X5   0.008076569 0.0493</span></span>
-<span><span class="co">## X1   0.007753359 0.0479</span></span>
-<span><span class="co">## X4   0.007636828 0.0464</span></span>
+<span><span class="co">##          Estimate PIP</span></span>
+<span><span class="co">## X3   9.519446e-01   1</span></span>
+<span><span class="co">## X82 -9.357381e-01   1</span></span>
+<span><span class="co">## X47  9.215298e-01   1</span></span>
+<span><span class="co">## X18 -8.900653e-01   1</span></span>
+<span><span class="co">## X17 -1.283796e-02   0</span></span>
+<span><span class="co">## X15 -4.214844e-03   0</span></span>
+<span><span class="co">## X13 -3.411743e-03   0</span></span>
+<span><span class="co">## X50  1.738820e-08   0</span></span>
+<span><span class="co">## X12 -3.303270e-03   0</span></span>
+<span><span class="co">## X14 -3.423544e-03   0</span></span>
 <span><span class="co">## ... (90 more coefficients not shown)</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 95% Confidence Sets:</span></span>
-<span><span class="co">##                          Set Coverage</span></span>
-<span><span class="co">## cs1                     {82}   1.0000</span></span>
-<span><span class="co">## cs2                      {3}   1.0000</span></span>
-<span><span class="co">## cs3                     {47}   1.0000</span></span>
-<span><span class="co">## cs4                     {18}   1.0000</span></span>
-<span><span class="co">## cs5 {1, 2, 3, 4, 5, 6, 7, 9}   0.9517</span></span>
+<span><span class="co">##      Set Coverage</span></span>
+<span><span class="co">## cs1 {82}        1</span></span>
+<span><span class="co">## cs2  {3}        1</span></span>
+<span><span class="co">## cs3 {47}        1</span></span>
+<span><span class="co">## cs4 {18}        1</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Model converged after 3 iterations.</span></span>
-<span><span class="co">## Computation time: 89.7 seconds.</span></span></code></pre></div>
+<span><span class="co">## Computation time: 86.82 seconds.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -247,12 +246,11 @@ variables within blocks:</p>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"No credible sets identified\n"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">## Number of credible sets: 5 </span></span>
+<span><span class="co">## Number of credible sets: 4 </span></span>
 <span><span class="co">## CS 1 contains variables: 82 </span></span>
 <span><span class="co">## CS 2 contains variables: 3 </span></span>
 <span><span class="co">## CS 3 contains variables: 47 </span></span>
 <span><span class="co">## CS 4 contains variables: 18 </span></span>
-<span><span class="co">## CS 5 contains variables: 1 2 3 4 5 6 7 9 </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## True variables covered by credible sets: 82 3 47 18</span></span></code></pre></div>
 </div>
@@ -274,10 +272,10 @@ variables within blocks:</p>
 <span><span class="va">active_comparison</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">theta_true</span> <span class="op">!=</span> <span class="fl">0</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">active_comparison</span><span class="op">)</span></span>
 <span><span class="co">##     Variable True_Coef Estimated_Coef       PIP</span></span>
-<span><span class="co">## X3         3         1      0.8108455 0.9999920</span></span>
-<span><span class="co">## X18       18        -1     -0.8741961 0.9999999</span></span>
-<span><span class="co">## X47       47         1      0.9018990 1.0000000</span></span>
-<span><span class="co">## X82       82        -1     -0.8520895 1.0000000</span></span></code></pre></div>
+<span><span class="co">## X3         3         1      0.9519446 1.0000000</span></span>
+<span><span class="co">## X18       18        -1     -0.8900653 0.9999961</span></span>
+<span><span class="co">## X47       47         1      0.9215298 1.0000000</span></span>
+<span><span class="co">## X82       82        -1     -0.9357381 1.0000000</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
