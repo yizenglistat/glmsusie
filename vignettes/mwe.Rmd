@@ -104,11 +104,11 @@ plot(fit, which="sets")
 ## Performance evalution
 
 ```{r perform}
+rmse_glmsusie <- sqrt(mean(residuals(fit)^2))
+
 # compare with SuSiE
 fitted_susie  <- fitted(susieR::susie(X, y, L))
-fitted_glmsusie  <- fitted(fit)
 rmse_susie    <- sqrt(mean((y - fitted_susie)^2))
-rmse_glmsusie    <- sqrt(mean((y - fitted_glmsusie)^2))
 
 data.frame(
   Method = c("susie", "glmsusie"),
