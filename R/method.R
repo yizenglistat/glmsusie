@@ -130,6 +130,8 @@ iskept <- function(pmp, pval, alpha = 0.05) {
   return(keep)
 }
 
+
+
 #' Extract Model Coefficients from a glmsusie Object
 #'
 #' @description
@@ -434,15 +436,13 @@ print.glmsusie <- function(x, ...) {
   invisible(x)
 }
 
-#' Plot inclusion probabilities for a set of "confidence sets"
+#' Plot inclusion probabilities for a set of "credible sets"
 #'
 #' @param prob_mat Numeric matrix (r × p) of probabilities (each row sums to 1).
 #' @param row_labels Optional character vector of length r. Default `paste0("CS", 1:r)`.
 #' @param var_labels Optional character or numeric vector of length p. Default 1:p.
-#' @param low_col Colour for P≈0. Default `"white"`.
-#' @param high_col Colour for P≈1. Default `"black"`.
-#' @param drop_zero Logical; if `TRUE`, drop zero-probability entries (default: `TRUE`).
-#' @return A ggplot2 object showing crosses of size ∝ P and colour ∝ P.
+#' @param alpha Coverage level for credible sets. Default 0.05 (95% coverage).
+#' @return A ggplot2 object showing credible sets.
 #'
 #' @import ggplot2
 #' @importFrom rlang .data
@@ -450,48 +450,57 @@ print.glmsusie <- function(x, ...) {
 plot_cs_matrix <- function(prob_mat,
                            row_labels = paste0("CS", seq_len(nrow(prob_mat))),
                            var_labels = seq_len(ncol(prob_mat)),
-                           low_col    = "white",
-                           high_col   = "black",
-                           drop_zero  = TRUE) {
+                           alpha = 0.05) {
   stopifnot(is.matrix(prob_mat))
   r <- nrow(prob_mat); p <- ncol(prob_mat)
   if (length(row_labels) != r) stop("row_labels must match rows")
   if (length(var_labels) != p) stop("var_labels must match cols")
   
-  df <- data.frame(
-    Row = factor(rep(seq_len(r), each = p),
-                 levels = seq_len(r), labels = row_labels),
-    Var = rep(seq_len(p), times = r),
-    P   = as.numeric(t(prob_mat))
-  )
-  if (drop_zero) df <- df[df$P > 0, ]
+  # Find credible sets for each row
+  cs_data <- data.frame()
+  for (i in 1:r) {
+    # Sort probabilities in descending order and get indices
+    sorted_indices <- order(prob_mat[i, ], decreasing = TRUE)
+    sorted_probs <- prob_mat[i, sorted_indices]
+    
+    # Find cumulative sum until > 1-alpha
+    cumsum_probs <- cumsum(sorted_probs)
+    threshold <- 1 - alpha
+    
+    # Find the smallest set with cumulative probability > threshold
+    n_vars <- which(cumsum_probs > threshold)[1]
+    if (is.na(n_vars)) n_vars <- p  # if never exceeds threshold, take all
+    
+    cs_vars <- sorted_indices[1:n_vars]
+    
+    # Add to data frame
+    if (length(cs_vars) > 0) {
+      cs_data <- rbind(cs_data, data.frame(
+        Row = factor(rep(i, length(cs_vars)), levels = 1:r, labels = row_labels),
+        Var = cs_vars
+      ))
+    }
+  }
   
-  x_breaks <- sort(unique(df$Var))
-  # x_labels <- var_labels[x_breaks]
+  # Create plot
+  if (nrow(cs_data) == 0) {
+    stop("No variables in any credible sets")
+  }
   
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$Var, y = .data$Row)) +
-    ggplot2::geom_point(ggplot2::aes(size = .data$P, colour = .data$P, alpha = .data$P),
-                        shape = 7, stroke = 1) +
-    ggplot2::scale_size_continuous(range = c(0, 4), guide = "none") +
-    ggplot2::scale_colour_gradient(low  = low_col,
-                                   high = high_col,
-                                   guide = "none") +
-    ggplot2::scale_alpha(range = c(0, 1), guide = "none") +
-    ggplot2::scale_x_continuous(
-      breaks = x_breaks,
-      labels = function(i) parse(text = paste0("X[",i,"]")),
-      guide  = ggplot2::guide_axis(n.dodge = 2)
-    ) +
+  x_breaks <- sort(unique(cs_data$Var))
+  
+  p <- ggplot2::ggplot(cs_data, ggplot2::aes(x = .data$Var, y = .data$Row)) +
+    ggplot2::geom_point(size = 4, shape = 7) +
+    ggplot2::scale_x_continuous(breaks = x_breaks) +
     ggplot2::labs(
-      title = "glmsusie Confidence Sets",
-      x     = "Variable",
-      y     = NULL
+      title = paste0((1-alpha)*100, "% Credible sets"),
+      x = "Variable",
+      y = NULL
     ) +
-    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::theme_minimal() +
     ggplot2::theme(
-      panel.grid.major.x = ggplot2::element_line(color = "grey90", linewidth = 0.3),
-      panel.grid.major.y = ggplot2::element_line(color = "grey90", linewidth = 0.3),
-      panel.grid.minor   = ggplot2::element_blank()
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5)
     )
     return(p)
 }

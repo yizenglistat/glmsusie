@@ -1,12 +1,12 @@
 ## About
 
-The `glmsusie` package provides an innovative approach to variable selection in generalized linear models and other regression frameworks, including Cox regression for survival analysis. Our method excels when predictors are highly correlated and the true model is sparse.
+The `glmsusie` package implements the **generalized Sum of Single Effects (gSuSiE)** model, a likelihood-based extension of the Bayesian SuSiE framework for variable selection in generalized linear and survival (Cox) regression models. gSuSiE is designed for settings with highly correlated predictors and sparse true signals, where traditional penalized regression methods often struggle.
 
-At its core, `glmsusie` implements the "Likelihood-based Additive Single-Effect Regression" (LASER) model – a novel sparse regression approach that essentially enhances traditional forward selection. The algorithm produces "Confidence Sets" (CSs), which are groups of correlated variables with high probability of containing at least one non-zero effect.
+At its core, gSuSiE decomposes regression effects into additive “single-effect” components, enabling stable variable selection and interpretable uncertainty quantification through **credible sets (CSs)** — groups of correlated variables that collectively have high probability of containing at least one true effect. 
 
-These confidence sets offer a statistical guarantee about variable importance while acknowledging the inherent uncertainty in highly correlated predictor spaces. Rather than forcing selection of a single variable that might be unstable, the CS approach identifies groups where you can be confident at least one variable is influential.
+Beyond credible sets and posterior inclusion probabilities (PIPs), gSuSiE also provides **standard errors, $p$-values, and 2BIC statistics** as additional diagnostic measures, offering both Bayesian and frequentist perspectives on variable importance.
 
-Developed by Yizeng Li and Wei Pan from the Division of Biostatistics at the University of Minnesota Twin Cities.
+Developed by **Yizeng Li** and **Wei Pan**, Division of Biostatistics and Health data Science, University of Minnesota Twin Cities.
 
 
 ## Quick start

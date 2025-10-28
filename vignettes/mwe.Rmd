@@ -32,15 +32,15 @@ library(ggplot2)
 
 # Introduction
 
-The *glmsusie* package implements likelihood-based additive single-sffect regression (LASER), a sparse model that represents the overall effect as a sum of a small number of *single-effect* components. In this vignette we:
+The *glmsusie* package implements the generalized sum of single effects (gSuSiE) model, that represents the overall effect as a sum of a small number of *single-effect* components. In this vignette we:
 
-- Simulate a high-dimensional sparse Gaussian linear regression model
-- Fit a Gaussian LASER model via `glmsusie()`
-- Visualize coefficient esimates, inclusion probabilities, and confidence sets
+- Simulate a high-dimensional sparse linear regression dataset
+- Apply gSuSiE to perform variable selection via `glmsusie()`
+- Visualize coefficient estimates, posterior inclusion probabilities (PIPs), credible sets (CSs) and so on.
 - Evaluate predictive performance vs. [SuSiE](https://stephenslab.github.io/susieR/index.html)
 
 # Simulate data
-We generate ($n=1000$) observations and ($p=1000$) variables, with only 4 true active (nonzero) effects.
+We generate a sparse linear regression dataset with $n=1000$ observations and $p=1000$ predictors, where only 4 variables have nonzero effects.
 
 ```{r simulate}
 set.seed(42)
