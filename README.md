@@ -69,7 +69,7 @@ y <- rbinom(n, 1, prob)
 fit <- glmsusie(X           = X, 
                 y           = y,
                 family      = binomial("logit"),
-                L           = 10L,
+                L           = 10,
                 coverage    = 0.95,
                 seed        = SEED)
 summary(fit)
